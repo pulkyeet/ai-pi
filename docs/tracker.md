@@ -1,22 +1,19 @@
 # Execution Tracker
 
-Last Updated: 2026-08-06
+Last Updated: 2026-08-07
 
 ## Current Status
 
-- **Phase**: Phase 03 complete — `src/api/retrieval/` (`fetch_source(url) -> Source`) is built and
-  green: URL canonicalisation (idempotence proven by property test), conditional-request caching
-  (7d positive / 24h negative TTL), robots.txt + hardcoded no-crawl enforcement, per-host
-  politeness, trafilatura extraction with a single canonical normalisation pass, and path-guessing
-  with its own positive/negative cache and attempt log. **Real measured path-guess hit rate: 75%
-  (30/40)** against the 40-domain corpus — see `docs/external_apis.md`'s new "Fetch &
-  path-guessing (Phase 03)" section for the full breakdown and why it differs from Phase 01's 82%.
-  `make check` green: 147 tests, 95.8% coverage overall, every `retrieval/` module ≥ 90%.
-- **Focus**: Ready to begin Phase 04 — Search & Domain Retrievers
-- **Blockers**: None for Phase 04. Two open, non-blocking credential items carried forward:
-  Product Hunt developer token (not started) and Reddit API application (not yet submitted —
-  see Next Steps). GitHub's fine-grained PAT also needs a permission upgrade before Phase 04/07
-  build on star-velocity (see Recent Activities).
+- **Phase**: Phase 04 complete — `src/api/search/` (Exa behind `SearchProvider`, credit-ledger
+  allowance tracking, 24h result cache, per-run `RetrievalBudget`) and `src/api/sources/` (seven
+  domain retrievers) are built and green. `make check`: 205 tests, 95.95% coverage overall, every
+  new `search/`/`sources/` module ≥ 85% (`exa.py` and `github.py` are the low points at 85%/93%,
+  both from unreachable defensive branches — see Recent Activities).
+- **Focus**: Ready to begin Phase 05 — LLM Gateway
+- **Blockers**: None for Phase 05. Three open, non-blocking credential items carried forward:
+  Product Hunt developer token (still not started), Reddit API application (still not submitted),
+  and GitHub's fine-grained PAT still needs a Starring-permission upgrade before Phase 07 builds on
+  star-velocity as a real, non-degraded signal (see Recent Activities and Next Steps).
 
 ## Recent Activities
 
@@ -238,6 +235,96 @@ Last Updated: 2026-08-06
     slack below the measured 75% for day-to-day vendor content churn without being flaky).
   - Full design/scope: [`docs/execution_phases/phase-03-fetch-source-cache.md`](execution_phases/phase-03-fetch-source-cache.md).
 
+### 2026-08-07
+
+- **Implemented Phase 04**: `src/api/search/` (Exa behind a `SearchProvider` protocol, credit-
+  ledger allowance tracking, 24h result cache, per-run `RetrievalBudget`) and `src/api/sources/`
+  (GitHub, HN Algolia, Wayback CDX, npm/PyPI, Stack Exchange, Product Hunt, SERP-snippets, Reddit).
+  Migration `0004_search_domain_retrievers` adds `search_cache` and `search_credit_usage`
+  (append-only ledger, dollars not query counts). `config.py` gains `producthunt_token`,
+  `enable_reddit`/`reddit_client_id`/`reddit_client_secret`, and `exa_daily_credit_cap_usd`/
+  `exa_global_daily_credit_cap_usd` — all `None`/`False` by default, TBD until
+  [Phase 14](execution_phases/phase-14-benchmark-calibration.md), same pattern as every other
+  quota knob. `make check` green: 205 tests (up from 147), 95.95% coverage overall.
+  - **Two "budget" concepts, kept deliberately separate.** `api.search.budget.RetrievalBudget`
+    (modeled directly on Phase 02's `BudgetTracker`) is an in-memory per-run *call-count* cap —
+    `spend_search()`/`spend_fetch()` raise `BudgetExhaustedError` synchronously, for a future
+    Phase 10 task handler to catch. The Exa *credit* allowance ($10/mo) is a different thing
+    entirely: a persisted, system-wide ledger (`search_credit_usage`), enforced inside
+    `api.search.router.SearchRouter.search()`. Exhaustion there does **not** raise — the router
+    catches its own `AllowanceExhaustedError` (and any `ProviderError`) internally and returns a
+    `SearchResponse(degraded=True, ...)`, per the phase doc's explicit "degradation is a designed
+    path, not an error path". `RetrievalBudget.spend_fetch()` is built and unit-tested but not yet
+    wired into `api.retrieval.fetch_source` calls — that wiring is Phase 10's job, out of this
+    phase's scope by the phase doc's own "Out" list.
+  - **"Daily" and "global daily" (the phase doc's two allowance tiers) collapse to one check.**
+    `search_credit_usage` is already system-wide, not per-run/per-user, so a single rolling-24h
+    `SUM` against `settings.exa_daily_credit_cap_usd` covers both; `GLOBAL_RUNS_PER_DAY` stays a
+    derived reporting quantity rather than a separately-enforced counter until real per-user quotas
+    exist ([Phase 12](execution_phases/phase-12-api-auth-quotas.md)). Both cap settings default to
+    `None` (unenforced) until [Phase 14](execution_phases/phase-14-benchmark-calibration.md)
+    measures real credits/run.
+  - **`Retriever` is a two-field marker protocol** (`name`, `grade`), not one uniform method — the
+    phase doc's own table shows repo metadata, download counts, and search snippets as
+    fundamentally different shapes, so each module (`api.sources.github`, `.hn`, `.wayback`,
+    `.packages`, `.stackexchange`, `.producthunt`, `.serp_snippets`, `.reddit`) exposes its own
+    typed async methods and colocated Pydantic record models instead.
+  - **GitHub's Starring-endpoint 403 (open since Phase 01) is now proven, not just documented.**
+    `GitHubRetriever.star_velocity_90d` still calls the real endpoint (no workaround, since none
+    exists short of a credential upgrade this phase can't perform) and converts a 403 into
+    `RetrieverUnavailableError` — a coverage gap, not a crash — verified against the **real
+    recorded 403** in `tests/fixtures/cassettes/github_api.yaml`
+    (`tests/integration/test_github_retriever.py::test_star_velocity_degrades_on_the_real_recorded_403`).
+    Star velocity stays a genuine coverage gap in every run until the PAT is upgraded (see Next
+    Steps — unchanged from Phase 01/03's carried-forward item).
+  - **SERP-snippet reading for G2/Capterra is structurally, not just conventionally, safe.**
+    `api.sources.serp_snippets` imports only `api.search` types — no `httpx`, no
+    `api.retrieval.fetch` anywhere in the module — so there is no code path that could ever issue a
+    direct fetch to an aggregator domain. Proven two ways: a fake-provider integration test, and an
+    AST-based test asserting the module's import list contains neither (a plain substring check
+    misfired on the module's own docstring, which names both in explaining why it doesn't import
+    them — fixed before it shipped). Reuses `api.retrieval.robots.NO_CRAWL_DOMAINS` as the
+    domain allowlist rather than redeclaring it, so there is exactly one no-crawl source of truth.
+  - **Cassette reuse, not re-recording**, for six of the eight retrievers/providers: GitHub, HN
+    Algolia, Wayback CDX, npm/PyPI, Stack Exchange, and Exa all replay Phase 01's committed
+    cassettes (`tests/fixtures/cassettes/*.yaml`) using the spikes' own literal inputs (repo
+    `microsoft/vscode`, query `"linear alternative"`, domain `stripe.com`, packages
+    `react`/`requests`, query `"project management tool alternative"`). New helper
+    `tests/integration/_vcr.py` mirrors `spikes/_common.py`'s secret-scrubbing `vcr.VCR` factory
+    rather than importing it — `TID251` bans `import spikes` outside `spikes/` itself, and that
+    lint runs over `tests/` too. Exa is POST-with-a-JSON-body, where VCR's default matcher ignores
+    body entirely; `ExaProvider`'s default request shape (`mode="neural"`,
+    `include_contents=True`) was built to reproduce interaction #37 of `search_exa.yaml` byte-for-
+    byte (verified by inspection, then by the test itself passing with `body` added to
+    `match_on`), which is also the one recorded call with real page `text` to build a `snippet`
+    from. Product Hunt (developer token still pending) and the SERP-snippets path (no site-scoped
+    Exa call was ever recorded) have no cassette and are `httpx.MockTransport`-tested instead —
+    called out explicitly in both the code and here rather than silently implied otherwise.
+  - **A real, repeatable test-isolation bug found and fixed while writing the integration suite**:
+    the search cache and credit ledger are deliberately shared/persistent — no `run_id` in
+    `search_cache`'s key (masterplan §9: a second query in an already-explored category should be
+    nearly free *across users*), and `search_credit_usage` is a real append-only table with no
+    per-test cleanup. Tests that used a literal query string or provider name (`"widget makers"`,
+    `"credit-ledger-a"`) passed in isolation but **failed when the same test file was invoked
+    twice in a row** against this project's long-lived local Postgres container — the second
+    invocation's "first ever call" was silently served from a stale cache row (or a ledger sum was
+    silently doubled) left by the first invocation, producing assertion failures that looked like
+    real router/ledger bugs but were purely test-fixture contamination. Fixed by generating a
+    fresh, `uuid4`-suffixed query/provider name per test call — the same reason
+    `tests/integration/_http.py` already has its own `unique_root()` for the Phase 03 source cache.
+    **Actionable finding for future phases: any test against a cache or ledger keyed independently
+    of a fresh per-test id (like `run_id`) needs a uniqueness strategy of its own, or it will pass
+    once and fail on repeat** — re-run any new integration test file twice in a row before trusting
+    a single green run, the same spirit as Phase 02's "a single green run is weak evidence" for
+    concurrency bugs.
+  - Two modules sit at the coverage floor rather than near-100%, both from defensive branches that
+    are real but not independently exercisable without a second real cassette: `exa.py` (85%) —
+    the retry/backoff loop's non-final-attempt branches, already proven correct by the identical,
+    shared `api.executor.retry` code path Phase 02/03 hardened; `github.py` (93%) — a couple of
+    `_contributors_count` edge branches. Not treated as a gap worth chasing with contrived mocks;
+    flagged here instead of silently accepted.
+  - Full design/scope: [`docs/execution_phases/phase-04-search-domain-retrievers.md`](execution_phases/phase-04-search-domain-retrievers.md).
+
 ## Ongoing Work
 
 - [x] Phase 00 — Foundation, Contracts & CI (complete; `make check` green including all
@@ -248,7 +335,10 @@ Last Updated: 2026-08-06
       50x nightly in CI)
 - [x] Phase 03 — Fetch, Text Extraction & Source Cache (complete; path-guess hit rate measured
       at 75%, real number carried into Phase 14's quota math — see Recent Activities)
-- [ ] Phase 04 — Search & Domain Retrievers — **up next**
+- [x] Phase 04 — Search & Domain Retrievers (complete; Exa behind `SearchProvider` with credit-
+      ledger allowance tracking, seven domain retrievers, GitHub star-velocity 403 proven to
+      degrade cleanly against the real cassette — see Recent Activities)
+- [ ] Phase 05 — LLM Gateway — **up next**
 
 ## Completed Milestones
 
@@ -307,28 +397,37 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
 
 ## Next Steps
 
-1. **Submit the Reddit application** — still not done as of the Phase 01 close-out; 2–4 week
-   manual approval once submitted, and it is not blocking anything else. Product Hunt (developer
-   token, minutes) is similarly open but non-blocking.
-2. **Upgrade the GitHub PAT** before Phase 04/07 build on star-velocity — the current fine-grained
-   PAT's default public-read scope returns 403 on the Starring endpoint (REST and GraphQL both).
-   Either switch to a classic PAT or add an explicit Starring permission to the fine-grained one.
-3. Begin [Phase 04](execution_phases/phase-04-search-domain-retrievers.md) — search and domain
-   retrievers, now that both the source cache (`fetch_source`, Phase 03) and every external
-   dependency it schedules work against (Phase 01) are built and de-risked. Phase 04's unified
-   retriever interface should call `api.retrieval.fetch_source` directly for anything URL-shaped
-   rather than re-implementing fetch/cache/robots logic — that's the whole point of this layer.
-4. Phase 00's contracts (`src/api/models/`) remain frozen; Phase 02 and Phase 03 both added their
-   own new types instead of touching them (`api.executor.protocol`, `api.models.source.Source`) —
-   see Recent Activities. Both extended the *schema* via migration (`0002_executor_core`,
-   `0003_fetch_source_cache`), logged there per the phase doc's rule that schema changes need a
-   tracker note.
+1. **Submit the Reddit application** — still not done; 2–4 week manual approval once submitted,
+   and it is not blocking anything else. Product Hunt (developer token, minutes) is similarly open
+   but non-blocking. Both now have real, tested `RetrieverUnavailableError` degradation paths in
+   `api.sources.reddit`/`api.sources.producthunt`, so obtaining either credential is a config
+   change, not a code change.
+2. **Upgrade the GitHub PAT** before Phase 07 builds on star-velocity as a real (non-degraded)
+   signal — the current fine-grained PAT's default public-read scope returns 403 on the Starring
+   endpoint (REST and GraphQL both). Either switch to a classic PAT or add an explicit Starring
+   permission to the fine-grained one. `api.sources.github.GitHubRetriever.star_velocity_90d`
+   already degrades cleanly in the meantime (Phase 04, see Recent Activities) — this item is about
+   unlocking a real signal, not fixing a crash.
+3. Begin [Phase 05](execution_phases/phase-05-llm-gateway.md) — the LLM gateway, now that search
+   and domain retrievers (Phase 04) are built. Phase 05 and Phase 04 are siblings in the dependency
+   graph (both depend only on 00/01), so nothing here blocks it.
+4. Phase 00's contracts (`src/api/models/`) remain frozen; Phase 02, 03, and 04 all added their own
+   new types instead of touching them (`api.executor.protocol`, `api.models.source.Source`,
+   `api.search.base.SearchResult`/`SearchResponse`, plus every retriever's own record models) —
+   see Recent Activities. All three extended the *schema* via migration (`0002_executor_core`,
+   `0003_fetch_source_cache`, `0004_search_domain_retrievers`), logged there per the phase doc's
+   rule that schema changes need a tracker note.
 5. When Phase 10 builds real task handlers, it must adapt `api.models.plan.Plan` into the
    executor's `ExecutionPlan`/`TaskSpec` at the boundary (kind values become `TaskKind.value`
-   strings) — the two are deliberately not the same type; see Recent Activities.
+   strings) — the two are deliberately not the same type; see Recent Activities. It also owns
+   wiring `api.search.budget.RetrievalBudget.spend_fetch()` into real `fetch_source` calls — Phase
+   04 built and unit-tested the primitive but deliberately left that wiring for Phase 10, per the
+   phase doc's own scope split.
 6. Phase 14's quota/cost math should use Phase 03's measured 75% path-guess hit rate (not Phase
    01's 82%, which used a different, looser matching method — see Recent Activities) when
-   re-deriving expected search volume and the Exa allowance's real headroom.
+   re-deriving expected search volume and the Exa allowance's real headroom. It should also set
+   `exa_daily_credit_cap_usd`/`exa_global_daily_credit_cap_usd` (both `None`/unenforced today) from
+   real measured credits-per-run, per Phase 04's Recent Activities entry.
 
 ## Open Items Carried From the Masterplan
 

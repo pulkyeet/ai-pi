@@ -51,6 +51,21 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   primary cost lever — fetch `/pricing` directly instead of searching for it — measured at a real
   **75% hit rate** (`docs/external_apis.md`), below the masterplan's 80% assumption but quantified,
   not a blocker (see Recent Activities in `tracker.md`).
+- **Search & domain retrievers** ([Phase 04](execution_phases/phase-04-search-domain-retrievers.md),
+  **built** — see `src/api/search/` and `src/api/sources/`): `SearchRouter.search()`
+  (`api.search.router`) is search's single entry point — cache lookup, then a credit-ledger
+  allowance gate, then the one v1 `SearchProvider` (`api.search.exa.ExaProvider`), with both a
+  provider failure and an exhausted allowance caught internally and turned into a degraded
+  `SearchResponse` rather than raised ("degradation is a designed path, not an error path"). A
+  separate, in-memory `RetrievalBudget` (`api.search.budget`) is a per-run *call-count* cap,
+  unrelated to the credit ledger; it raises `BudgetExhaustedError` straight out of `search()`.
+  Seven free structured retrievers live in `api.sources`: `github` (repo metadata, reaction-sorted
+  issues, 90-day star velocity — the last one degrades to a coverage gap under the current PAT, see
+  Known Issues), `hn`, `wayback`, `packages` (npm+PyPI), `stackexchange` (quota read from the
+  response body, not headers), `producthunt` (token pending, untested against a real endpoint),
+  `serp_snippets` (G2/Capterra — structurally cannot fetch; no `httpx` import in the module at
+  all), and `reddit` (behind `ENABLE_REDDIT`, default off). All seven degrade via the shared
+  `api.sources.base.RetrieverUnavailableError` rather than crashing a run.
 - **Claim extraction & span binding** ([Phase 06](execution_phases/phase-06-claim-extraction-span-binding.md),
   not yet built): the core guarantee. A claim's `quote` must be found verbatim in the page's stored
   text or the claim is dropped, never repaired or fuzzy-matched. Consumes `Source.extracted_text`
@@ -111,6 +126,19 @@ src/api/
 │                                     # the one normalise() pass), pathguess.py (guess_path,
 │                                     # PRICE_TOKEN_RE), robots.py (RobotsCache, no-crawl set),
 │                                     # cache.py (source + path-guess cache), errors.py
+├── search/                          # Search provider + allowance tracking (Phase 04 — built):
+│                                     # router.py (SearchRouter.search — cache, credit-ledger
+│                                     # allowance, degradation), exa.py (ExaProvider, the only v1
+│                                     # SearchProvider), budget.py (RetrievalBudget — a *different*
+│                                     # in-memory call-count cap, not the credit ledger), cache.py
+│                                     # (24h search-result cache), base.py (SearchProvider
+│                                     # protocol, SearchResult/SearchResponse)
+├── sources/                         # Domain retrievers (Phase 04 — built): github.py, hn.py,
+│                                     # wayback.py, packages.py (npm+PyPI), stackexchange.py,
+│                                     # producthunt.py, serp_snippets.py (G2/Capterra, no httpx
+│                                     # import at all), reddit.py (ENABLE_REDDIT-gated); base.py
+│                                     # (Retriever marker protocol, RetrieverUnavailableError),
+│                                     # ratelimit.py (TokenBucket, one per retriever/endpoint)
 └── prompts/                         # versioned prompt files (empty until Phase 05)
 migrations/versions/                 # hand-written, reviewed Alembic migrations
 spikes/                              # Phase 01 throwaway vendor smoke tests, plus Phase 03's
@@ -123,14 +151,20 @@ tests/
 │                    # integrity tests (secret-scrub + offline-replay), which need no Postgres;
 │                    # _synthetic.py/_db.py/_worker_process.py (leading underscore, not
 │                    # collected as tests) back the Phase 02 executor/chaos suites; _http.py
-│                    # backs Phase 03's fetch/cache/pathguess tests with a scripted
-│                    # httpx.MockTransport instead of VCR cassettes (see tracker.md)
+│                    # backs Phase 03's fetch/cache/pathguess tests (and Phase 04's
+│                    # MockTransport-only retrievers) with a scripted httpx.MockTransport
+│                    # instead of VCR cassettes; _vcr.py (Phase 04) is a from-scratch,
+│                    # secret-scrubbing VCR factory for replaying Phase 01's real cassettes —
+│                    # a separate module from spikes/_common.py's, not an import of it (see
+│                    # tracker.md)
 ├── live/           # real external APIs, @pytest.mark.live, excluded by default; includes
-│                    # test_pathguess_hitrate.py, the nightly regression guard on Phase 03's
-│                    # measured 75% path-guess hit rate
-└── fixtures/{cassettes,pages}/      # VCR cassettes (7 vendors) + 40 real pricing pages,
-                                      # ~30MB total — the Phase 01 fixture corpus, reused as-is
-                                      # by Phase 03's extraction-quality tests
+│                    # test_pathguess_hitrate.py (Phase 03's 75% path-guess hit-rate guard) and
+│                    # test_domain_retrievers_live.py (Phase 04 — exercises api.search/
+│                    # api.sources directly, not just raw HTTP like test_vendors.py does)
+└── fixtures/{cassettes,pages}/      # VCR cassettes (7 vendors, reused by Phase 04's retriever
+                                      # tests) + 40 real pricing pages, ~30MB total — the Phase 01
+                                      # fixture corpus, reused as-is by Phase 03's extraction-
+                                      # quality tests
 docs/
 ├── tracker.md            # this file's sibling — living status log
 ├── working_knowledge.md  # this file — architecture/conventions reference
@@ -288,6 +322,26 @@ fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model se
   `docs/external_apis.md`'s "Fetch & path-guessing (Phase 03)" section for the per-domain
   root-cause). When comparing "hit rate" numbers across phases or vendors, always check which text
   the match ran against.
+- **A test against a deliberately shared/persistent cache or ledger table needs its own
+  uniqueness strategy, or it passes once and fails on repeat.** `search_cache` has no `run_id` in
+  its key by design (masterplan §9 — a second query in an already-explored category should be
+  nearly free *across users*), and `search_credit_usage` is a real append-only table with no
+  per-test cleanup. Early Phase 04 integration tests used a literal query string / provider name
+  and passed in isolation, then failed the moment the same test file ran twice in a row against
+  this project's long-lived local Postgres container — a stale row (or a doubled ledger sum) left
+  by the first run silently changed what the second run's "first call" actually did. Fixed by
+  generating a fresh `uuid4`-suffixed query/provider name per test call, the same reason
+  `tests/integration/_http.py` already has `unique_root()` for the Phase 03 source cache. Re-run
+  any new test file against a shared cache/ledger table twice in a row before trusting a single
+  green run — the same spirit as Phase 02's "a single green run is weak evidence" for concurrency
+  bugs, but for cross-invocation state instead of cross-task races.
+- **GitHub's Starring-endpoint 403 (open since Phase 01) is now load-bearing, not just
+  documented.** `api.sources.github.GitHubRetriever.star_velocity_90d` calls the real endpoint —
+  there is no workaround short of a credential upgrade — and converts the 403 into
+  `RetrieverUnavailableError`, proven against the real recorded 403 in
+  `tests/fixtures/cassettes/github_api.yaml`. Star velocity is a genuine coverage gap in every run
+  until the PAT is upgraded (classic PAT, or an explicit Starring permission on the fine-grained
+  one) — see `docs/tracker.md` Next Steps, carried forward unchanged since Phase 01.
 
 ## Useful Resources & References
 

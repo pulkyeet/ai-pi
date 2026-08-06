@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     openrouter_api_key: SecretStr
     exa_api_key: SecretStr
     github_token: SecretStr
+    producthunt_token: SecretStr | None = None
+
+    # Reddit (masterplan §13, D5): self-service registration is closed, so
+    # this stays off until credentials exist. See api.sources.reddit.
+    enable_reddit: bool = False
+    reddit_client_id: SecretStr | None = None
+    reddit_client_secret: SecretStr | None = None
 
     # Quota knobs (masterplan §8.2). Deliberately unset until Phase 14
     # measures real per-run search/latency numbers; code that reads them
@@ -32,6 +39,14 @@ class Settings(BaseSettings):
     max_competitors_profiled: int | None = None
     max_pages_per_entity: int | None = None
     max_community_threads: int | None = None
+
+    # Exa credit allowance guardrails (masterplan §8.2, Phase 04). Both stay
+    # unset — and therefore unenforced — until Phase 14 measures real
+    # credits-per-run against the $10/mo recurring allowance
+    # (docs/external_apis.md). "Daily" and "global daily" collapse to one
+    # check: the credit ledger is already system-wide, not per-run/user.
+    exa_daily_credit_cap_usd: float | None = None
+    exa_global_daily_credit_cap_usd: float | None = None
 
     # Executor concurrency (masterplan §4.2 — per-service semaphores, one per
     # worker process). Given as concrete numbers in the masterplan itself
