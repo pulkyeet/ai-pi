@@ -1,0 +1,1598 @@
+<!doctype html>
+
+<html xmlns:fb="http://ogp.me/ns/fb#" lang="en-US">
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# zoomvideocall: http://ogp.me/ns/fb/zoomvideocall#">
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).__MONITOR__=t()}(this,(function(){"use strict";
+var e=function(){return e=Object.assign||function(e){for(var t,n=1,r=arguments.length;n<r;n++)for(var i in t=arguments[n])Object.prototype.hasOwnProperty.call(t,i)&&(e[i]=t[i]);return e},e.apply(this,arguments)};function t(e,t,n,r){return new(n||(n=Promise))((function(i,o){function s(e){try{c(r.next(e))}catch(e){o(e)}}function a(e){try{c(r.throw(e))}catch(e){o(e)}}function c(e){var t;e.done?i(e.value):(t=e.value,t instanceof n?t:new n((function(e){e(t)}))).then(s,a)}c((r=r.apply(e,t||[])).next())}))}function n(e,t){var n,r,i,o,s={label:0,sent:function(){if(1&i[0])throw i[1];return i[1]},trys:[],ops:[]};return o={next:a(0),throw:a(1),return:a(2)},"function"==typeof Symbol&&(o[Symbol.iterator]=function(){return this}),o;function a(o){return function(a){return function(o){if(n)throw new TypeError("Generator is already executing.");for(;s;)try{if(n=1,r&&(i=2&o[0]?r.return:o[0]?r.throw||((i=r.return)&&i.call(r),0):r.next)&&!(i=i.call(r,o[1])).done)return i;switch(r=0,i&&(o=[2&o[0],i.value]),o[0]){case 0:case 1:i=o;break;case 4:return s.label++,{value:o[1],done:!1};case 5:s.label++,r=o[1],o=[0];continue;case 7:o=s.ops.pop(),s.trys.pop();continue;default:if(!(i=s.trys,(i=i.length>0&&i[i.length-1])||6!==o[0]&&2!==o[0])){s=0;continue}if(3===o[0]&&(!i||o[1]>i[0]&&o[1]<i[3])){s.label=o[1];break}if(6===o[0]&&s.label<i[1]){s.label=i[1],i=o;break}if(i&&s.label<i[2]){s.label=i[2],s.ops.push(o);break}i[2]&&s.ops.pop(),s.trys.pop();continue}o=t.call(e,s)}catch(e){o=[6,e],r=0}finally{n=i=0}if(5&o[0])throw o[1];return{value:o[0]?o[1]:void 0,done:!0}}([o,a])}}}function r(e,t){for(var n in t)e[n]=t[n];return e}var i={logger:!1,enableMonitorPerf:!1,isLoggedIn:!1,path:"",errorLimit:20,cdnDetectTargetUrl:"",cdnDetectCookieKey:"cdn_detect_result",enableMonitorGlobal:!0,enableMonitorVueError:!0,enableMonitorCdn:!0,trackingEndpointUrl:"",debounceSeconds:300,enableDomDetect:!0,isDevEnv:!1,trackingId:""};let o;var s;let a;var c;(s=o||(o={})).ID="*xxxxxxxxxxxxxxxxxxxxxx",Object.freeze(s),(c=a||(a={})).Masked="masked",c.Unmasked="unmasked",c.Disabled="disabled",c.Na="na",Object.freeze(c);var u=function(){return u=Object.assign||function(e){for(var t,n=1,r=arguments.length;n<r;n++)for(var i in t=arguments[n])Object.prototype.hasOwnProperty.call(t,i)&&(e[i]=t[i]);return e},u.apply(this,arguments)};function l(e,t,n){if(n||2===arguments.length)for(var r,i=0,o=t.length;i<o;i++)!r&&i in t||(r||(r=Array.prototype.slice.call(t,0,i)),r[i]=t[i]);return e.concat(r||Array.prototype.slice.call(t))}"function"==typeof SuppressedError&&SuppressedError;var d="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:{};var f={exports:{}},h="undefined"!=typeof crypto&&crypto.getRandomValues&&crypto.getRandomValues.bind(crypto)||"undefined"!=typeof msCrypto&&"function"==typeof window.msCrypto.getRandomValues&&msCrypto.getRandomValues.bind(msCrypto);if(h){var m=new Uint8Array(16);f.exports=function(){return h(m),m}}else{var v=new Array(16);f.exports=function(){for(var e,t=0;t<16;t++)3&t||(e=4294967296*Math.random()),v[t]=e>>>((3&t)<<3)&255;return v}}for(var p=[],g=0;g<256;++g)p[g]=(g+256).toString(16).substr(1);var y,w,_=function(e,t){var n=t||0,r=p;return[r[e[n++]],r[e[n++]],r[e[n++]],r[e[n++]],"-",r[e[n++]],r[e[n++]],"-",r[e[n++]],r[e[n++]],"-",r[e[n++]],r[e[n++]],"-",r[e[n++]],r[e[n++]],r[e[n++]],r[e[n++]],r[e[n++]],r[e[n++]]].join("")},b=f.exports,T=_,E=0,k=0,x=f.exports,C=_,N=function(e,t,n){var r=t&&n||0,i=t||[],o=(e=e||{}).node||y,s=void 0!==e.clockseq?e.clockseq:w;if(null==o||null==s){var a=b();null==o&&(o=y=[1|a[0],a[1],a[2],a[3],a[4],a[5]]),null==s&&(s=w=16383&(a[6]<<8|a[7]))}var c=void 0!==e.msecs?e.msecs:(new Date).getTime(),u=void 0!==e.nsecs?e.nsecs:k+1,l=c-E+(u-k)/1e4;if(l<0&&void 0===e.clockseq&&(s=s+1&16383),(l<0||c>E)&&void 0===e.nsecs&&(u=0),u>=1e4)throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");E=c,k=u,w=s;var d=(1e4*(268435455&(c+=122192928e5))+u)%4294967296;i[r++]=d>>>24&255,i[r++]=d>>>16&255,i[r++]=d>>>8&255,i[r++]=255&d;var f=c/4294967296*1e4&268435455;i[r++]=f>>>8&255,i[r++]=255&f,i[r++]=f>>>24&15|16,i[r++]=f>>>16&255,i[r++]=s>>>8|128,i[r++]=255&s;for(var h=0;h<6;++h)i[r+h]=o[h];return t||T(i)},S=function(e,t,n){var r=t&&n||0;"string"==typeof e&&(t="binary"===e?new Array(16):null,e=null);var i=(e=e||{}).random||(e.rng||x)();if(i[6]=15&i[6]|64,i[8]=63&i[8]|128,t)for(var o=0;o<16;++o)t[r+o]=i[o];return t||C(i)},O=S;O.v1=N,O.v4=S;var I=O;var A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";function P(){var e,t={},n=[],r=[],i=[],o=function(e,n){null!=n&&""!==n&&(t[e]=n)};return{add:o,addDict:function(e){for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&o(t,e[t])},addJson:function(e,t,i){if(i&&j(i)){var o={keyIfEncoded:e,keyIfNotEncoded:t,json:i};r.push(o),n.push(o)}},addContextEntity:function(e){i.push(e)},getPayload:function(){return t},getJson:function(){return n},withJsonProcessor:function(t){e=t},build:function(){return null==e||e(this,r,i),t}}}function B(e){return function(t,n,r){for(var i=function(n,r,i){var o=JSON.stringify(n);e?t.add(r,function(e){if(!e)return e;var t=function(e){var t,n,r,i,o,s=0,a=0,c=[];if(!e)return e;e=unescape(encodeURIComponent(e));do{t=(o=e.charCodeAt(s++)<<16|e.charCodeAt(s++)<<8|e.charCodeAt(s++))>>18&63,n=o>>12&63,r=o>>6&63,i=63&o,c[a++]=A.charAt(t)+A.charAt(n)+A.charAt(r)+A.charAt(i)}while(s<e.length);var u=c.join(""),l=e.length%3;return(l?u.slice(0,l-3):u)+"===".slice(l||3)}(e);return t.replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_")}(o)):t.add(i,o)},o=function(n,r){var i=n||function(){var n=t.getPayload();if(e?n.cx:n.co)return JSON.parse(e?function(e){if(!e)return e;switch(4-e.length%4){case 2:e+="==";break;case 3:e+="="}return function(e){var t,n,r,i,o,s,a=0,c=0,u=[];if(!e)return e;e+="";do{t=(s=A.indexOf(e.charAt(a++))<<18|A.indexOf(e.charAt(a++))<<12|(i=A.indexOf(e.charAt(a++)))<<6|(o=A.indexOf(e.charAt(a++))))>>16&255,n=s>>8&255,r=255&s,u[c++]=64===i?String.fromCharCode(t):64===o?String.fromCharCode(t,n):String.fromCharCode(t,n,r)}while(a<e.length);return function(e){return decodeURIComponent(e.split("").map((function(e){return"%"+("00"+e.charCodeAt(0).toString(16)).slice(-2)})).join(""))}(u.join("").replace(/\0+$/,""))}(e.replace(/-/g,"+").replace(/_/g,"/"))}(n.cx):n.co)}();return i?i.data=i.data.concat(r.data):i=r,i},s=void 0,a=0,c=n;a<c.length;a++){var u=c[a];"cx"===u.keyIfEncoded?s=o(s,u.json):i(u.json,u.keyIfEncoded,u.keyIfNotEncoded)}n.length=0,r.length&&(s=o(s,{schema:"iglu:com.snowplowanalytics.snowplow/contexts/jsonschema/1-0-0",data:l([],r,!0)}),r.length=0),s&&i(s,"cx","co")}}function j(e){if(!D(e))return!1;for(var t in e)if(Object.prototype.hasOwnProperty.call(e,t))return!0;return!1}function D(e){return null!=e&&(e.constructor==={}.constructor||e.constructor===[].constructor)}var L,M="Snowplow: ";!function(e){e[e.none=0]="none",e[e.error=1]="error",e[e.warn=2]="warn",e[e.debug=3]="debug",e[e.info=4]="info"}(L||(L={}));var q=function(e){return void 0===e&&(e=L.warn),{setLogLevel:function(t){e=L[t]?t:L.warn},warn:function(t,n){for(var r=[],i=2;i<arguments.length;i++)r[i-2]=arguments[i];if(e>=L.warn&&"undefined"!=typeof console){var o=M+t;n?console.warn.apply(console,l([o+"\n",n],r,!1)):console.warn.apply(console,l([o],r,!1))}},error:function(t,n){for(var r=[],i=2;i<arguments.length;i++)r[i-2]=arguments[i];if(e>=L.error&&"undefined"!=typeof console){var o=M+t+"\n";n?console.error.apply(console,l([o+"\n",n],r,!1)):console.error.apply(console,l([o],r,!1))}},debug:function(t){for(var n=[],r=1;r<arguments.length;r++)n[r-1]=arguments[r];e>=L.debug&&"undefined"!=typeof console&&console.debug.apply(console,l([M+t],n,!1))},info:function(t){for(var n=[],r=1;r<arguments.length;r++)n[r-1]=arguments[r];e>=L.info&&"undefined"!=typeof console&&console.info.apply(console,l([M+t],n,!1))}}}();function V(e){var t=e.split(".");return!!(t&&t.length>1)&&function(e){if("*"===e[0]||"*"===e[1])return!1;if(e.slice(2).length>0){for(var t=!1,n=0,r=e.slice(2);n<r.length;n++)if("*"===r[n])t=!0;else if(t)return!1;return!0}return 2==e.length}(t)}function R(e){var t=new RegExp("^iglu:((?:(?:[a-zA-Z0-9-_]+|\\*).)+(?:[a-zA-Z0-9-_]+|\\*))/([a-zA-Z0-9-_.]+|\\*)/jsonschema/([1-9][0-9]*|\\*)-(0|[1-9][0-9]*|\\*)-(0|[1-9][0-9]*|\\*)$").exec(e);if(null!==t&&V(t[1]))return t.slice(1,6)}function U(e){var t=R(e);if(t){var n=t[0];return 5===t.length&&V(n)}return!1}function F(e){return function(e){return Array.isArray(e)&&e.every((function(e){return"string"==typeof e}))}(e)?e.every((function(e){return U(e)})):"string"==typeof e&&U(e)}function z(e){var t=e;return!!(j(t)&&"schema"in t&&"data"in t)&&"string"==typeof t.schema&&"object"==typeof t.data}function H(e){return"function"==typeof e&&e.length<=1}function $(e){return H(e)||z(e)}function J(e){return!(!Array.isArray(e)||2!==e.length)&&(Array.isArray(e[1])?H(e[0])&&e[1].every($):H(e[0])&&$(e[1]))}function W(e){return!(!Array.isArray(e)||2!==e.length)&&!!function(e){var t=e,n=0;if(null!=e&&"object"==typeof e&&!Array.isArray(e)){if(Object.prototype.hasOwnProperty.call(t,"accept")){if(!F(t.accept))return!1;n+=1}if(Object.prototype.hasOwnProperty.call(t,"reject")){if(!F(t.reject))return!1;n+=1}return n>0&&n<=2}return!1}(e[0])&&(Array.isArray(e[1])?e[1].every($):$(e[1]))}function G(e){return J(e)||W(e)}function Q(e,t){if(!U(e))return!1;var n=R(e),r=function(e){var t=new RegExp("^iglu:([a-zA-Z0-9-_.]+)/([a-zA-Z0-9-_]+)/jsonschema/([1-9][0-9]*)-(0|[1-9][0-9]*)-(0|[1-9][0-9]*)$").exec(e);if(null!==t)return t.slice(1,6)}(t);if(n&&r){if(!function(e,t){var n=t.split("."),r=e.split(".");if(n&&r){if(n.length!==r.length)return!1;for(var i=0;i<r.length;i++)if(!K(n[i],r[i]))return!1;return!0}return!1}(n[0],r[0]))return!1;for(var i=1;i<5;i++)if(!K(n[i],r[i]))return!1;return!0}return!1}function K(e,t){return e&&t&&"*"===e||e===t}function X(e){return Array.isArray(e)?e:Array.of(e)}function Z(e,t,n,r){var i,o=X(e).map((function(e){var i=function(e,t,n,r){if(z(e))return[e];if(H(e)){var i=function(e,t,n,r){var i=void 0;try{return i=e({event:t.getPayload(),eventType:n,eventSchema:r}),Array.isArray(i)&&i.every(z)||z(i)?i:void 0}catch(e){i=void 0}return i}(e,t,n,r);if(z(i))return[i];if(Array.isArray(i))return i}}(e,t,n,r);if(i&&0!==i.length)return i}));return(i=[]).concat.apply(i,o.filter((function(e){return null!=e&&e.filter(Boolean)})))}function Y(e,t){return"function"==typeof e?e===t:JSON.stringify(e)===JSON.stringify(t)}function ee(e,t){if(G(e)){if(!G(t))return!1;var n=e[0],r=e[1],i=t[0],o=t[1];return!!Y(n,i)&&(Array.isArray(r)?!!Array.isArray(o)&&r.length===o.length&&r.reduce((function(e,t,n){return e&&Y(t,o[n])}),!0):!Array.isArray(o)&&Y(r,o))}return!!$(e)&&!!$(t)&&Y(e,t)}function te(e){void 0===e&&(e={});var t=e.base64,n=e.corePlugins,r=e.callback,i=null!=n?n:[],o=function(e,t,n){var r=function(e){return{addPluginContexts:function(t){var n=t?l([],t,!0):[];return e.forEach((function(e){try{e.contexts&&n.push.apply(n,e.contexts())}catch(e){q.error("Error adding plugin contexts",e)}})),n}}}(t),i=function(){var e=[],t=[],n=function(n){var r=function(e){for(var t=0,n=e.getJson();t<n.length;t++){var r=n[t];if("ue_px"===r.keyIfEncoded&&"object"==typeof r.json.data){var i=r.json.data.schema;if("string"==typeof i)return i}}return""}(n),i=function(e){var t=e.getPayload().e;return"string"==typeof t?t:""}(n),o=[],s=Z(e,n,i,r);o.push.apply(o,s);var a=function(e,t,n,r){var i,o=X(e).map((function(e){var i=function(e,t,n,r){if(J(e)){var i=e[0],o=!1;try{o=i({event:t.getPayload(),eventType:n,eventSchema:r})}catch(e){o=!1}if(!0===o)return Z(e[1],t,n,r)}else if(W(e)&&function(e,t){var n=0,r=0,i=e.accept;Array.isArray(i)?e.accept.some((function(e){return Q(e,t)}))&&r++:"string"==typeof i&&Q(i,t)&&r++;var o=e.reject;return Array.isArray(o)?e.reject.some((function(e){return Q(e,t)}))&&n++:"string"==typeof o&&Q(o,t)&&n++,r>0&&0===n}(e[0],r))return Z(e[1],t,n,r);return[]}(e,t,n,r);if(i&&0!==i.length)return i}));return(i=[]).concat.apply(i,o.filter((function(e){return null!=e&&e.filter(Boolean)})))}(t,n,i,r);return o.push.apply(o,a),o};return{getGlobalPrimitives:function(){return e},getConditionalProviders:function(){return t},addGlobalContexts:function(n){for(var r=[],i=[],o=0,s=n;o<s.length;o++){var a=s[o];G(a)?r.push(a):$(a)&&i.push(a)}e=e.concat(i),t=t.concat(r)},clearGlobalContexts:function(){t=[],e=[]},removeGlobalContexts:function(n){for(var r=function(n){G(n)?t=t.filter((function(e){return!ee(n,e)})):$(n)&&(e=e.filter((function(e){return!ee(n,e)})))},i=0,o=n;i<o.length;i++)r(o[i])},getApplicableContexts:function(e){return n(e)}}}(),o=e,s={};function a(e,t){s[e]=t}var c={track:function(e,a,c){e.withJsonProcessor(B(o)),e.add("eid",I.v4()),e.addDict(s);var u=function(e){return null==e?{type:"dtm",value:(new Date).getTime()}:"number"==typeof e?{type:"dtm",value:e}:"ttm"===e.type?{type:"ttm",value:e.value}:{type:"dtm",value:e.value||(new Date).getTime()}}(c);e.add(u.type,u.value.toString());var l=function(e){if(e&&e.length)return{schema:"iglu:com.snowplowanalytics.snowplow/contexts/jsonschema/1-0-0",data:e}}(function(e,t){var n=i.getApplicableContexts(e),r=[];return t&&t.length&&r.push.apply(r,t),n&&n.length&&r.push.apply(r,n),r}(e,r.addPluginContexts(a)));void 0!==l&&e.addJson("cx","co",l),t.forEach((function(t){try{t.beforeTrack&&t.beforeTrack(e)}catch(e){q.error("Plugin beforeTrack",e)}})),"function"==typeof n&&n(e);var d=e.build();return t.forEach((function(e){try{e.afterTrack&&e.afterTrack(d)}catch(e){q.error("Plugin afterTrack",e)}})),d},addPayloadPair:a,getBase64Encoding:function(){return o},setBase64Encoding:function(e){o=e},addPayloadDict:function(e){for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(s[t]=e[t])},resetPayloadPairs:function(e){s=D(e)?e:{}},setTrackerVersion:function(e){a("tv",e)},setTrackerNamespace:function(e){a("tna",e)},setAppId:function(e){a("aid",e)},setPlatform:function(e){a("p",e)},setUserId:function(e){a("uid",e)},setScreenResolution:function(e,t){a("res",e+"x"+t)},setViewport:function(e,t){a("vp",e+"x"+t)},setColorDepth:function(e){a("cd",e)},setTimezone:function(e){a("tz",e)},setLang:function(e){a("lang",e)},setIpAddress:function(e){a("ip",e)},setUseragent:function(e){a("ua",e)},addGlobalContexts:function(e){i.addGlobalContexts(e)},clearGlobalContexts:function(){i.clearGlobalContexts()},removeGlobalContexts:function(e){i.removeGlobalContexts(e)}};return c}(null==t||t,i,r),s=u(u({},o),{addPlugin:function(e){var t,n,r=e.plugin;i.push(r),null===(t=r.logger)||void 0===t||t.call(r,q),null===(n=r.activateCorePlugin)||void 0===n||n.call(r,s)}});return null==i||i.forEach((function(e){var t,n;null===(t=e.logger)||void 0===t||t.call(e,q),null===(n=e.activateCorePlugin)||void 0===n||n.call(e,s)})),s}var ne,re,ie={exports:{}},oe={exports:{}};ne="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",re={rotl:function(e,t){return e<<t|e>>>32-t},rotr:function(e,t){return e<<32-t|e>>>t},endian:function(e){if(e.constructor==Number)return 16711935&re.rotl(e,8)|4278255360&re.rotl(e,24);for(var t=0;t<e.length;t++)e[t]=re.endian(e[t]);return e},randomBytes:function(e){for(var t=[];e>0;e--)t.push(Math.floor(256*Math.random()));return t},bytesToWords:function(e){for(var t=[],n=0,r=0;n<e.length;n++,r+=8)t[r>>>5]|=e[n]<<24-r%32;return t},wordsToBytes:function(e){for(var t=[],n=0;n<32*e.length;n+=8)t.push(e[n>>>5]>>>24-n%32&255);return t},bytesToHex:function(e){for(var t=[],n=0;n<e.length;n++)t.push((e[n]>>>4).toString(16)),t.push((15&e[n]).toString(16));return t.join("")},hexToBytes:function(e){for(var t=[],n=0;n<e.length;n+=2)t.push(parseInt(e.substr(n,2),16));return t},bytesToBase64:function(e){for(var t=[],n=0;n<e.length;n+=3)for(var r=e[n]<<16|e[n+1]<<8|e[n+2],i=0;i<4;i++)8*n+6*i<=8*e.length?t.push(ne.charAt(r>>>6*(3-i)&63)):t.push("=");return t.join("")},base64ToBytes:function(e){e=e.replace(/[^A-Z0-9+\/]/gi,"");for(var t=[],n=0,r=0;n<e.length;r=++n%4)0!=r&&t.push((ne.indexOf(e.charAt(n-1))&Math.pow(2,-2*r+8)-1)<<2*r|ne.indexOf(e.charAt(n))>>>6-2*r);return t}},oe.exports=re;var se={utf8:{stringToBytes:function(e){return se.bin.stringToBytes(unescape(encodeURIComponent(e)))},bytesToString:function(e){return decodeURIComponent(escape(se.bin.bytesToString(e)))}},bin:{stringToBytes:function(e){for(var t=[],n=0;n<e.length;n++)t.push(255&e.charCodeAt(n));return t},bytesToString:function(e){for(var t=[],n=0;n<e.length;n++)t.push(String.fromCharCode(e[n]));return t.join("")}}},ae=se;function ce(e,t,n){void 0===n&&(n=63072e3);try{var r=window.localStorage,i=Date.now()+1e3*n;return r.setItem("".concat(e,".expires"),i.toString()),r.setItem(e,t),!0}catch(e){return!1}}function ue(e){try{var t=window.localStorage;return t.removeItem(e),t.removeItem(e+".expires"),!0}catch(e){return!1}}function le(e){try{return window.sessionStorage.getItem(e)}catch(e){return}}!function(){var e=oe.exports,t=ae.utf8,n=ae.bin,r=function(r,i){var o=e.wordsToBytes(function(n){n.constructor==String?n=t.stringToBytes(n):"undefined"!=typeof Buffer&&"function"==typeof Buffer.isBuffer&&Buffer.isBuffer(n)?n=Array.prototype.slice.call(n,0):Array.isArray(n)||(n=n.toString());var r=e.bytesToWords(n),i=8*n.length,o=[],s=1732584193,a=-271733879,c=-1732584194,u=271733878,l=-1009589776;r[i>>5]|=128<<24-i%32,r[15+(i+64>>>9<<4)]=i;for(var d=0;d<r.length;d+=16){for(var f=s,h=a,m=c,v=u,p=l,g=0;g<80;g++){if(g<16)o[g]=r[d+g];else{var y=o[g-3]^o[g-8]^o[g-14]^o[g-16];o[g]=y<<1|y>>>31}var w=(s<<5|s>>>27)+l+(o[g]>>>0)+(g<20?1518500249+(a&c|~a&u):g<40?1859775393+(a^c^u):g<60?(a&c|a&u|c&u)-1894007588:(a^c^u)-899497514);l=u,u=c,c=a<<30|a>>>2,a=s,s=w}s+=f,a+=h,c+=m,u+=v,l+=p}return[s,a,c,u,l]}(r));return i&&i.asBytes?o:i&&i.asString?n.bytesToString(o):e.bytesToHex(o)};r._blocksize=16,r._digestsize=20,ie.exports=r}();var de={sessionId:!0,sourceId:!0,sourcePlatform:!1,userId:!1,reason:!1};function fe(e){return btoa(e).replace(/\+/g,"-").replace(/\//g,"_").replace(/\=+$/,"")}function he(e){return!(!e||"string"!=typeof e.valueOf())}function me(e){return Number.isInteger&&Number.isInteger(e)||"number"==typeof e&&isFinite(e)&&Math.floor(e)===e}function ve(e){if(!he(e)){e=e.text||"";var t=document.getElementsByTagName("title");t&&null!=t[0]&&(e=t[0].text)}return e}function pe(e){var t=new RegExp("^(?:(?:https?|ftp):)/*(?:[^@]+@)?([^:/#]+)").exec(e);return t?t[1]:e}function ge(e){var t=e.length;return"."===e.charAt(--t)&&(e=e.slice(0,t)),"*."===e.slice(0,2)&&(e=e.slice(1)),e}function ye(e){var t=window,n=_e("referrer",t.location.href)||_e("referer",t.location.href);if(n)return n;if(e)return e;try{if(t.top)return t.top.document.referrer;if(t.parent)return t.parent.document.referrer}catch(e){}return document.referrer}function we(e,t,n,r){return e.addEventListener?(e.addEventListener(t,n,r),!0):e.attachEvent?e.attachEvent("on"+t,n):void(e["on"+t]=n)}function _e(e,t){var n=new RegExp("^[^#]*[?&]"+e+"=([^&#]*)").exec(t);return n?decodeURIComponent(n[1].replace(/\+/g," ")):null}function be(e,t,n,r){Ee(e,"",-1,"/",t,n,r)}function Te(e){for(var t=document.cookie.split("; "),n=[],r=0;r<t.length;r++)t[r].substring(0,e.length)===e&&n.push(t[r]);return n}function Ee(e,t,n,r,i,o,s){return arguments.length>1?document.cookie=e+"="+encodeURIComponent(null!=t?t:"")+(n?"; Expires="+new Date(+new Date+1e3*n).toUTCString():"")+(r?"; Path="+r:"")+(i?"; Domain="+i:"")+(o?"; SameSite="+o:"")+(s?"; Secure":""):decodeURIComponent((("; "+document.cookie).split("; "+e+"=")[1]||"").split(";")[0])}function ke(e,t,n,r,i,o,s,a,c,u,l,d,f,h,m,v,p,g,y,w){void 0===g&&(g=!0);var _,b,T=!1,E=[],k=!1,x=!0===(r="string"==typeof r?r.toLowerCase():r)||"beacon"===r||"true"===r,C=Boolean(x&&window.navigator&&"function"==typeof window.navigator.sendBeacon&&!(function(e,t){var n=t.match("(iP.+; CPU .*OS (d+)[_d]*.*) AppleWebKit/");return!(!n||!n.length)&&parseInt(n[0])<=13}(0,b=window.navigator.userAgent)||function(e,t,n){var r=n.match("(Macintosh;.*Mac OS X (d+)_(d+)[_d]*.*) AppleWebKit/");return!(!r||!r.length)&&(parseInt(r[0])<=10||10===parseInt(r[0])&&parseInt(r[1])<=15)}(0,0,b)&&function(e){return e.match("Version/.* Safari/")&&!function(e){return e.match("Chrom(e|ium)")}(e)}(b)))&&x,N="get"===r,S=Boolean(window.XMLHttpRequest&&"withCredentials"in new XMLHttpRequest),O=!N&&S&&("post"===r||x),I=O?i:"/i",A="snowplowOutQueue_".concat(e,"_").concat(O?"post2":"get");if(x&&(f={}),o=n&&function(){var e="modernizr";if(!function(){try{return!!window.localStorage}catch(e){return!0}}())return!1;try{var t=window.localStorage;return t.setItem(e,e),t.removeItem(e),!0}catch(e){return!1}}()&&O&&o||1,n)try{var P=window.localStorage.getItem(A);E=P?JSON.parse(P):[]}catch(e){}function B(e){var t=Object.keys(e).map((function(t){return[t,e[t]]})).reduce((function(e,t){var n=t[0],r=t[1];return e[n]=r.toString(),e}),{});return{evt:t,bytes:j(JSON.stringify(t))}}function j(e){for(var t=0,n=0;n<e.length;n++){var r=e.charCodeAt(n);r<=127?t+=1:r<=2047?t+=2:r>=55296&&r<=57343?(t+=4,n++):t+=r<65535?3:4}return t}Array.isArray(E)||(E=[]),t.outQueues.push(E),S&&o>1&&t.bufferFlushers.push((function(e){T||R(e)}));var D=function(e){return"object"==typeof e[0]&&"evt"in e[0]};function L(e,t){var n=F(t,!0,!1),r=H([e.evt]);n.onreadystatechange=function(){4===n.readyState&&(U(n.status)?null==y||y(r):null==w||w({status:n.status,message:n.statusText,events:r,willRetry:!1}))},n.send(z(r))}function M(e){for(var t=0;t<e;t++)E.shift();n&&ce(A,JSON.stringify(E.slice(0,u)))}function V(e,t,n){e.onreadystatechange=function(){if(4===e.readyState)if(clearTimeout(r),U(e.status))M(t),null==y||y(n),R();else{var i=function(e){return!U(e)&&(!!g&&(!!m.includes(e)||!v.includes(e)))}(e.status);i||(q.error("Status ".concat(e.status,", will not retry.")),M(t)),null==w||w({status:e.status,message:e.statusText,events:n,willRetry:i}),T=!1}};var r=setTimeout((function(){e.abort(),g||M(t),null==w||w({status:0,message:"timeout",events:n,willRetry:g}),T=!1}),l)}function R(e){for(void 0===e&&(e=!1);E.length&&"string"!=typeof E[0]&&"object"!=typeof E[0];)E.shift();if(E.length){if(!he(_))throw"No collector configured";if(T=!0,p&&!k){var t=F(p,!1,e);return k=!0,t.timeout=l,t.onreadystatechange=function(){4===t.readyState&&R()},void t.send()}if(S){var r=void 0,i=void 0,o=void 0;if(D(E)?(i=F(r=_,!0,e),o=function(e){for(var t=0,n=0;t<e.length&&!((n+=e[t].bytes)>=s);)t+=1;return t}(E)):(i=F(r=$(E[0]),!1,e),o=1),D(E)){var a=E.slice(0,o);if(a.length>0){var c=!1,f=a.map((function(e){return e.evt}));if(C){var h=new Blob([z(H(f))],{type:"application/json"});try{c=window.navigator.sendBeacon(r,h)}catch(e){c=!1}}if(!0===c)M(o),null==y||y(a),R();else{var m=H(f);V(i,o,m),i.send(z(m))}}}else V(i,o,[r]),i.send()}else if(d||D(E))T=!1;else{var v=new Image(1,1),g=!0;v.onload=function(){g&&(g=!1,E.shift(),n&&ce(A,JSON.stringify(E.slice(0,u))),R())},v.onerror=function(){g&&(g=!1,T=!1)},v.src=$(E[0]),setTimeout((function(){g&&T&&(g=!1,R())}),l)}}else T=!1}function U(e){return e>=200&&e<300}function F(e,t,n){var r=new XMLHttpRequest;for(var i in t?(r.open("POST",e,!n),r.setRequestHeader("Content-Type","application/json; charset=UTF-8")):r.open("GET",e,!n),r.withCredentials=h,d&&r.setRequestHeader("SP-Anonymous","*"),f)Object.prototype.hasOwnProperty.call(f,i)&&r.setRequestHeader(i,f[i]);return r}function z(e){return JSON.stringify({schema:"iglu:com.snowplowanalytics.snowplow/payload_data/jsonschema/1-0-4",data:e})}function H(e){for(var t=(new Date).getTime().toString(),n=0;n<e.length;n++)e[n].stm=t;return e}function $(e){return c?_+e.replace("?","?stm="+(new Date).getTime()+"&"):_+e}return{enqueueRequest:function(e,t){_=t+I;var r=function(e,t){return q.warn("Event ("+e+"B) too big, max is "+t)};if(O){if((l=B(e)).bytes>=s)return r(l.bytes,s),void L(l,_);E.push(l)}else{var c=function(e){var t="?",n={co:!0,cx:!0},r=!0;for(var i in e)e.hasOwnProperty(i)&&!n.hasOwnProperty(i)&&(r?r=!1:t+="&",t+=encodeURIComponent(i)+"="+encodeURIComponent(e[i]));for(var o in n)e.hasOwnProperty(o)&&n.hasOwnProperty(o)&&(t+="&"+o+"="+encodeURIComponent(e[o]));return t}(e);if(a>0){var l,d=j($(c));if(d>=a)return r(d,a),void(S&&L(l=B(e),t+i))}E.push(c)}var f=!1;n&&(f=ce(A,JSON.stringify(E.slice(0,u)))),T||f&&!(E.length>=o)||R()},executeQueue:function(){T||R()},setUseLocalStorage:function(e){n=e},setAnonymousTracking:function(e){d=e},setCollectorUrl:function(e){_=e+I},setBufferSize:function(e){o=e}}}function xe(e,t,n){var r,i,o;return"translate.googleusercontent.com"===e?(""===n&&(n=t),e=pe(t=null!==(i=t,r=(o=new RegExp("^(?:https?|ftp)(?::/*(?:[^?]+))([?][^#]+)").exec(i))&&(null==o?void 0:o.length)>1?_e("u",o[1]):null)&&void 0!==r?r:"")):"cc.bingj.com"!==e&&"webcache.googleusercontent.com"!==e||(e=pe(t=document.links[0].href)),[e,t,n]}function Ce(e,t){void 0===t&&(t={memorizedVisitCount:1});var n=t.memorizedVisitCount;Ae(e)?(e[7]=e[6],e[5]=e[4],e[3]++):e[3]=n;var r=I.v4();return e[6]=r,e[10]=0,e[8]="",e[9]=void 0,r}function Ne(e){e[4]=Math.round((new Date).getTime()/1e3)}function Se(e,t,n){var r=e[9];return{userId:n?"00000000-0000-0000-0000-000000000000":e[1],sessionId:e[6],eventIndex:e[10],sessionIndex:e[3],previousSessionId:n?null:e[7]||null,storageMechanism:"localStorage"==t?"LOCAL_STORAGE":"COOKIE_1",firstEventId:e[8]||null,firstEventTimestamp:r?new Date(r).toISOString():null}}function Oe(e){return e[6]}function Ie(e){return e[3]}function Ae(e){return"0"===e[0]}var Pe,Be=!1,je="x";function De(){return"ResizeObserver"in window?(Pe||(Pe=Le()),function(){if(!Be&&document&&document.body&&document.documentElement){Be=!0;var e=new ResizeObserver((function(e){for(var t=0,n=e;t<n.length;t++){var r=n[t];r.target!==document.body&&r.target!==document.documentElement||(Pe=Le())}}));e.observe(document.body),e.observe(document.documentElement)}}(),Pe):Le()}function Le(){return{viewport:qe(Me()),documentSize:qe((e=document.documentElement,t=document.body,n=t?Math.max(t.offsetHeight,t.scrollHeight):0,r=Math.max(e.clientWidth,e.offsetWidth,e.scrollWidth),i=Math.max(e.clientHeight,e.offsetHeight,e.scrollHeight,n),isNaN(r)||isNaN(i)?"":r+je+i)),resolution:qe(screen.width+je+screen.height),colorDepth:screen.colorDepth,devicePixelRatio:window.devicePixelRatio,cookiesEnabled:window.navigator.cookieEnabled,online:window.navigator.onLine,browserLanguage:window.navigator.language||window.navigator.userLanguage,documentLanguage:document.documentElement.lang,webdriver:window.navigator.webdriver,deviceMemory:window.navigator.deviceMemory,hardwareConcurrency:window.navigator.hardwareConcurrency};var e,t,n,r,i}function Me(){var e,t;if("innerWidth"in window)e=window.innerWidth,t=window.innerHeight;else{var n=document.documentElement||document.body;e=n.clientWidth,t=n.clientHeight}return Math.max(0,e)+je+Math.max(0,t)}function qe(e){return e&&e.split(je).map((function(e){return Math.floor(Number(e))})).join(je)}function Ve(e,t,n,r,i,o){void 0===o&&(o={});var s=[],a=function(e,t,n,r,i,o){var a,c,d,f,h,m,v,p,g,y,w,_,b,T,E,k,x,C,N,S,O,A,B,j,D,L,M,V,R;o.eventMethod=null!==(a=o.eventMethod)&&void 0!==a?a:"post";var U,F,z=function(e){var t;return null!==(t=e.stateStorageStrategy)&&void 0!==t?t:"cookieAndLocalStorage"},H=function(e){var t,n;return"boolean"!=typeof e.anonymousTracking&&null!==(n=!0===(null===(t=e.anonymousTracking)||void 0===t?void 0:t.withSessionTracking))&&void 0!==n&&n},$=function(e){var t,n;return"boolean"!=typeof e.anonymousTracking&&null!==(n=!0===(null===(t=e.anonymousTracking)||void 0===t?void 0:t.withServerAnonymisation))&&void 0!==n&&n},J=function(e){return!!e.anonymousTracking},W=null!==(d=null===(c=null==o?void 0:o.contexts)||void 0===c?void 0:c.browser)&&void 0!==d&&d,G=null===(h=null===(f=null==o?void 0:o.contexts)||void 0===f?void 0:f.webPage)||void 0===h||h;s.push((U=function(e){return ct?null:e},F=function(e){return st?e:U(e)},{beforeTrack:function(e){var t=Bt("ses"),n=Jt(),r=0===function(e){return e[10]}(n);if(Le=!!ee&&!!Ee(ee),rt||Le)zt();else{Ae(n)?(Be=t||"none"==ut?Oe(n):Ce(n),dt=Ie(n)):(new Date).getTime()-lt>1e3*ot&&(dt++,Be=Ce(n,{memorizedVisitCount:dt})),Ne(n),function(e,t){if(0===e[10]){var n=t.build();e[8]=n.eid;var r=n.dtm||n.ttm;e[9]=r?parseInt(r):void 0}}(n,e),function(e){e[10]+=1}(n);var i=De(),o=i.viewport,s=i.documentSize;e.add("vp",o),e.add("ds",s),e.add("vid",F(dt)),e.add("sid",F(Be)),e.add("duid",U(function(e){return e[1]}(n))),e.add("uid",U(je)),St(),e.add("refr",It(Q||ze)),e.add("url",It(K||Fe));var a=Se(n,ut,ct);if(!gt||ct&&!st||function(e,t){var n={schema:"iglu:com.snowplowanalytics.snowplow/client_session/jsonschema/1-0-2",data:t};e.addContextEntity(n)}(e,a),"none"!=ut){Ut(n);var c=Rt();t&&!r||!c||!yt||wt||(yt(a),wt=!1)}lt=(new Date).getTime()}}})),G&&s.push({contexts:function(){return[{schema:"iglu:com.snowplowanalytics.snowplow/web_page/jsonschema/1-0-0",data:{id:Qt()}}]}}),W&&s.push({contexts:function(){return[{schema:"iglu:com.snowplowanalytics.snowplow/browser_context/jsonschema/2-0-0",data:u(u({},De()),{tabId:Kt()})}]}}),s.push.apply(s,null!==(m=o.plugins)&&void 0!==m?m:[]);var Q,K,X,Z,Y,ee,ne,re,oe,se,ae,he,Pe,Be,je,Le,Me,qe=te({base64:o.encodeBase64,corePlugins:s,callback:function(e){rt||Le||ft.enqueueRequest(e.build(),$e)}}),Ve=document.characterSet||document.charset,Re=xe(window.location.hostname,window.location.href,ye()),Ue=ge(Re[0]),Fe=Re[1],ze=Re[2],He=null!==(v=o.platform)&&void 0!==v?v:"web",$e=Wt(r),Je=null!==(p=o.postPath)&&void 0!==p?p:"/com.snowplowanalytics.snowplow/tp2",We=null!==(g=o.appId)&&void 0!==g?g:"",Ge=document.title,Qe=!1,Ke=null===(y=o.resetActivityTrackingOnPageView)||void 0===y||y,Xe=null!==(w=o.cookieName)&&void 0!==w?w:"_sp_",Ze=null!==(_=o.cookieDomain)&&void 0!==_?_:void 0,Ye="/",et=null!==(b=o.cookieSameSite)&&void 0!==b?b:"None",tt=null===(T=o.cookieSecure)||void 0===T||T,nt=window.navigator.doNotTrack||window.navigator.msDoNotTrack||window.doNotTrack,rt=void 0!==o.respectDoNotTrack&&o.respectDoNotTrack&&("yes"===nt||"1"===nt),it=null!==(E=o.cookieLifetime)&&void 0!==E?E:63072e3,ot=null!==(k=o.sessionCookieTimeout)&&void 0!==k?k:1800,st=H(o),at=$(o),ct=J(o),ut=z(o),lt=(new Date).getTime(),dt=1,ft=ke(e,i,"localStorage"==ut||"cookieAndLocalStorage"==ut,o.eventMethod,Je,null!==(x=o.bufferSize)&&void 0!==x?x:1,null!==(C=o.maxPostBytes)&&void 0!==C?C:4e4,null!==(N=o.maxGetBytes)&&void 0!==N?N:0,null===(S=o.useStm)||void 0===S||S,null!==(O=o.maxLocalStorageQueueSize)&&void 0!==O?O:1e3,null!==(A=o.connectionTimeout)&&void 0!==A?A:5e3,at,null!==(B=o.customHeaders)&&void 0!==B?B:{},null===(j=o.withCredentials)||void 0===j||j,null!==(D=o.retryStatusCodes)&&void 0!==D?D:[],(null!==(L=o.dontRetryStatusCodes)&&void 0!==L?L:[]).concat([400,401,403,410,422]),o.idService,o.retryFailedRequests,o.onRequestSuccess,o.onRequestFailure),ht=!1,mt=null!==(M=o.preservePageViewIdForUrl)&&void 0!==M&&M,vt=void 0,pt={enabled:!1,installed:!1,configurations:{}},gt=null!==(R=null===(V=o.contexts)||void 0===V?void 0:V.session)&&void 0!==R&&R,yt=o.onSessionUpdateCallback,wt=!1,_t="boolean"==typeof(Me=o.useExtendedCrossDomainLinker||!1)?{useExtendedCrossDomainLinker:Me}:{useExtendedCrossDomainLinker:!0,collectCrossDomainAttributes:Me},bt=_t.useExtendedCrossDomainLinker,Tt=_t.collectCrossDomainAttributes;o.hasOwnProperty("discoverRootDomain")&&o.discoverRootDomain&&(Ze=function(e,t){for(var n=window.location.hostname,r="_sp_root_domain_test_",i=r+(new Date).getTime(),o="_test_value_"+(new Date).getTime(),s=n.split("."),a=s.length-2;a>=0;a--){var c=s.slice(a).join(".");if(Ee(i,o,0,"/",c,e,t),Ee(i)===o){be(i,c,e,t);for(var u=Te(r),l=0;l<u.length;l++)be(u[l],c,e,t);return c}}return n}(et,tt));var Et=De(),kt=Et.browserLanguage,xt=Et.resolution,Ct=Et.colorDepth,Nt=Et.cookiesEnabled;function St(){(Re=xe(window.location.hostname,window.location.href,ye()))[1]!==Fe&&(ze=ye(Fe)),Ue=ge(Re[0]),Fe=Re[1]}function Ot(e){for(var t=function(e){return function(t){var n=t.currentTarget,r=function(e,t,n){var r,i=(new Date).getTime(),o=u(u({},de),t),s=n.domainUserId,a=n.userId,c=n.sessionId,l=n.sourceId,d=n.sourcePlatform,f=n.event,h=f.currentTarget,m="function"==typeof o.reason?o.reason(f):null===(r=null==h?void 0:h.textContent)||void 0===r?void 0:r.trim();return e?[s,i,o.sessionId&&c,o.userId&&fe(a||""),o.sourceId&&fe(l||""),o.sourcePlatform&&d,o.reason&&fe(m||"")].map((function(e){return e||""})).join(".").replace(/([.]*$)/,""):n.domainUserId+"."+i}(e,Tt,{domainUserId:Pe,userId:je||void 0,sessionId:Be,sourceId:We,sourcePlatform:He,event:t});(null==n?void 0:n.href)&&(n.href=function(e,t,n){var r=t+"="+n,i=e.split("#"),o=i[0].split("?"),s=o.shift(),a=o.join("?");if(a){for(var c=!0,u=a.split("&"),l=0;l<u.length;l++)if(u[l].substr(0,4)===t+"="){c=!1,u[l]=r,a=u.join("&");break}c&&(a=r+"&"+a)}else a=r;return i[0]=s+"?"+a,i.join("#")}(n.href,"_sp",r))}}(bt),n=0;n<document.links.length;n++){var r=document.links[n];!r.spDecorationEnabled&&e(r)&&(r.addEventListener("click",t,!0),r.addEventListener("mousedown",t,!0),r.spDecorationEnabled=!0)}}function It(e){var t;return Z&&(t=new RegExp("#.*"),e=e.replace(t,"")),Y&&(t=new RegExp("[{}]","g"),e=e.replace(t,"")),e}function At(e){var t=new RegExp("^([a-z]+):").exec(e);return t?t[1]:null}function Pt(e){return Xe+e+"."+he}function Bt(e){var t=Pt(e);return"localStorage"==ut?function(e){try{var t=window.localStorage,n=t.getItem(e+".expires");return null===n||+n>Date.now()?t.getItem(e):(t.removeItem(e),void t.removeItem(e+".expires"))}catch(e){return}}(t):"cookie"==ut||"cookieAndLocalStorage"==ut?Ee(t):void 0}function jt(){St(),he=ie.exports((Ze||Ue)+(Ye||"/")).slice(0,4)}function Dt(){var e=new Date;ne=e.getTime()}function Lt(){!function(){var e=Mt(),t=e[0];t<re?re=t:t>oe&&(oe=t);var n=e[1];n<se?se=n:n>ae&&(ae=n)}(),Dt()}function Mt(){var e=document.documentElement;return e?[e.scrollLeft||window.pageXOffset,e.scrollTop||window.pageYOffset]:[0,0]}function qt(){var e=Mt(),t=e[0];re=t,oe=t;var n=e[1];se=n,ae=n}function Vt(e){return Math.round(e)}function Rt(){return Ft(Pt("ses"),"*",ot)}function Ut(e){var t=Pt("id"),n=function(e,t){var n=l([],e,!0);return t&&(n[1]="",n[7]=""),n.shift(),n.join(".")}(e,ct);return Ft(t,n,it)}function Ft(e,t,n){return!(ct&&!st)&&("localStorage"==ut?ce(e,t,n):("cookie"==ut||"cookieAndLocalStorage"==ut)&&(Ee(e,t,n,Ye,Ze,et,tt),-1!==document.cookie.indexOf("".concat(e,"="))))}function zt(e){var t=Pt("id"),n=Pt("ses");ue(t),ue(n),be(t,Ze,et,tt),be(n,Ze,et,tt),(null==e?void 0:e.preserveSession)||(Be=I.v4(),dt=1),(null==e?void 0:e.preserveUser)||(Pe=ct?"":I.v4(),je=null)}function Ht(e){e&&e.stateStorageStrategy&&(o.stateStorageStrategy=e.stateStorageStrategy,ut=z(o)),ct=J(o),st=H(o),at=$(o),ft.setUseLocalStorage("localStorage"==ut||"cookieAndLocalStorage"==ut),ft.setAnonymousTracking(at)}function $t(){if(!ct||st){var e="none"!=ut&&!!Bt("ses"),t=Jt();Pe=function(e,t){var n;return e[1]?n=e[1]:t?(n="",e[1]=n):(n=I.v4(),e[1]=n),n}(t,ct),Be=e?Oe(t):Ce(t),dt=Ie(t),"none"!=ut&&(Rt(),Ne(t),Ut(t))}}function Jt(){return"none"==ut?["1","",0,0,0,void 0,"","","",void 0,0]:function(e,t,n,r){var i,o=new Date,s=Math.round(o.getTime()/1e3);e?(i=e.split(".")).unshift("0"):i=["1",t,s,r,s,"",n],i[6]&&"undefined"!==i[6]||(i[6]=I.v4()),i[7]&&"undefined"!==i[7]||(i[7]=""),i[8]&&"undefined"!==i[8]||(i[8]=""),i[9]&&"undefined"!==i[9]||(i[9]=""),i[10]&&"undefined"!==i[10]||(i[10]=0);var a=function(e,t){var n=parseInt(e);return isNaN(n)?t:n},c=function(e){return e?a(e,void 0):void 0};return[i[0],i[1],a(i[2],s),a(i[3],r),a(i[4],s),c(i[5]),i[6],i[7],i[8],c(i[9]),a(i[10],0)]}(Bt("id")||void 0,Pe,Be,dt)}function Wt(e){return 0===e.indexOf("http")?e:("https:"===document.location.protocol?"https":"http")+"://"+e}function Gt(){ht&&null!=i.pageViewId||(i.pageViewId=I.v4(),i.pageViewUrl=K||Fe)}function Qt(){return function(){if(null==i.pageViewId)return!0;if(ht||!mt)return!1;if(void 0===i.pageViewUrl)return!0;var e=K||Fe;if(!0===mt||"full"==mt||!("URL"in window))return i.pageViewUrl!=e;var t=new URL(e),n=new URL(i.pageViewUrl);return"pathname"==mt?t.pathname!=n.pathname:"pathnameAndSearch"==mt&&(t.pathname!=n.pathname||t.search!=n.search)}()&&(i.pageViewId=I.v4(),i.pageViewUrl=K||Fe),i.pageViewId}function Kt(){if("none"===ut||ct||!G)return null;var e="_sp_tab_id",t=le(e);return t||(function(e,t){try{return window.sessionStorage.setItem(e,t),!0}catch(e){return!1}}(e,I.v4()),t=le(e)),t||null}function Xt(e,t){return(e||[]).concat(t?t():[])}function Zt(e,t,n){var r=function(e,t){St(),e({context:t,pageViewId:Qt(),minXOffset:re,minYOffset:se,maxXOffset:oe,maxYOffset:ae}),qt()},i=function(){var i=new Date;ne+e.configHeartBeatTimer>i.getTime()&&r(e.callback,Xt(t,n))};0===e.configMinimumVisitLength?e.activityInterval=window.setInterval(i,e.configHeartBeatTimer):e.activityInterval=window.setTimeout((function(){var o=new Date;ne+e.configMinimumVisitLength>o.getTime()&&r(e.callback,Xt(t,n)),e.activityInterval=window.setInterval(i,e.configHeartBeatTimer)}),e.configMinimumVisitLength)}function Yt(e){var t=e.minimumVisitLength,n=e.heartbeatDelay,r=e.callback;if(me(t)&&me(n))return{configMinimumVisitLength:1e3*t,configHeartBeatTimer:1e3*n,callback:r};q.error("Activity tracking minimumVisitLength & heartbeatDelay must be integers")}function en(e){var t=e.context,n=e.minXOffset,r=e.minYOffset,i=e.maxXOffset,o=e.maxYOffset,s=document.title;s!==Ge&&(Ge=s,X=void 0),qe.track(function(e){var t=e.pageUrl,n=e.pageTitle,r=e.referrer,i=e.minXOffset,o=e.maxXOffset,s=e.minYOffset,a=e.maxYOffset,c=P();return c.add("e","pp"),c.add("url",t),c.add("page",n),c.add("refr",r),i&&!isNaN(Number(i))&&c.add("pp_mix",i.toString()),o&&!isNaN(Number(o))&&c.add("pp_max",o.toString()),s&&!isNaN(Number(s))&&c.add("pp_miy",s.toString()),a&&!isNaN(Number(a))&&c.add("pp_may",a.toString()),c}({pageUrl:It(K||Fe),pageTitle:ve(X||Ge),referrer:It(Q||ze),minXOffset:Vt(n),maxXOffset:Vt(i),minYOffset:Vt(r),maxYOffset:Vt(o)}),t)}function tn(e){var t=pt.configurations[e];0===(null==t?void 0:t.configMinimumVisitLength)?window.clearTimeout(null==t?void 0:t.activityInterval):window.clearInterval(null==t?void 0:t.activityInterval),pt.configurations[e]=void 0}qe.setTrackerVersion(n),qe.setTrackerNamespace(t),qe.setAppId(We),qe.setPlatform(He),qe.addPayloadPair("cookie",Nt?"1":"0"),qe.addPayloadPair("cs",Ve),qe.addPayloadPair("lang",kt),qe.addPayloadPair("res",xt),qe.addPayloadPair("cd",Ct),jt(),$t(),o.crossDomainLinker&&Ot(o.crossDomainLinker);var nn={getDomainSessionIndex:function(){return dt},getPageViewId:Qt,getTabId:Kt,newSession:function(){var e=Jt();if(Ae(e)?(Be="none"!=ut?Ce(e):Oe(e),dt=Ie(e)):(dt++,Be=Ce(e,{memorizedVisitCount:dt})),Ne(e),"none"!=ut){var t=Se(e,ut,ct);Ut(e),Rt()&&yt&&(wt=!0,yt(t))}lt=(new Date).getTime()},getCookieName:function(e){return Pt(e)},getUserId:function(){return je},getDomainUserId:function(){return Jt()[1]},getDomainUserInfo:function(){return Jt()},setReferrerUrl:function(e){Q=e},setCustomUrl:function(e){St(),K=function(e,t){var n;return At(t)?t:"/"===t.slice(0,1)?At(e)+"://"+pe(e)+t:((n=(e=It(e)).indexOf("?"))>=0&&(e=e.slice(0,n)),(n=e.lastIndexOf("/"))!==e.length-1&&(e=e.slice(0,n+1)),e+t)}(Fe,e)},setDocumentTitle:function(e){Ge=document.title,X=e,Qe=!1},discardHashTag:function(e){Z=e},discardBrace:function(e){Y=e},setCookiePath:function(e){Ye=e,jt()},setVisitorCookieTimeout:function(e){it=e},crossDomainLinker:function(e){Ot(e)},enableActivityTracking:function(e){pt.configurations.pagePing||(pt.enabled=!0,pt.configurations.pagePing=Yt(u(u({},e),{callback:en})))},enableActivityTrackingCallback:function(e){pt.configurations.callback||(pt.enabled=!0,pt.configurations.callback=Yt(e))},disableActivityTracking:function(){tn("pagePing")},disableActivityTrackingCallback:function(){tn("callback")},updatePageActivity:function(){Dt()},setOptOutCookie:function(e){ee=e},setUserId:function(e){je=e},setUserIdFromLocation:function(e){St(),je=_e(e,Fe)},setUserIdFromReferrer:function(e){St(),je=_e(e,ze)},setUserIdFromCookie:function(e){je=Ee(e)},setCollectorUrl:function(e){$e=Wt(e),ft.setCollectorUrl($e)},setBufferSize:function(e){ft.setBufferSize(e)},flushBuffer:function(e){void 0===e&&(e={}),ft.executeQueue(),e.newBufferSize&&ft.setBufferSize(e.newBufferSize)},trackPageView:function(e){void 0===e&&(e={}),function(e){var t=e.title,n=e.context,r=e.timestamp,i=e.contextCallback;St(),vt&&vt==Qt()&&Gt(),vt=Qt(),Ge=document.title,t?(X=t,Qe=!0):Qe&&(X=null);var o=ve(X||Ge);qe.track(function(e){var t=e.pageUrl,n=e.pageTitle,r=e.referrer,i=P();return i.add("e","pv"),i.add("url",t),i.add("page",n),i.add("refr",r),i}({pageUrl:It(K||Fe),pageTitle:o,referrer:It(Q||ze)}),Xt(n,i),r);var s=new Date,a=!1;if(pt.enabled&&!pt.installed){pt.installed=!0,a=!0;var c={update:function(){if("undefined"!=typeof window&&"function"==typeof window.addEventListener){var e=!1,t=Object.defineProperty({},"passive",{get:function(){e=!0},set:function(){}}),n=function(){};window.addEventListener("testPassiveEventSupport",n,t),window.removeEventListener("testPassiveEventSupport",n,t),c.hasSupport=e}}};c.update();var u="onwheel"in document.createElement("div")?"wheel":void 0!==document.onmousewheel?"mousewheel":"DOMMouseScroll";Object.prototype.hasOwnProperty.call(c,"hasSupport")?we(document,u,Dt,{passive:!0}):we(document,u,Dt),qt();var l=function(e,t){return void 0===t&&(t=Dt),function(e){return we(document,e,t)}};["click","mouseup","mousedown","mousemove","keypress","keydown","keyup","touchend","touchstart"].forEach(l(document)),["resize","focus","blur"].forEach(l(window)),l(window,Lt)("scroll")}if(pt.enabled&&(Ke||a)){ne=s.getTime();var d=void 0;for(d in pt.configurations){var f=pt.configurations[d];f&&(window.clearInterval(f.activityInterval),Zt(f,n,i))}}}(e)},preservePageViewId:function(){ht=!0},preservePageViewIdForUrl:function(e){mt=e},disableAnonymousTracking:function(e){o.anonymousTracking=!1,Ht(e),$t(),ft.executeQueue()},enableAnonymousTracking:function(e){var t;o.anonymousTracking=null===(t=e&&(null==e?void 0:e.options))||void 0===t||t,Ht(e),st||Gt()},clearUserData:zt};return u(u({},nn),{id:e,namespace:t,core:qe,sharedState:i})}(e,t,n,r,i,o),c=u(u({},a),{addPlugin:function(e){var t,n;c.core.addPlugin(e),null===(n=(t=e.plugin).activateBrowserPlugin)||void 0===n||n.call(t,c)}});return s.forEach((function(e){var t;null===(t=e.activateBrowserPlugin)||void 0===t||t.call(e,c)})),c}var Re={};function Ue(e,t){try{(n=null!=e?e:Object.keys(Re),function(e,t){for(var n=[],r=0,i=e;r<i.length;r++){var o=i[r];t.hasOwnProperty(o)?n.push(t[o]):q.warn(o+" not configured")}return n}(n,Re)).forEach(t)}catch(e){q.error("Function failed",e)}var n}var Fe=function(){this.outQueues=[],this.bufferFlushers=[],this.hasLoaded=!1,this.registeredOnLoadHandlers=[]};function ze(e,t){Ue(t,(function(t){t.flushBuffer(e)}))}var He="undefined"!=typeof window?function(){var e=new Fe,t=document,n=window;function r(){var t;if(!e.hasLoaded)for(e.hasLoaded=!0,t=0;t<e.registeredOnLoadHandlers.length;t++)e.registeredOnLoadHandlers[t]();return!0}return t.visibilityState&&we(t,"visibilitychange",(function(){"hidden"==t.visibilityState&&e.bufferFlushers.forEach((function(e){e(!1)}))}),!1),we(n,"beforeunload",(function(){e.bufferFlushers.forEach((function(e){e(!1)}))}),!1),"loading"===document.readyState?(t.addEventListener?t.addEventListener("DOMContentLoaded",(function e(){t.removeEventListener("DOMContentLoaded",e,!1),r()})):t.attachEvent&&t.attachEvent("onreadystatechange",(function e(){"complete"===t.readyState&&(t.detachEvent("onreadystatechange",e),r())})),we(n,"load",r,!1)):r(),e}():void 0;function $e(e,t,n){return void 0===n&&(n={}),He?function(e,t,n,r,i,o){return Re.hasOwnProperty(e)?null:(Re[e]=Ve(e,t,n,r,i,o),Re[e])}(e,e,"js-".concat("3.24.6"),t,He,n):void 0}var Je,We={exports:{}},Ge=function(e){var t=e.default;if("function"==typeof t){var n=function(){return t.apply(this,arguments)};n.prototype=t.prototype}else n={};return Object.defineProperty(n,"__esModule",{value:!0}),Object.keys(e).forEach((function(t){var r=Object.getOwnPropertyDescriptor(e,t);Object.defineProperty(n,t,r.get?r:{enumerable:!0,get:function(){return e[t]}})})),n}(Object.freeze({__proto__:null,default:{}}));function Qe(){return Je||(Je=1,We.exports=(e=e||function(e){var t;if("undefined"!=typeof window&&window.crypto&&(t=window.crypto),"undefined"!=typeof self&&self.crypto&&(t=self.crypto),"undefined"!=typeof globalThis&&globalThis.crypto&&(t=globalThis.crypto),!t&&"undefined"!=typeof window&&window.msCrypto&&(t=window.msCrypto),!t&&void 0!==d&&d.crypto&&(t=d.crypto),!t)try{t=Ge}catch(e){}var n=function(){if(t){if("function"==typeof t.getRandomValues)try{return t.getRandomValues(new Uint32Array(1))[0]}catch(e){}if("function"==typeof t.randomBytes)try{return t.randomBytes(4).readInt32LE()}catch(e){}}throw new Error("Native crypto module could not be used to get secure random number.")},r=Object.create||function(){function e(){}return function(t){var n;return e.prototype=t,n=new e,e.prototype=null,n}}(),i={},o=i.lib={},s=o.Base={extend:function(e){var t=r(this);return e&&t.mixIn(e),t.hasOwnProperty("init")&&this.init!==t.init||(t.init=function(){t.$super.init.apply(this,arguments)}),t.init.prototype=t,t.$super=this,t},create:function(){var e=this.extend();return e.init.apply(e,arguments),e},init:function(){},mixIn:function(e){for(var t in e)e.hasOwnProperty(t)&&(this[t]=e[t]);e.hasOwnProperty("toString")&&(this.toString=e.toString)},clone:function(){return this.init.prototype.extend(this)}},a=o.WordArray=s.extend({init:function(e,t){e=this.words=e||[],this.sigBytes=null!=t?t:4*e.length},toString:function(e){return(e||u).stringify(this)},concat:function(e){var t=this.words,n=e.words,r=this.sigBytes,i=e.sigBytes;if(this.clamp(),r%4)for(var o=0;o<i;o++){var s=n[o>>>2]>>>24-o%4*8&255;t[r+o>>>2]|=s<<24-(r+o)%4*8}else for(var a=0;a<i;a+=4)t[r+a>>>2]=n[a>>>2];return this.sigBytes+=i,this},clamp:function(){var t=this.words,n=this.sigBytes;t[n>>>2]&=4294967295<<32-n%4*8,t.length=e.ceil(n/4)},clone:function(){var e=s.clone.call(this);return e.words=this.words.slice(0),e},random:function(e){for(var t=[],r=0;r<e;r+=4)t.push(n());return new a.init(t,e)}}),c=i.enc={},u=c.Hex={stringify:function(e){for(var t=e.words,n=e.sigBytes,r=[],i=0;i<n;i++){var o=t[i>>>2]>>>24-i%4*8&255;r.push((o>>>4).toString(16)),r.push((15&o).toString(16))}return r.join("")},parse:function(e){for(var t=e.length,n=[],r=0;r<t;r+=2)n[r>>>3]|=parseInt(e.substr(r,2),16)<<24-r%8*4;return new a.init(n,t/2)}},l=c.Latin1={stringify:function(e){for(var t=e.words,n=e.sigBytes,r=[],i=0;i<n;i++){var o=t[i>>>2]>>>24-i%4*8&255;r.push(String.fromCharCode(o))}return r.join("")},parse:function(e){for(var t=e.length,n=[],r=0;r<t;r++)n[r>>>2]|=(255&e.charCodeAt(r))<<24-r%4*8;return new a.init(n,t)}},f=c.Utf8={stringify:function(e){try{return decodeURIComponent(escape(l.stringify(e)))}catch(e){throw new Error("Malformed UTF-8 data")}},parse:function(e){return l.parse(unescape(encodeURIComponent(e)))}},h=o.BufferedBlockAlgorithm=s.extend({reset:function(){this._data=new a.init,this._nDataBytes=0},_append:function(e){"string"==typeof e&&(e=f.parse(e)),this._data.concat(e),this._nDataBytes+=e.sigBytes},_process:function(t){var n,r=this._data,i=r.words,o=r.sigBytes,s=this.blockSize,c=o/(4*s),u=(c=t?e.ceil(c):e.max((0|c)-this._minBufferSize,0))*s,l=e.min(4*u,o);if(u){for(var d=0;d<u;d+=s)this._doProcessBlock(i,d);n=i.splice(0,u),r.sigBytes-=l}return new a.init(n,l)},clone:function(){var e=s.clone.call(this);return e._data=this._data.clone(),e},_minBufferSize:0});o.Hasher=h.extend({cfg:s.extend(),init:function(e){this.cfg=this.cfg.extend(e),this.reset()},reset:function(){h.reset.call(this),this._doReset()},update:function(e){return this._append(e),this._process(),this},finalize:function(e){return e&&this._append(e),this._doFinalize()},blockSize:16,_createHelper:function(e){return function(t,n){return new e.init(n).finalize(t)}},_createHmacHelper:function(e){return function(t,n){return new m.HMAC.init(e,n).finalize(t)}}});var m=i.algo={};return i}(Math),e)),We.exports;var e}var Ke,Xe,Ze,Ye,et,tt,nt={exports:{}};!function(e){e.HmacSHA256}(Qe(),function(){return Ke||(Ke=1,nt.exports=(e=Qe(),function(t){var n=e,r=n.lib,i=r.WordArray,o=r.Hasher,s=n.algo,a=[],c=[];!function(){function e(e){for(var n=t.sqrt(e),r=2;r<=n;r++)if(!(e%r))return!1;return!0}function n(e){return 4294967296*(e-(0|e))|0}for(var r=2,i=0;i<64;)e(r)&&(i<8&&(a[i]=n(t.pow(r,.5))),c[i]=n(t.pow(r,1/3)),i++),r++}();var u=[],l=s.SHA256=o.extend({_doReset:function(){this._hash=new i.init(a.slice(0))},_doProcessBlock:function(e,t){for(var n=this._hash.words,r=n[0],i=n[1],o=n[2],s=n[3],a=n[4],l=n[5],d=n[6],f=n[7],h=0;h<64;h++){if(h<16)u[h]=0|e[t+h];else{var m=u[h-15],v=(m<<25|m>>>7)^(m<<14|m>>>18)^m>>>3,p=u[h-2],g=(p<<15|p>>>17)^(p<<13|p>>>19)^p>>>10;u[h]=v+u[h-7]+g+u[h-16]}var y=r&i^r&o^i&o,w=(r<<30|r>>>2)^(r<<19|r>>>13)^(r<<10|r>>>22),_=f+((a<<26|a>>>6)^(a<<21|a>>>11)^(a<<7|a>>>25))+(a&l^~a&d)+c[h]+u[h];f=d,d=l,l=a,a=s+_|0,s=o,o=i,i=r,r=_+(w+y)|0}n[0]=n[0]+r|0,n[1]=n[1]+i|0,n[2]=n[2]+o|0,n[3]=n[3]+s|0,n[4]=n[4]+a|0,n[5]=n[5]+l|0,n[6]=n[6]+d|0,n[7]=n[7]+f|0},_doFinalize:function(){var e=this._data,n=e.words,r=8*this._nDataBytes,i=8*e.sigBytes;return n[i>>>5]|=128<<24-i%32,n[14+(i+64>>>9<<4)]=t.floor(r/4294967296),n[15+(i+64>>>9<<4)]=r,e.sigBytes=4*n.length,this._process(),this._hash},clone:function(){var e=o.clone.call(this);return e._hash=this._hash.clone(),e}});n.SHA256=o._createHelper(l),n.HmacSHA256=o._createHmacHelper(l)}(Math),e.SHA256)),nt.exports;var e}(),Xe||(Xe=1,Ze=Qe(),et=(Ye=Ze).lib.Base,tt=Ye.enc.Utf8,Ye.algo.HMAC=et.extend({init:function(e,t){e=this._hasher=new e.init,"string"==typeof t&&(t=tt.parse(t));var n=e.blockSize,r=4*n;t.sigBytes>r&&(t=e.finalize(t)),t.clamp();for(var i=this._oKey=t.clone(),o=this._iKey=t.clone(),s=i.words,a=o.words,c=0;c<n;c++)s[c]^=1549556828,a[c]^=909522486;i.sigBytes=o.sigBytes=r,this.reset()},reset:function(){var e=this._hasher;e.reset(),e.update(this._iKey)},update:function(e){return this._hasher.update(e),this},finalize:function(e){var t=this._hasher,n=t.finalize(e);return t.reset(),t.finalize(this._oKey.clone().concat(n))}}))),function(e){(function(){var t=e,n=t.lib.WordArray;function r(e,t,r){for(var i=[],o=0,s=0;s<t;s++)if(s%4){var a=r[e.charCodeAt(s-1)]<<s%4*2|r[e.charCodeAt(s)]>>>6-s%4*2;i[o>>>2]|=a<<24-o%4*8,o++}return n.create(i,o)}t.enc.Base64={stringify:function(e){var t=e.words,n=e.sigBytes,r=this._map;e.clamp();for(var i=[],o=0;o<n;o+=3)for(var s=(t[o>>>2]>>>24-o%4*8&255)<<16|(t[o+1>>>2]>>>24-(o+1)%4*8&255)<<8|t[o+2>>>2]>>>24-(o+2)%4*8&255,a=0;a<4&&o+.75*a<n;a++)i.push(r.charAt(s>>>6*(3-a)&63));var c=r.charAt(64);if(c)for(;i.length%4;)i.push(c);return i.join("")},parse:function(e){var t=e.length,n=this._map,i=this._reverseMap;if(!i){i=this._reverseMap=[];for(var o=0;o<n.length;o++)i[n.charCodeAt(o)]=o}var s=n.charAt(64);if(s){var a=e.indexOf(s);-1!==a&&(t=a)}return r(e,t,i)},_map:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="}})(),e.enc.Base64}(Qe()),"function"==typeof TextDecoder&&new TextDecoder,"function"==typeof TextEncoder&&new TextEncoder;const rt=Array.prototype.slice.call("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");function it(e){return e?e.replace(/[A-Z]/g,(e=>`_${e.toLowerCase()}`)):e}function ot(e,t){const{propertyFields:n,required:r}=Object.getPrototypeOf(e).constructor,i=n.reduce(((n,i)=>{if(null!=e[i])n[it(i)]=e[i];else if(r.includes(i)&&Object.getOwnPropertyDescriptor(t.constructor.prototype,i))n[it(i)]=t[i];else if(r.includes(i))throw new Error(`${i} required property not set`);return n}),{});return i._original=e,i}function st(e,t,n){return`iglu:${e}/${t}/jsonschema/${n}`}function at(e){let t=[];return Array.isArray(e)?t.push(...e.map((e=>({schema:st(e.constructor.vendor,e.constructor.schemaName,e.constructor.version),data:ot(e,e)})))):t.push({schema:st(e.constructor.vendor,e.constructor.schemaName,e.constructor.version),data:ot(e,e)}),t}(()=>{let e={};rt.forEach(((t,n)=>e[t]=n))})(),String.fromCharCode.bind(String),"function"==typeof Uint8Array.from&&Uint8Array.from.bind(Uint8Array);const ct="https://us.telemetry.zoom.us";function ut(e,t,n,r){try{e.dataCollectionFlag=t?1:0;const o=e.requiredEvents;if(o){const t=(i=o.property_name||"")?i.replace(/_([a-z])/g,(e=>e[1].toUpperCase())):i;if(t&&void 0!==e[t]){const n=e[t],r=o.values;Array.isArray(r)&&r.includes(n)&&(e.isRequiredEvent=!0)}}const s=ot(e,n),a=function(e,t){return e.reqEntities?Object.keys(e.reqEntities).reduce(((n,r)=>{let i=e[r]||t[r];if(e[r]&&t[r]){const n=t[r],o=e[r];for(const e in o){const t=n[e],r=o[e];i[e]=r||t}}if(null==i&&"false"===e.reqEntities[r].is_optional)throw new Error(`${r} entity which is required is not set`);return i?[...n,...at(i)]:n}),[]):null}(e,n);if(!s)throw new Error("Payload cannot be empty");if(1===e.dataCollectionFlag||e.isRequiredEvent){delete s._original,Array.isArray(a)&&a.length>0&&a.forEach((e=>delete e.data._original));const{vendor:t,schemaName:n,version:i}=Object.getPrototypeOf(e).constructor;return function(e,t){Ue(t,(function(t){t.core.track(function(e){var t=e.event,n=t.schema,r=t.data,i=P(),o={schema:"iglu:com.snowplowanalytics.snowplow/unstruct_event/jsonschema/1-0-0",data:{schema:n,data:r}};return i.add("e","ue"),i.addJson("ue_px","ue_pr",o),i}({event:e.event}),e.context,e.timestamp)}))}({event:{schema:st(t,n,i),data:s},context:a},[r]),!0}}catch(e){return console.error(e),!1}var i;return!1}function lt(e){let{globalContext:t,globalCollector:n,options:r,instanceId:i}=e,o=null;function s(){const e=sessionStorage.getItem(`zoomtracker_scenario_${r.name}`);if(!e)return c();const t=JSON.parse(e),{lastModified:n,scenario:i}=t;return function(e){return Date.now()-e>864e5}(n)?(sessionStorage.removeItem(`zoomtracker_scenario_${r.name}`),c()):i}function a(e){const t={lastModified:Date.now(),scenario:e};sessionStorage.setItem(`zoomtracker_scenario_${e.name}`,JSON.stringify(t))}function c(){const e={id:Math.floor(1e10*Math.random()).toString().padStart(10,"0"),name:r.name,steps:[]};return a(e),e}return{startScenario:function(){a(c())},beginStep:function(e){const t=s(),n={start:Date.now()};return t.steps.push(n),a(t),o=Object.assign(Object.create(Object.getPrototypeOf(e)),e),n},endStep:function(e){const c=s();e=Object.assign(Object.create(Object.getPrototypeOf(e)),e);const u=c.steps[c.steps.length-1];if(u)try{u.end=Date.now(),u.duration=u.end-u.start,e.stepCost=u.duration,e.sessionId=c.id,a(c);const{url:s,name:l}=n||{},d="scenario",f=`${l||"PWA-Client"}_${d}_${i}`;return $e(f,s||ct,{bufferSize:r.bufferSize||10,appId:d}),o.stepTime=u.start,e.stepTime=u.end,o.sessionId=c.id,[o,e].forEach((e=>ut(e,r.eventEnabled,t,f))),ze(),!0}catch(e){console.log(e.message)}else console.error("Step not found or already ended.");return!1},getScenario:s}}const dt=function(){let e={},t={},n={};const r=["interaction","logging","metrics"],i=`tracker_${Date.now()}_${Math.random().toString(36).slice(2,11)}`;function o(e){return function(){try{return e(...arguments)}catch(e){console.error(`Something went wrong with Zoom Tracker: ${e}`)}}}const s=o((function(i){var o;let{collector:s,contexts:a,options:c}=i;a=null==a?{}:a,function(e){Ue(void 0,(function(t){t.core.addGlobalContexts(e)}))}((null!==(o=Object.keys(a))&&void 0!==o?o:[]).map((e=>a[e]))),e=a,t=Object.assign({},{...c,bufferSize:c.bufferSize||10,localStorageKeyPrefix:c.localStorageKeyPrefix||"snowplowOutQueue",localStorageKeyExpiration:c.localStorageKeyExpiration||864e5,dataCollectionFlag:null==c.dataCollectionFlag||c.dataCollectionFlag}),s&&s.url||(s.url=ct),s.url.startsWith("https://")||(s.url="https://"+s.url),console.log("Collector url: "+s.url);const u=s.name||"PWA-Client";r.forEach((e=>{$e(`${u}_${e}`,s.url,{...t,appId:e})})),n=Object.assign({},s),v()})),a=o((function(r){let i=!(arguments.length>1&&void 0!==arguments[1])||arguments[1];if(!r)return;const{name:o}=n||{},s=o||"PWA-Client",{dataCollectionFlag:a}=t,c=a&&i,u=(Array.isArray(r)?r:[r]).map((t=>{let n=(r=(r=t.constructor.schemaName).toLowerCase()).includes("interact")?"interaction":r.includes("trace")?"logging":r.includes("metrics")?"metrics":"interaction";var r;return"dataType"in t.constructor&&(n=t.constructor.dataType),ut(t,c,e,`${s}_${n}`)}));return ze(),u})),c=o((function(){return t})),u=o((function(){return e})),l=o((function(e){t={...t,...e}})),d=o((function(t){e={...e,...t}})),f=o((function(r){var o,s;const a=lt({globalCollector:n,globalContext:e,instanceId:i,options:{bufferSize:null!==(o=t.bufferSize)&&void 0!==o?o:10,eventEnabled:null!==(s=t.dataCollectionFlag)&&void 0!==s&&s,name:r}});return a.startScenario(),a})),h=o((function(r){var o,s;const a=lt({globalCollector:n,globalContext:e,instanceId:i,options:{bufferSize:null!==(o=t.bufferSize)&&void 0!==o?o:10,eventEnabled:null!==(s=t.dataCollectionFlag)&&void 0!==s&&s,name:r}});return a.getScenario(),a})),m=o((function(e){sessionStorage.removeItem(`zoomtracker_scenario_${e}`)})),v=o((function(){var e,n;e=t.localStorageKeyPrefix,n=t.localStorageKeyExpiration,Object.keys(localStorage).filter((t=>t.startsWith(e))).map((e=>{const t=e.split("_"),n=t[t.length-3]||"unknown";if("unknown"===n)return null;const r=new Date(Number(n));return{keyName:e,timeDiffMs:Date.now()-r.getTime()}})).filter((e=>null!==e)).filter((e=>e.timeDiffMs>=n)).forEach((e=>{localStorage.removeItem(e.keyName)}))}));return{init:s,track:a,createScenario:f,getScenario:h,setOptions:l,getOptions:c,getGlobalContext:u,setGlobalContext:d,endScenario:m,flushBuffer:ze,deleteExpiredSnowPlowLocalStorageKeys:v}}();class ft extends Error{constructor(){super(...arguments)}}class ht{constructor(){for(var e=arguments.length,t=new Array(e),n=0;n<e;n++)t[n]=arguments[n];const[r,i,o,s,a]=t;this.value=r,this.minLength=null!=i?i:-1,this.maxLength=null!=o?o:-1,this.enums=null!=s?s:[],this.pattern=a,this.validate()}validate(){var e,t;if(-1!==this.minLength&&(null===(e=this.value)||void 0===e?void 0:e.length)<this.minLength)throw new ft("String value not met min length ");if(-1!==this.maxLength&&(null===(t=this.value)||void 0===t?void 0:t.length)>this.maxLength)throw new ft("String value exceeds max length");if(this.enums.length>0&&!this.enums.includes(this.value))throw new ft(`Value ${this.value} given does not match with enum list`);if(this.pattern&&!new RegExp(this.pattern).test(this.value))throw new ft("String value does not match the pattern")}}class mt{static __name__="CommonBaseEntity";static schemaName="CommonBase";static vendor="us.zoom.web_fe_monitor_v2.entities";static version="1-0-0";static required=["cluster"];requiredEvents={};static propertyFields=["pageUrl","cluster","trackingId","browserUserAgent"];reqEntities={};contextEntities=[];static maskTypeOfFields={trackingId:"hash_id"};_pageUrl=void 0;_cluster=void 0;_trackingId=void 0;_browserUserAgent=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];this.err=[],this.raiseError=e}get pageUrl(){return this._pageUrl?this._pageUrl.value:void 0}set pageUrl(e){try{return this._pageUrl=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get cluster(){return this._cluster?this._cluster.value:void 0}set cluster(e){try{return this._cluster=new ht(e,void 0,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get trackingId(){return this._trackingId?this._trackingId.value:void 0}set trackingId(e){try{return this._trackingId=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get browserUserAgent(){return this._browserUserAgent?this._browserUserAgent.value:void 0}set browserUserAgent(e){try{return this._browserUserAgent=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class vt{constructor(){for(var e=arguments.length,t=new Array(e),n=0;n<e;n++)t[n]=arguments[n];const[r,i,o,s,a]=t;this.value=r,this.mutipleOf=null!=i?i:0,this.min=null!=o?o:null,this.max=null!=s?s:null,this.enumList=null!=a?a:[],this.validate()}validate(){if(this.enumList&&this.enumList.length>0&&-1===this.enumList.findIndex(this.value))throw new ft("Value given does not match with enum list");if(0!==this.mutipleOf&&this.value%Number(this.mutipleOf)!=0)throw new ft(`Number ${this.value} is not a multiple of ${this.mutipleOf}`);if(null!==this.min&&this.value<this.min||null!==this.max&&this.value>this.max)throw new ft("Number given is not in range")}}class pt{static __name__="CdnMetaEntity";static schemaName="CdnMeta";static vendor="us.zoom.web_fe_monitor_v2.entities";static version="1-0-0";static required=["cdnDomain","cdnLogType"];requiredEvents={};static propertyFields=["cdnDomain","cdnLogType","costTime"];reqEntities={};contextEntities=[];static maskTypeOfFields={};_cdnDomain=void 0;_cdnLogType=void 0;_costTime=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];this.err=[],this.raiseError=e}get cdnDomain(){return this._cdnDomain?this._cdnDomain.value:void 0}set cdnDomain(e){try{return this._cdnDomain=new ht(e,void 0,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get cdnLogType(){return this._cdnLogType?this._cdnLogType.value:void 0}set cdnLogType(e){try{return this._cdnLogType=new ht(e,void 0,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get costTime(){return this._costTime?this._costTime.value:void 0}set costTime(e){try{return null==e||Number.isNaN(e)?this._costTime=null:this._costTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class gt{static __name__="ErrorTraceEntity";static schemaName="ErrorTrace";static vendor="us.zoom.web_fe_monitor_v2.entities";static version="1-0-0";static required=[];requiredEvents={};static propertyFields=["errorMessage","errorStack","jsErrorType","fileName"];reqEntities={};contextEntities=[];static maskTypeOfFields={};_errorMessage=void 0;_errorStack=void 0;_jsErrorType=void 0;_fileName=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];this.err=[],this.raiseError=e}get errorMessage(){return this._errorMessage?this._errorMessage.value:void 0}set errorMessage(e){try{return this._errorMessage=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get errorStack(){return this._errorStack?this._errorStack.value:void 0}set errorStack(e){try{return this._errorStack=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get jsErrorType(){return this._jsErrorType?this._jsErrorType.value:void 0}set jsErrorType(e){try{return this._jsErrorType=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get fileName(){return this._fileName?this._fileName.value:void 0}set fileName(e){try{return this._fileName=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class yt{static __name__="VueMetaEntity";static schemaName="VueMeta";static vendor="us.zoom.web_fe_monitor_v2.entities";static version="1-0-0";static required=[];requiredEvents={};static propertyFields=["vueVersion","vueComponent","vueHook"];reqEntities={};contextEntities=[];static maskTypeOfFields={};_vueVersion=void 0;_vueComponent=void 0;_vueHook=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];this.err=[],this.raiseError=e}get vueVersion(){return this._vueVersion?this._vueVersion.value:void 0}set vueVersion(e){try{return this._vueVersion=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get vueComponent(){return this._vueComponent?this._vueComponent.value:void 0}set vueComponent(e){try{return this._vueComponent=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get vueHook(){return this._vueHook?this._vueHook.value:void 0}set vueHook(e){try{return this._vueHook=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class wt{static __name__="PerformanceMetricEntity";static schemaName="PerformanceMetric";static vendor="us.zoom.web_fe_monitor_v2.entities";static version="1-0-0";static required=[];requiredEvents={};static propertyFields=["domLoadTime","pageLoadTime","resourceTotalTime","ttfbTime","iframeTime","cssTime","tbt","fp","tcpTime","cls","fetchTime","xmlhttprequestTime","redirectTime","fcp","dnsTime","scriptTime","lcp","perFid","responseTime","linkTime","domIntTime","imgTime","otherTime"];reqEntities={};contextEntities=[];static maskTypeOfFields={};_domLoadTime=void 0;_pageLoadTime=void 0;_resourceTotalTime=void 0;_ttfbTime=void 0;_iframeTime=void 0;_cssTime=void 0;_tbt=void 0;_fp=void 0;_tcpTime=void 0;_cls=void 0;_fetchTime=void 0;_xmlhttprequestTime=void 0;_redirectTime=void 0;_fcp=void 0;_dnsTime=void 0;_scriptTime=void 0;_lcp=void 0;_perFid=void 0;_responseTime=void 0;_linkTime=void 0;_domIntTime=void 0;_imgTime=void 0;_otherTime=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];this.err=[],this.raiseError=e}get domLoadTime(){return this._domLoadTime?this._domLoadTime.value:void 0}set domLoadTime(e){try{return null==e||Number.isNaN(e)?this._domLoadTime=null:this._domLoadTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get pageLoadTime(){return this._pageLoadTime?this._pageLoadTime.value:void 0}set pageLoadTime(e){try{return null==e||Number.isNaN(e)?this._pageLoadTime=null:this._pageLoadTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get resourceTotalTime(){return this._resourceTotalTime?this._resourceTotalTime.value:void 0}set resourceTotalTime(e){try{return null==e||Number.isNaN(e)?this._resourceTotalTime=null:this._resourceTotalTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get ttfbTime(){return this._ttfbTime?this._ttfbTime.value:void 0}set ttfbTime(e){try{return null==e||Number.isNaN(e)?this._ttfbTime=null:this._ttfbTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get iframeTime(){return this._iframeTime?this._iframeTime.value:void 0}set iframeTime(e){try{return null==e||Number.isNaN(e)?this._iframeTime=null:this._iframeTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get cssTime(){return this._cssTime?this._cssTime.value:void 0}set cssTime(e){try{return null==e||Number.isNaN(e)?this._cssTime=null:this._cssTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get tbt(){return this._tbt?this._tbt.value:void 0}set tbt(e){try{return null==e||Number.isNaN(e)?this._tbt=null:this._tbt=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get fp(){return this._fp?this._fp.value:void 0}set fp(e){try{return null==e||Number.isNaN(e)?this._fp=null:this._fp=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get tcpTime(){return this._tcpTime?this._tcpTime.value:void 0}set tcpTime(e){try{return null==e||Number.isNaN(e)?this._tcpTime=null:this._tcpTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get cls(){return this._cls?this._cls.value:void 0}set cls(e){try{return null==e||Number.isNaN(e)?this._cls=null:this._cls=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get fetchTime(){return this._fetchTime?this._fetchTime.value:void 0}set fetchTime(e){try{return null==e||Number.isNaN(e)?this._fetchTime=null:this._fetchTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get xmlhttprequestTime(){return this._xmlhttprequestTime?this._xmlhttprequestTime.value:void 0}set xmlhttprequestTime(e){try{return null==e||Number.isNaN(e)?this._xmlhttprequestTime=null:this._xmlhttprequestTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get redirectTime(){return this._redirectTime?this._redirectTime.value:void 0}set redirectTime(e){try{return null==e||Number.isNaN(e)?this._redirectTime=null:this._redirectTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get fcp(){return this._fcp?this._fcp.value:void 0}set fcp(e){try{return null==e||Number.isNaN(e)?this._fcp=null:this._fcp=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get dnsTime(){return this._dnsTime?this._dnsTime.value:void 0}set dnsTime(e){try{return null==e||Number.isNaN(e)?this._dnsTime=null:this._dnsTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get scriptTime(){return this._scriptTime?this._scriptTime.value:void 0}set scriptTime(e){try{return null==e||Number.isNaN(e)?this._scriptTime=null:this._scriptTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get lcp(){return this._lcp?this._lcp.value:void 0}set lcp(e){try{return null==e||Number.isNaN(e)?this._lcp=null:this._lcp=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get perFid(){return this._perFid?this._perFid.value:void 0}set perFid(e){try{return null==e||Number.isNaN(e)?this._perFid=null:this._perFid=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get responseTime(){return this._responseTime?this._responseTime.value:void 0}set responseTime(e){try{return null==e||Number.isNaN(e)?this._responseTime=null:this._responseTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get linkTime(){return this._linkTime?this._linkTime.value:void 0}set linkTime(e){try{return null==e||Number.isNaN(e)?this._linkTime=null:this._linkTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get domIntTime(){return this._domIntTime?this._domIntTime.value:void 0}set domIntTime(e){try{return null==e||Number.isNaN(e)?this._domIntTime=null:this._domIntTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get imgTime(){return this._imgTime?this._imgTime.value:void 0}set imgTime(e){try{return null==e||Number.isNaN(e)?this._imgTime=null:this._imgTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get otherTime(){return this._otherTime?this._otherTime.value:void 0}set otherTime(e){try{return null==e||Number.isNaN(e)?this._otherTime=null:this._otherTime=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class _t{constructor(e){this.value=!!e}}class bt{static __name__="CoreEvents";static schemaName="CoreEvents";static vendor="us.zoom.core_events";static version="1-0-0";static required=[];requiredEvents={};static propertyFields=["samplingRate","dataCollectionFlag","whenCollectionToggleOffAction","isRequiredEvent","samplingConfigVersion"];reqEntities={};contextEntities=[];static maskTypeOfFields={};_samplingRate=(()=>new vt(1))();_dataCollectionFlag=(()=>new vt(0))();_whenCollectionToggleOffAction=(()=>new ht("disabled"))();_isRequiredEvent=(()=>new _t(!1))();_samplingConfigVersion=(()=>new ht("0.1"))();constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];this.err=[],this.raiseError=e}get samplingRate(){return this._samplingRate?this._samplingRate.value:void 0}set samplingRate(e){try{return this._samplingRate=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get dataCollectionFlag(){return this._dataCollectionFlag?this._dataCollectionFlag.value:void 0}set dataCollectionFlag(e){try{return this._dataCollectionFlag=new vt(e,1,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get whenCollectionToggleOffAction(){return this._whenCollectionToggleOffAction?this._whenCollectionToggleOffAction.value:void 0}set whenCollectionToggleOffAction(e){try{return this._whenCollectionToggleOffAction=new ht(e,void 0,void 0,["masked","unmasked","disabled","na"],void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get isRequiredEvent(){return this._isRequiredEvent?this._isRequiredEvent.value:void 0}set isRequiredEvent(e){this._isRequiredEvent=new _t(e)}get samplingConfigVersion(){return this._samplingConfigVersion?this._samplingConfigVersion.value:void 0}set samplingConfigVersion(e){try{return this._samplingConfigVersion=new ht(e,void 0,void 0,void 0,void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class Tt extends bt{static __name__="CdnLogEvent";static schemaName="CdnLog";static vendor="us.zoom.web_fe_monitor_v2";static version="1-0-0";static dataType="logging";static required=["logName"];requiredEvents={};static propertyFields=["samplingRate","dataCollectionFlag","whenCollectionToggleOffAction","isRequiredEvent","samplingConfigVersion","logName"];reqEntities={cdnMetaEntity:{object:"CdnMetaEntity",is_optional:"true"},commonBaseEntity:{object:"CommonBaseEntity",is_optional:"true"}};contextEntities=[];static maskTypeOfFields={};_samplingRate=(()=>new vt(1))();_dataCollectionFlag=(()=>new vt(0))();_whenCollectionToggleOffAction=(()=>new ht("disabled"))();_isRequiredEvent=(()=>new _t(!1))();_samplingConfigVersion=(()=>new ht("0.1"))();_logName=void 0;_cdnMetaEntity=void 0;_commonBaseEntity=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];super(e),this.err=[],this.raiseError=e}get logName(){return this._logName?this._logName.value:void 0}set logName(e){try{return this._logName=new ht(e,void 0,void 0,["fe_cdn_log","js_error","less_quantity_dom","white_box","performance","vue_error","vue3_prism_versions","vue_version"],void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get cdnMetaEntity(){return this._cdnMetaEntity}set cdnMetaEntity(e){try{const t=this.reqEntities.cdnMetaEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity cdnMetaEntity needs to be of type ${t}`);return this._cdnMetaEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get commonBaseEntity(){return this._commonBaseEntity}set commonBaseEntity(e){try{const t=this.reqEntities.commonBaseEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity commonBaseEntity needs to be of type ${t}`);return this._commonBaseEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class Et extends bt{static __name__="JsErrorEvent";static schemaName="JsError";static vendor="us.zoom.web_fe_monitor_v2";static version="1-0-0";static dataType="logging";static required=["logName"];requiredEvents={};static propertyFields=["samplingRate","dataCollectionFlag","whenCollectionToggleOffAction","isRequiredEvent","samplingConfigVersion","logName"];reqEntities={errorTraceEntity:{object:"ErrorTraceEntity",is_optional:"true"},commonBaseEntity:{object:"CommonBaseEntity",is_optional:"true"}};contextEntities=[];static maskTypeOfFields={};_samplingRate=(()=>new vt(1))();_dataCollectionFlag=(()=>new vt(0))();_whenCollectionToggleOffAction=(()=>new ht("disabled"))();_isRequiredEvent=(()=>new _t(!1))();_samplingConfigVersion=(()=>new ht("0.1"))();_logName=void 0;_errorTraceEntity=void 0;_commonBaseEntity=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];super(e),this.err=[],this.raiseError=e}get logName(){return this._logName?this._logName.value:void 0}set logName(e){try{return this._logName=new ht(e,void 0,void 0,["fe_cdn_log","js_error","less_quantity_dom","white_box","performance","vue_error","vue3_prism_versions","vue_version"],void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get errorTraceEntity(){return this._errorTraceEntity}set errorTraceEntity(e){try{const t=this.reqEntities.errorTraceEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity errorTraceEntity needs to be of type ${t}`);return this._errorTraceEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get commonBaseEntity(){return this._commonBaseEntity}set commonBaseEntity(e){try{const t=this.reqEntities.commonBaseEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity commonBaseEntity needs to be of type ${t}`);return this._commonBaseEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class kt extends bt{static __name__="VueErrorEvent";static schemaName="VueError";static vendor="us.zoom.web_fe_monitor_v2";static version="1-0-0";static dataType="logging";static required=["logName"];requiredEvents={};static propertyFields=["samplingRate","dataCollectionFlag","whenCollectionToggleOffAction","isRequiredEvent","samplingConfigVersion","logName"];reqEntities={commonBaseEntity:{object:"CommonBaseEntity",is_optional:"true"},errorTraceEntity:{object:"ErrorTraceEntity",is_optional:"true"},vueMetaEntity:{object:"VueMetaEntity",is_optional:"true"}};contextEntities=[];static maskTypeOfFields={};_samplingRate=(()=>new vt(1))();_dataCollectionFlag=(()=>new vt(0))();_whenCollectionToggleOffAction=(()=>new ht("disabled"))();_isRequiredEvent=(()=>new _t(!1))();_samplingConfigVersion=(()=>new ht("0.1"))();_logName=void 0;_commonBaseEntity=void 0;_errorTraceEntity=void 0;_vueMetaEntity=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];super(e),this.err=[],this.raiseError=e}get logName(){return this._logName?this._logName.value:void 0}set logName(e){try{return this._logName=new ht(e,void 0,void 0,["fe_cdn_log","js_error","less_quantity_dom","white_box","performance","vue_error","vue3_prism_versions","vue_version"],void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get commonBaseEntity(){return this._commonBaseEntity}set commonBaseEntity(e){try{const t=this.reqEntities.commonBaseEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity commonBaseEntity needs to be of type ${t}`);return this._commonBaseEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get errorTraceEntity(){return this._errorTraceEntity}set errorTraceEntity(e){try{const t=this.reqEntities.errorTraceEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity errorTraceEntity needs to be of type ${t}`);return this._errorTraceEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get vueMetaEntity(){return this._vueMetaEntity}set vueMetaEntity(e){try{const t=this.reqEntities.vueMetaEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity vueMetaEntity needs to be of type ${t}`);return this._vueMetaEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class xt extends bt{static __name__="WhiteBoxEvent";static schemaName="WhiteBox";static vendor="us.zoom.web_fe_monitor_v2";static version="1-0-0";static dataType="logging";static required=["logName"];requiredEvents={};static propertyFields=["samplingRate","dataCollectionFlag","whenCollectionToggleOffAction","isRequiredEvent","samplingConfigVersion","detectedDom","logName","detailType"];reqEntities={commonBaseEntity:{object:"CommonBaseEntity",is_optional:"true"}};contextEntities=[];static maskTypeOfFields={};_samplingRate=(()=>new vt(1))();_dataCollectionFlag=(()=>new vt(0))();_whenCollectionToggleOffAction=(()=>new ht("disabled"))();_isRequiredEvent=(()=>new _t(!1))();_samplingConfigVersion=(()=>new ht("0.1"))();_detectedDom=void 0;_logName=void 0;_detailType=void 0;_commonBaseEntity=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];super(e),this.err=[],this.raiseError=e}get detectedDom(){return this._detectedDom?this._detectedDom.value:void 0}set detectedDom(e){try{return this._detectedDom=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get logName(){return this._logName?this._logName.value:void 0}set logName(e){try{return this._logName=new ht(e,void 0,void 0,["fe_cdn_log","js_error","less_quantity_dom","white_box","performance","vue_error","vue3_prism_versions","vue_version"],void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get detailType(){return this._detailType?this._detailType.value:void 0}set detailType(e){try{return this._detailType=e?new ht(e,void 0,void 0,void 0,void 0):null,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get commonBaseEntity(){return this._commonBaseEntity}set commonBaseEntity(e){try{const t=this.reqEntities.commonBaseEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity commonBaseEntity needs to be of type ${t}`);return this._commonBaseEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class Ct extends bt{static __name__="DevVueVersionEvent";static schemaName="DevVueVersion";static vendor="us.zoom.web_fe_monitor_v2";static version="1-0-0";static dataType="logging";static required=["logName"];requiredEvents={};static propertyFields=["samplingRate","dataCollectionFlag","whenCollectionToggleOffAction","isRequiredEvent","samplingConfigVersion","logName"];reqEntities={vueMetaEntity:{object:"VueMetaEntity",is_optional:"true"},commonBaseEntity:{object:"CommonBaseEntity",is_optional:"true"}};contextEntities=[];static maskTypeOfFields={};_samplingRate=(()=>new vt(1))();_dataCollectionFlag=(()=>new vt(0))();_whenCollectionToggleOffAction=(()=>new ht("disabled"))();_isRequiredEvent=(()=>new _t(!1))();_samplingConfigVersion=(()=>new ht("0.1"))();_logName=void 0;_vueMetaEntity=void 0;_commonBaseEntity=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];super(e),this.err=[],this.raiseError=e}get logName(){return this._logName?this._logName.value:void 0}set logName(e){try{return this._logName=new ht(e,void 0,void 0,["fe_cdn_log","js_error","less_quantity_dom","white_box","performance","vue_error","vue3_prism_versions","vue_version"],void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get vueMetaEntity(){return this._vueMetaEntity}set vueMetaEntity(e){try{const t=this.reqEntities.vueMetaEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity vueMetaEntity needs to be of type ${t}`);return this._vueMetaEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get commonBaseEntity(){return this._commonBaseEntity}set commonBaseEntity(e){try{const t=this.reqEntities.commonBaseEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity commonBaseEntity needs to be of type ${t}`);return this._commonBaseEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}class Nt extends bt{static __name__="PerformanceEvent";static schemaName="Performance";static vendor="us.zoom.web_fe_monitor_v2";static version="1-0-0";static dataType="logging";static required=["logName"];requiredEvents={};static propertyFields=["samplingRate","dataCollectionFlag","whenCollectionToggleOffAction","isRequiredEvent","samplingConfigVersion","logName"];reqEntities={performanceMetricEntity:{object:"PerformanceMetricEntity",is_optional:"true"},commonBaseEntity:{object:"CommonBaseEntity",is_optional:"true"}};contextEntities=[];static maskTypeOfFields={};_samplingRate=(()=>new vt(1))();_dataCollectionFlag=(()=>new vt(0))();_whenCollectionToggleOffAction=(()=>new ht("disabled"))();_isRequiredEvent=(()=>new _t(!1))();_samplingConfigVersion=(()=>new ht("0.1"))();_logName=void 0;_performanceMetricEntity=void 0;_commonBaseEntity=void 0;constructor(){let e=arguments.length>0&&void 0!==arguments[0]&&arguments[0];super(e),this.err=[],this.raiseError=e}get logName(){return this._logName?this._logName.value:void 0}set logName(e){try{return this._logName=new ht(e,void 0,void 0,["fe_cdn_log","js_error","less_quantity_dom","white_box","performance","vue_error","vue3_prism_versions","vue_version"],void 0),this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get performanceMetricEntity(){return this._performanceMetricEntity}set performanceMetricEntity(e){try{const t=this.reqEntities.performanceMetricEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity performanceMetricEntity needs to be of type ${t}`);return this._performanceMetricEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}get commonBaseEntity(){return this._commonBaseEntity}set commonBaseEntity(e){try{const t=this.reqEntities.commonBaseEntity.object;if(Object.getPrototypeOf(e).constructor.__name__!==t)throw new Error(`Value of entity commonBaseEntity needs to be of type ${t}`);return this._commonBaseEntity=e,this}catch(e){if(this.err.push(e.message),this.raiseError)throw e}}}function St(e){i.logger&&console.warn("%c[Monitor v3]: ".concat(e),"background-color: yellow; color: black;")}function Ot(e){i.logger&&console.error(e)}var It=function(){function r(){this.logQueue=[],this.startedInit=!1,this.hasInitTracker=!1}return r.prototype.initTelemetryTracker=function(){return t(this,void 0,void 0,(function(){var e,t,r,o,s,a,c,u,l,d;return n(this,(function(n){switch(n.label){case 0:return n.trys.push([0,2,,3]),this.startedInit=!0,[4,(f=(e=i.isLoggedIn)?"/user/telemetry":"/user/anonymous/telemetry",new Promise((function(e){var t=new XMLHttpRequest;t.open("GET",f,!0),t.onload=function(){if(t.status>=200&&t.status<300){var n=t.responseText;if("string"==typeof n)try{var r=JSON.parse(n);e(r)}catch(t){e({})}e({})}else e({})},t.onerror=function(){e({})},t.send()})))];case 1:return t=n.sent(),e&&(t=t.result||{}),r=t.collectionUrl,o=void 0===r?"":r,s=t.accountEnableNSNToggle,a=void 0!==s&&s,c=t.userEnableNSNToggle,u=void 0!==c&&c,l={commonBaseEntity:Object.assign(new mt,{cluster:i.cluster||"",trackingId:i.trackingId,pageUrl:i.path||""})},dt.init({collector:{url:o,name:"Web"},contexts:l,options:{dataCollectionFlag:a&&u}}),this.hasInitTracker=!0,this.flushQueue(),[3,3];case 2:return d=n.sent(),console.error(d),this.startedInit=!1,[3,3];case 3:return[2]}var f}))}))},r.prototype.sendCdnLog=function(e){void 0===e&&(e={});var t=Object.assign(new Tt,{logName:"fe_cdn_log",cdnMetaEntity:Object.assign(new pt,e)});this.report(t)},r.prototype.sendJsErrorLog=function(e){void 0===e&&(e={});var t=Object.assign(new Et,{logName:"js_error",errorTraceEntity:Object.assign(new gt,e)});this.report(t)},r.prototype.sendVueErrorLog=function(e){var t=Object.assign(new kt,{logName:"vue_error",vueMetaEntity:Object.assign(new yt,{vueComponent:e.vueComponent,vueHook:e.vueHook,vueVersion:e.vueVersion}),errorTraceEntity:Object.assign(new gt,{errorMessage:e.errorMessage,errorStack:e.errorStack})});this.report(t)},r.prototype.sendPerformanceLog=function(e){void 0===e&&(e={});var t={};for(var n in e){var r=e[n];"number"!=typeof r||isNaN(r)||(t[n]=r)}var o=Object.assign(new Nt,{logName:"performance",performanceMetricEntity:Object.assign(new wt,t)});this.report(o),function(e){i.logger&&(console.table?console.table(e):console.log(e))}(t)},r.prototype.sendWhiteBoxLog=function(t){void 0===t&&(t={});var n=Object.assign(new xt,e({logName:"white_box"},t));this.report(n)},r.prototype.sendDevVueDetectLog=function(e){void 0===e&&(e={});var t=Object.assign(new Ct,{logName:"vue_version",vueMetaEntity:Object.assign(new yt,e)});this.report(t)},r.prototype.report=function(e){return void 0===e&&(e={}),t(this,void 0,void 0,(function(){return n(this,(function(t){switch(t.label){case 0:return this.hasInitTracker?[3,3]:(this.logQueue.push(e),this.startedInit?[3,2]:[4,this.initTelemetryTracker()]);case 1:t.sent(),t.label=2;case 2:return[3,4];case 3:this.sendLog(e),t.label=4;case 4:return[2]}}))}))},r.prototype.flushQueue=function(){dt.track(this.logQueue),this.logQueue=[]},r.prototype.sendLog=function(e){dt.track([e])},r}(),At=new It;const Pt=/(^|@)\S+:\d+/,Bt=/^\s*at .*(\S+:\d+|\(native\))/m,jt=/^(eval@)?(\[native code\])?$/;function Dt(e,t){if(void 0!==e.stacktrace||void 0!==e["opera#sourceloc"])return function(e,t){return!e.stacktrace||e.message.includes("\n")&&e.message.split("\n").length>e.stacktrace.split("\n").length?function(e,t){const n=/Line (\d+).*script (?:in )?(\S+)/i,r=e.message.split("\n"),i=[];for(let e=2,t=r.length;e<t;e+=2){const t=n.exec(r[e]);t&&i.push({file:t[2],line:+t[1],raw:r[e]})}return Mt(i,t)}(e):e.stack?function(e,t){const n=Mt(e.stack.split("\n").filter((e=>!!e.match(Pt)&&!e.match(/^Error created at/))),t);return n.map((e=>{const t=e.split("@"),n=Lt(t.pop()),r=t.shift()||"",i=r.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^)]*\)/g,"")||void 0;let o;r.match(/\(([^)]*)\)/)&&(o=r.replace(/^[^(]+\(([^)]*)\)$/,"$1"));return{function:i,args:void 0===o||"[arguments not available]"===o?void 0:o.split(","),file:n[0],line:n[1]?+n[1]:void 0,col:n[2]?+n[2]:void 0,raw:e}}))}(e,t):function(e,t){const n=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,r=e.stacktrace.split("\n"),i=[];for(let e=0,t=r.length;e<t;e+=2){const t=n.exec(r[e]);t&&i.push({function:t[3]||void 0,file:t[2],line:t[1]?+t[1]:void 0,raw:r[e]})}return Mt(i,t)}(e)}(e,t);if(e.stack&&e.stack.match(Bt))return function(e,t){return function(e,t){const n=Mt(e.split("\n").filter((e=>!!e.match(Bt))),t);return n.map((e=>{e.includes("(eval ")&&(e=e.replace(/eval code/g,"eval").replace(/(\(eval at [^()]*)|(,.*$)/g,""));let t=e.replace(/^\s+/,"").replace(/\(eval code/g,"(").replace(/^.*?\s+/,"");const n=t.match(/ (\(.+\)$)/);t=n?t.replace(n[0],""):t;const r=Lt(n?n[1]:t);return{function:n&&t||void 0,file:["eval","<anonymous>"].includes(r[0])?void 0:r[0],line:r[1]?+r[1]:void 0,col:r[2]?+r[2]:void 0,raw:e}}))}(e.stack,t)}(e,t);if(e.stack)return function(e,t){return function(e,t){const n=Mt(e.split("\n").filter((e=>!e.match(jt))),t);return n.map((e=>{if(e.includes(" > eval")&&(e=e.replace(/ line (\d+)(?: > eval line \d+)* > eval:\d+:\d+/g,":$1")),e.includes("@")||e.includes(":")){const t=/(([^\n\r"\u2028\u2029]*".[^\n\r"\u2028\u2029]*"[^\n\r@\u2028\u2029]*(?:@[^\n\r"\u2028\u2029]*"[^\n\r@\u2028\u2029]*)*(?:[\n\r\u2028\u2029][^@]*)?)?[^@]*)@/,n=e.match(t),r=n&&n[1]?n[1]:void 0,i=Lt(e.replace(t,""));return{function:r,file:i[0],line:i[1]?+i[1]:void 0,col:i[2]?+i[2]:void 0,raw:e}}return{function:e}}))}(e.stack,t)}(e,t);if(t?.allowEmpty)return[];throw new Error("Cannot parse given Error object")}function Lt(e){if(!e.includes(":"))return[e,void 0,void 0];const t=/(.+?)(?::(\d+))?(?::(\d+))?$/.exec(e.replace(/[()]/g,""));return[t[1],t[2]||void 0,t[3]||void 0]}function Mt(e,t){return t&&null!=t.slice?Array.isArray(t.slice)?e.slice(t.slice[0],t.slice[1]):e.slice(0,t.slice):e}function qt(e){try{var t=function(e,t){return Dt(e,t).map((e=>({functionName:e.function,args:e.args,fileName:e.file,lineNumber:e.line,columnNumber:e.col,source:e.raw})))}(e),n=t.map((function(e){return{file:e.fileName,function:e.functionName,line:e.lineNumber,col:e.columnNumber}}));return JSON.stringify(n)}catch(e){return""}}var Vt,Rt,Ut,Ft,zt={fp:0,fcp:0,perFid:0,lcp:0,cls:0,tbt:0,cssTime:0,fetchTime:0,imgTime:0,linkTime:0,otherTime:0,scriptTime:0,resourceTotalTime:0,xmlhttprequestTime:0,iframeTime:0,redirectTime:0,dnsTime:0,tcpTime:0,ttfbTime:0,responseTime:0,domLoadTime:0,domIntTime:0,pageLoadTime:0},Ht=function(e,t){var n=Math.round(e);zt[t]=n},$t=function(){var e,t,n,r,i=(null===(t=null===(e=performance.getEntriesByName("first-paint"))||void 0===e?void 0:e[0])||void 0===t?void 0:t.startTime)||0;Ht(i,"fp");var o=(null===(r=null===(n=performance.getEntriesByName("first-contentful-paint"))||void 0===n?void 0:n[0])||void 0===r?void 0:r.startTime)||0;Ht(o,"fcp"),null==Vt||Vt.disconnect(),null==Rt||Rt.disconnect(),null==Ut||Ut.disconnect(),null==Ft||Ft.disconnect()},Jt={cssTime:0,fetchTime:0,imgTime:0,linkTime:0,otherTime:0,scriptTime:0,resourceTotalTime:0,xmlhttprequestTime:0,iframeTime:0},Wt=function(){performance.getEntriesByType("resource").forEach((function(e){e.initiatorType&&e.duration&&(Jt["".concat(e.initiatorType,"Time")]+=e.duration,Jt.resourceTotalTime+=e.duration)})),Ht(Jt.cssTime,"cssTime"),Ht(Jt.fetchTime,"fetchTime"),Ht(Jt.imgTime,"imgTime"),Ht(Jt.linkTime,"linkTime"),Ht(Jt.otherTime,"otherTime"),Ht(Jt.scriptTime,"scriptTime"),Ht(Jt.resourceTotalTime,"resourceTotalTime"),Ht(Jt.xmlhttprequestTime,"xmlhttprequestTime"),Ht(Jt.iframeTime,"iframeTime")},Gt=function(){var e=performance.timing,t=e.domainLookupEnd,n=e.domainLookupStart,r=e.connectEnd,i=e.connectStart,o=e.responseStart,s=e.requestStart,a=e.responseEnd,c=e.redirectEnd,u=e.redirectStart,l=e.domInteractive,d=e.loadEventEnd,f=e.navigationStart,h=e.domComplete,m=e.domLoading;Ht(c-u,"redirectTime"),Ht(t-n,"dnsTime"),Ht(r-i,"tcpTime"),Ht(o-s,"ttfbTime"),Ht(a-o,"responseTime"),Ht(h-m,"domLoadTime"),Ht(l-a,"domIntTime"),Ht(d-f,"pageLoadTime")},Qt=window.performance||window.msPerformance||window.webkitPerformance;function Kt(){if(!(Qt&&Qt.getEntriesByType&&Qt.now&&Qt.mark))return e="isPerformanceSupported: false",void(i.logger&&console.log("%c[Monitor v3]: ".concat(e),"background-color: blue; color: white;"));var e,t=window.performance;if(t.timing&&t.getEntries){"PerformanceObserver"in window&&function(){(Vt=new PerformanceObserver((function(e,t){var n=e.getEntries(),r=n[n.length-1];r&&Ht(r.processingStart-r.startTime,"perFid")}))).observe({type:"first-input",buffered:!0}),(Rt=new PerformanceObserver((function(e,t){var n=e.getEntries(),r=n[n.length-1];Ht(r.renderTime||r.loadTime,"lcp")}))).observe({type:"largest-contentful-paint"});var e=0;(Ut=new PerformanceObserver((function(t){t.getEntries().forEach((function(t){!t.hadRecentInput&&t.value&&(e+=t.value)})),Ht(e,"cls")}))).observe({type:"layout-shift",buffered:!0});var t=0;(Ft=new PerformanceObserver((function(e){e.getEntries().forEach((function(e){var n=e.duration-50;n>0&&(t+=n)})),Ht(t,"tbt")}))).observe({type:"longtask",buffered:!0})}();window.addEventListener("load",(function(){var e;e=requestIdleCallback((function(t){t.timeRemaining()>0&&(Gt(),Wt(),$t(),At.sendPerformanceLog(zt),cancelIdleCallback(e))}),{timeout:1e3})}))}}var Xt=/^(\/?|)([\s\S]*?)((?:\.{1,2}|[^/]+?|)(\.[^./]*|))(?:[/]*)$/;function Zt(e,t){var n,r,i=(n=e,r=Xt.exec(n),r?r.slice(1):[])[2];return t&&i.substr(-1*t.length)===t&&(i=i.substr(0,i.length-t.length)),i}var Yt=/(?:^|[-_/])(\w)/g,en="root",tn="anonymous component",nn={};function rn(){window.Vue&&(window.Vue.config.errorHandler=sn)}var on,sn=function(e,t,n){var r={errorMessage:e.message,errorStack:qt(e),vueVersion:"2"};if(t)try{r.vueComponent=function(e){if(e.$root===e)return en;if(e.$options.name)return e.$options.name;if(e.$options._componentTag)return e.$options._componentTag;if(e.$options.__file){var t=Zt(e.$options.__file.replace(/^[a-zA-Z]:/,"").replace(/\\/g,"/"),".vue");return nn[t]||(nn[t]=t.replace(Yt,(function(e,t){return t?t.toUpperCase():""})))}return tn}(t)}catch(e){St("Unable to extract metadata from Vue component.")}n&&(r.vueHook=n),At.sendVueErrorLog(r),Ot(e)};var an=((on={}).sp="serverPrefetch hook",on.bc="beforeCreate hook",on.c="created hook",on.bm="beforeMount hook",on.m="mounted hook",on.bu="beforeUpdate hook",on.u="updated",on.bum="beforeUnmount hook",on.um="unmounted hook",on.a="activated hook",on.da="deactivated hook",on.ec="errorCaptured hook",on.rtc="renderTracked hook",on.rtg="renderTriggered hook",on[0]="setup function",on[1]="render function",on[2]="watcher getter",on[3]="watcher callback",on[4]="watcher cleanup function",on[5]="native event handler",on[6]="component event handler",on[7]="vnode hook",on[8]="directive hook",on[9]="transition hook",on[10]="app errorHandler",on[11]="app warnHandler",on[12]="ref function",on[13]="async component loader",on[14]="scheduler flush. This is likely a Vue internals bug. Please open an issue at https://github.com/vuejs/core .",on),cn=/(?:^|[-_])(\w)/g;function un(e,t,n){void 0===n&&(n=!1);var r=function(e,t){return void 0===t&&(t=!0),"function"==typeof e?e.displayName||e.name:e.name||t&&e.__name}(t);if(!r&&t.__file){var i=t.__file.match(/([^/\\]+)\.\w+$/);i&&(r=i[1])}if(!r&&e&&e.parent){var o=function(e){for(var n in e)if(e[n]===t)return n};r=o(e.components||e.parent.type.components)||o(e.appContext.components)}return r?r.replace(cn,(function(e){return e.toUpperCase()})).replace(/[-_]/g,""):n?"App":"Anonymous"}var ln=function(e,t,n){try{var r=dn(n),i=an[r],o={errorMessage:e.message,errorStack:qt(e),vueVersion:"3",vueComponent:un(t.$,t.$.type),vueHook:i};At.sendVueErrorLog(o),Ot(e)}catch(e){St(e.message)}},dn=function(e){return e.split("-").pop()||""};function fn(e,t){return e.ownerDocument&&e.ownerDocument.defaultView?e.ownerDocument.defaultView.getComputedStyle(e,t):void 0}function hn(e){var t=fn(e);if(!t)return!0;if("contents"===t.display){for(var n=e.firstChild;n;n=n.nextSibling){if(1===n.nodeType&&hn(n))return!0;if(3===n.nodeType&&mn(n))return!0}return!1}if(!function(e,t){return!(t=null!=t?t:fn(e))||"visible"===t.visibility}(e,t))return!1;var r=e.getBoundingClientRect();return r.width>0&&r.height>0}function mn(e){var t=e.ownerDocument.createRange();t.selectNode(e);var n=t.getBoundingClientRect();return n.width>0&&n.height>0}var vn,pn=0;function gn(){var e,t;if((e=document.querySelector("#app"))?t="#app":(e=document.querySelector(".content-body"))?t=".content-body":(e=document.querySelector(".mini-layout-body"))&&(t=".mini-layout-body"),e){if(function(e){if("function"!=typeof document.elementsFromPoint)return!1;var t=0,n=e.getBoundingClientRect(),r=n.left,i=n.top,o=n.width,s=n.height;function a(e,t){return document.elementsFromPoint(e,t)[0]}for(var c=1;c<10;c++)a(o*c/10+r,s/2+i)===e&&t++,5!==c&&(a(o/2+r,s*c/10+i)===e&&t++,a(o*c/10+r,s*c/10+i)===e&&t++,a(o*c/10+r,s-s*c/10+i)===e&&t++);return t>=30}(e))return void(++pn>=3&&(clearInterval(vn),St("Detected whiteBox: element ".concat(t," is white box by sampling.")),At.sendWhiteBoxLog({detailType:"whiteBox",detectedDom:t})));if(function(e){if(0===(null==e?void 0:e.childElementCount))return!0;var t=0,n=!1;return function e(r){if(!(t>4||n)){var i=[],o=r.firstElementChild;if(o){if(hn(o)&&(t++,n="IFRAME"===o.nodeName))return;for(i.unshift(o);o=o.nextElementSibling;){if(hn(o)&&(t++,n="IFRAME"===o.nodeName))return;i.unshift(o)}for(;i.length;)e(i.pop())}}}(e),t<5&&!n}(e))return void(++pn>=3&&(clearInterval(vn),St("Detected whiteBox: element ".concat(t," has less quantity dom.")),At.sendWhiteBoxLog({detailType:"lessQuantityDom",detectedDom:t})))}clearInterval(vn)}function yn(){window.addEventListener("load",(function(){vn=setInterval((function(){var e;e=requestIdleCallback((function(t){t.timeRemaining()>0&&(gn(),cancelIdleCallback(e))}),{timeout:1e3})}),5e3)}))}function wn(e){var t,n,r,i;return(null===(t=e.__vue__)||void 0===t?void 0:t._isVue)&&(null===(i=null===(r=null===(n=e.__vue__)||void 0===n?void 0:n.$options)||void 0===r?void 0:r._componentTag)||void 0===i?void 0:i.startsWith("zm-"))}function _n(){var e=document.querySelector("#app")||document.querySelector(".content-body")||document.querySelector(".mini-layout-body");if(e)return function(e){for(var t,n=document.createTreeWalker(e,NodeFilter.SHOW_ELEMENT);t=n.nextNode();)if(wn(t))return!0;return!1}(e)?(At.sendDevVueDetectLog({vueVersion:"2"}),!0):void 0}function bn(){!function(){var e=window.__Vue3PrismVersions;if(Array.isArray(e)&&e.length)return At.sendDevVueDetectLog({vueVersion:JSON.stringify(e)}),!0}()&&_n()}function Tn(){window.addEventListener("load",(function(){var e=setTimeout((function(){var t;t=requestIdleCallback((function(e){e.timeRemaining()>0&&(bn(),cancelIdleCallback(t))}),{timeout:1e3}),clearTimeout(e)}),5e3)}))}var En,kn=function(e,t){return e(t={exports:{}},t.exports),t.exports}((function(e,t){var n;n=function(){function e(){for(var e=0,t={};e<arguments.length;e++){var n=arguments[e];for(var r in n)t[r]=n[r]}return t}function t(e){return e.replace(/(%[0-9A-Z]{2})+/g,decodeURIComponent)}return function n(r){function i(){}function o(t,n,o){if("undefined"!=typeof document){"number"==typeof(o=e({path:"/"},i.defaults,o)).expires&&(o.expires=new Date(1*new Date+864e5*o.expires)),o.expires=o.expires?o.expires.toUTCString():"";try{var s=JSON.stringify(n);/^[\{\[]/.test(s)&&(n=s)}catch(e){}n=r.write?r.write(n,t):encodeURIComponent(String(n)).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g,decodeURIComponent),t=encodeURIComponent(String(t)).replace(/%(23|24|26|2B|5E|60|7C)/g,decodeURIComponent).replace(/[\(\)]/g,escape);var a="";for(var c in o)o[c]&&(a+="; "+c,!0!==o[c]&&(a+="="+o[c].split(";")[0]));return document.cookie=t+"="+n+a}}function s(e,n){if("undefined"!=typeof document){for(var i={},o=document.cookie?document.cookie.split("; "):[],s=0;s<o.length;s++){var a=o[s].split("="),c=a.slice(1).join("=");n||'"'!==c.charAt(0)||(c=c.slice(1,-1));try{var u=t(a[0]);if(c=(r.read||r)(c,u)||t(c),n)try{c=JSON.parse(c)}catch(e){}if(i[u]=c,e===u)break}catch(e){}}return e?i[e]:i}}return i.set=o,i.get=function(e){return s(e,!1)},i.getJSON=function(e){return s(e,!0)},i.remove=function(t,n){o(t,"",e(n,{expires:-1}))},i.defaults={},i.withConverter=n,i}((function(){}))},e.exports=n()}));function xn(e){return e.endsWith("/")?e.slice(0,-1):e}function Cn(e){window.addEventListener("load",(function(){var t=setTimeout((function(){var n;n=requestIdleCallback((function(t){t.timeRemaining()>0&&(e(),cancelIdleCallback(n))}),{timeout:1e3}),clearTimeout(t)}),0)}))}function Nn(e,t){return void 0===t&&(t=3e3),new Promise((function(n,r){var i=new Image,o=!1,s=setTimeout((function(){o||(i.onload=null,i.onerror=null,r({type:En.CDNTimeOut,timeout:t,url:e}))}),t);i.onload=function(){o=!0,clearTimeout(s),n({type:En.CDNPerformance,url:e})},i.onerror=function(){clearTimeout(s),r({type:En.CDNError,url:e})},i.src="".concat(e,"?t=").concat(Math.floor(Date.now()/1e3))}))}function Sn(e,r,i){return void 0===r&&(r=3e3),void 0===i&&(i=!0),t(this,void 0,void 0,(function(){return n(this,(function(t){return[2,Nn(e,r).then((function(e){var t=function(e){var t;return null===(t=performance.getEntriesByType("resource").filter((function(t){return t.name.includes(e)})))||void 0===t?void 0:t[0]}(e.url);if(i&&(null==t?void 0:t.duration)&&t.duration>400){var n={cdnLogType:e.type,cdnDomain:e.url,costTime:Math.round(t.duration)};At.sendCdnLog(n)}return!0})).catch((function(e){if(i){var t={cdnLogType:e.type,cdnDomain:e.url};e.timeout&&(t.costTime=e.timeout),At.sendCdnLog(t)}return!1}))]}))}))}!function(e){e.Error="error",e.Performance="performance",e.CdnDetect="cdn",e.Tracking="tracking",e.WhiteBox="whiteBox",e.LessQuantityDom="lessQuantityDom",e.NoVueApp="noVueApp",e.Vue3PrismVersions="Vue3PrismVersions",e.Vue2Page="Vue2Page",e.CDNTimeOut="cdn_timeout",e.CDNError="cdn_error",e.CDNPerformance="cdn_performance"}(En||(En={}));var On=!1;function In(e,r,i,o){return void 0===o&&(o=3e3),t(this,void 0,void 0,(function(){var t,s,a,c,u,l,d,f,h,m,v,p;return n(this,(function(n){switch(n.label){case 0:if(!e||"object"!=typeof i)return[2,""];n.label=1;case 1:return n.trys.push([1,9,,10]),t=xn(e),s=r?xn(r):"",[4,Sn("".concat(t,"/cdn-detect.png"),o)];case 2:return n.sent()?[2,""]:(a=new Set([t]),s&&t!==s?[4,Sn("".concat(s,"/cdn-detect.png"),o,!1)]:[3,4]);case 3:if(c=n.sent(),a.add(s),c)return[2,"primary"];n.label=4;case 4:for(d in l=[],u=i)l.push(d);f=0,n.label=5;case 5:return f<l.length?(d=l[f])in u?(m=i[h=d],v=xn(m),a.has(v)?[3,7]:[4,Sn("".concat(v,"/cdn-detect.png"),o,!1)]):[3,7]:[3,8];case 6:if(p=n.sent(),a.add(v),p)return[2,h];n.label=7;case 7:return f++,[3,5];case 8:return[3,10];case 9:return n.sent(),[3,10];case 10:return[2,""]}}))}))}window.requestIdleCallback=window.requestIdleCallback||function(e){return setTimeout((function(){e({didTimeout:!1,timeRemaining:function(){return 50}})}),1)},window.cancelIdleCallback=window.cancelIdleCallback||function(e){clearTimeout(e)};var An={monitorOptions:i,init:function(e){r(i,e);var t=i.enableMonitorVueError,n=i.enableMonitorCdn,o=i.enableMonitorPerf,s=i.cdnDetectTargetUrl,a=i.enableDomDetect,c=i.isDevEnv;i.enableMonitorGlobal&&(window.addEventListener("error",(function(e){var t;e.error&&At.sendJsErrorLog({errorMessage:e.message||"Unknown",jsErrorType:(null===(t=e.error)||void 0===t?void 0:t.name)||"Unknown",fileName:e.filename||"",errorStack:qt(e.error)})}),!0),window.addEventListener("unhandledrejection",(function(e){var t=e.reason;"object"==typeof t&&"string"==typeof t.message&&(t=t.message),At.sendJsErrorLog({errorMessage:"Non-Error promise rejection captured with value: ".concat(t),jsErrorType:"unhandledrejection"})}),!0)),t&&rn(),o&&Kt(),n&&s&&function(){var e=i||{},t=e.cdnDetectCookieKey,n=void 0===t?"":t,r=e.cdnDetectTargetUrl;if(!kn.get(n))try{Cn((function(){if(r&&!On){Sn(r);var e=new Date;e.setTime(e.getTime()+3e4),kn.set(n,"1",{expires:e})}}))}catch(e){}}(),a&&yn(),c&&Tn()},updateConfig:function(e){r(i,e)},startMark:function(){St('"startMark" is not supported in v3. Please use telemetry to migrate it by yourself.')},endMark:function(){St('"endMark" is not supported in v3. Please use telemetry to migrate it by yourself.')},capturePerformance:function(){St('"capturePerformance" is not supported in v3. Please use telemetry to migrate it by yourself.')},captureException:function(){St('"captureException" is not supported in v3. Please use telemetry to migrate it by yourself.')},tracking:function(){St('"tracking" is not supported in v3. Please use telemetry to migrate it by yourself.')},vueGlobalErrorHandler:sn,setupVue3ErrorHandler:function(e){e.config.errorHandler=ln},sendCustomLog:function(){St('"sendCustomLog" is not supported in v3. Please use telemetry to migrate it by yourself.')},webCdnEndpointsFallback:function(e,r,i,o){return void 0===i&&(i=3e3),void 0===o&&(o=8e3),t(this,void 0,void 0,(function(){var s,a,c,u=this;return n(this,(function(l){return On=!0,s=!1,a=function(){return t(u,void 0,void 0,(function(){var t,o,s;return n(this,(function(n){switch(n.label){case 0:return n.trys.push([0,2,,3]),[4,Promise.all([In(e.initialDomain,e.primaryDomain,e.backupDomains,i),In(e.feInitialDomain,e.fePrimaryDomain,e.feBackupDomains,i)])];case 1:return t=n.sent(),o=t[0],s=t[1],o||s?(sessionStorage.getItem("zmCDNShouldSwitch")||(sessionStorage.setItem("zmCDNShouldSwitch","1"),r(o,s,kn)),[3,3]):(sessionStorage.removeItem("zmCDNShouldSwitch"),[2]);case 2:return n.sent(),[3,3];case 3:return[2]}}))}))},c=function(){var e=requestIdleCallback((function(t){t.timeRemaining()>0&&(a(),cancelIdleCallback(e))}),{timeout:1e3})},window.addEventListener("load",(function(){s||(c(),s=!0)})),setTimeout((function(){s||(c(),s=!0)}),o),[2]}))}))}};return An}));
+</script><script nonce="3cweAVYiT2iSm4HLN-m4bA">
+window.__MONITOR__.init({
+logger: false,
+isDevEnv: false,
+url: 'https://log-gateway.zoom.us/nws/join/logger/felog',
+tid: 0,
+path: '\/pricing',
+errorLimit: 20,
+enableMonitorPerf: true,
+cdnDetectTargetUrl: 'https://st1.zoom.us/cdn-detect.png',
+cluster: 'aw1',
+isLoggedIn: false,
+trackingId: 'v=2.0;clid=aw1;rid=WEB_0628c83593b4708fc2ea121250bba9db'
+})
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+window.__MONITOR__ && window.__MONITOR__.webCdnEndpointsFallback && window.__MONITOR__.webCdnEndpointsFallback(
+{
+initialDomain: 'https://st1.zoom.us/',
+primaryDomain: 'https://st1.zoom.us',
+backupDomains: {
+'2': 'https://us01st-cf.zoom.us',
+},
+feInitialDomain: 'https://st1.zoom.us/',
+fePrimaryDomain: 'https://st1.zoom.us',
+feBackupDomains: {
+'4': 'https://us01st-cf.zoom.us',
+}
+},
+function (staticId, feStaticId, cookie) {
+if (!staticId && !feStaticId) {
+return
+}
+var expiresTime = new Date()
+var cookieExpire = 1800 * 1000 || 4 * 60 * 60 * 1000
+expiresTime.setTime(expiresTime.getTime() + Number(cookieExpire))
+if (staticId === 'primary') {
+cookie.remove('_zm_fb_domain_id')
+} else if (staticId) {
+cookie.set('_zm_fb_domain_id', staticId, { expires: expiresTime })
+}
+if (feStaticId === 'primary') {
+cookie.remove('_zm_fe_fb_domain_id')
+} else if (feStaticId) {
+cookie.set('_zm_fe_fb_domain_id', feStaticId, { expires: expiresTime })
+}
+location.reload()
+},
+3000
+)
+</script>
+<title>Zoom Workplace Pricing - Zoom</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0">
+
+<meta name="google-site-verification" content="8WU-FkemSTzA1EpoynHUDYe2UxPXiMS53FBXk6_qVy4" />
+<meta name="google-site-verification" content="J_tzcwoKXfPkhsWbiS7cM6WEn3pjCr_DhMNmhRtd960" />
+<meta name="google-site-verification" content="o7_kGQ-oKZjWTkzWK3NYR9JUf3SvQKIBwjHgqTE_FHU" />
+<meta name="google-site-verification" content="QXsuSwndXLLWh52gEd4ig7alEmTyDp0NPo4GCKsUH5k" />
+<meta name="google-site-verification" content="Vt60qsrxhpi8GdAMlhQod8oxA2LAtN908SnMDdelCYc" />
+<meta name="google-site-verification" content="v3_Ow9RbJsRZ9MLl--QrhABeFcA9oP7OBXhY50O4QuA" />
+<meta name="google-site-verification" content="0fZHb1ni-k_iNiYVnomwmnY9ITBunxqU8VC49mHDNxc" />
+<meta name="p:domain_verify" content="2bec2c9f9a864e14528964bf24c404b3" />
+<meta name="google-site-verification" content="40-1sq-enxWOpohk9A5jPnWaXffpizB9UvLWMRUS7hs"/>
+<meta name="description" content="Interested in a Zoom Pro plan? From small teams to larger businesses and enterprises, there's a Zoom Meetings solution for everyone. See what it costs."/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://zoom.us/pricing" />
+<meta property="og:title" content="Zoom Workplace Pricing - Zoom" />
+<meta property="og:description" content="Interested in a Zoom Pro plan? From small teams to larger businesses and enterprises, there's a Zoom Meetings solution for everyone. See what it costs." />
+<meta property="og:image" content="https://st1.zoom.us/static/26.7.63377/image/thumb.png" />
+<meta property="og:site_name" content="Zoom" />
+<meta property="fb:app_id" content="113289095462482" />
+<meta property="twitter:account_id" content="522701657" />
+<link rel="shortcut icon" href="https://st1.zoom.us/zoom.ico" type="image/x-icon" />
+<link rel="icon" sizes="32x32" href="https://st1.zoom.us/zoom-32x32.png" />
+<link rel="icon" sizes="48x48" href="https://st1.zoom.us/zoom-48x48.png" />
+<link rel="icon" sizes="96x96" href="https://st1.zoom.us/zoom-96x96.png" />
+<link rel="icon" sizes="144x144" href="https://st1.zoom.us/zoom-144x144.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="https://st1.zoom.us/zoom-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="https://st1.zoom.us/zoom-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="https://st1.zoom.us/zoom-180x180.png" />
+<link rel="canonical" href="https://zoom.us/pricing" />
+<link rel="alternate" href="https://zoom.us/pricing" hreflang="x-default" />
+<link rel="alternate" href="https://zoom.us/pricing" hreflang="en" />
+<link rel="alternate" href="https://zoom.us/es/pricing" hreflang="es" />
+<link rel="alternate" href="https://zoom.us/de/pricing" hreflang="de" />
+<link rel="alternate" href="https://zoom.us/zh-cn/pricing" hreflang="zh-cn" />
+<link rel="alternate" href="https://zoom.us/zh-tw/pricing" hreflang="zh-tw" />
+<link rel="alternate" href="https://zoom.us/fr/pricing" hreflang="fr" />
+<link rel="alternate" href="https://zoom.us/pt/pricing" hreflang="pt" />
+<link rel="alternate" href="https://zoom.us/ja/pricing" hreflang="ja" />
+<link rel="alternate" href="https://zoom.us/ru/pricing" hreflang="ru" />
+<link rel="alternate" href="https://zoom.us/ko/pricing" hreflang="ko" />
+<link rel="alternate" href="https://zoom.us/it/pricing" hreflang="it" />
+<link rel="alternate" href="https://zoom.us/vi/pricing" hreflang="vi" />
+<link rel="alternate" href="https://zoom.us/pl/pricing" hreflang="pl" />
+<link rel="alternate" href="https://zoom.us/tr/pricing" hreflang="tr" />
+<link rel="alternate" href="https://zoom.us/id/pricing" hreflang="id" />
+<link rel="alternate" href="https://zoom.us/nl/pricing" hreflang="nl" />
+<link rel="alternate" href="https://zoom.us/sv/pricing" hreflang="sv" />
+<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/kgjfgplpablkjnlkjmjdecgdpfankdle" />
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+var resourceAccountIdRoutingURl = "";
+resourceAccountIdRoutingURl = resourceAccountIdRoutingURl==""?undefined:resourceAccountIdRoutingURl;
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+var _market_OneTrust_CookieArray = [];
+_market_OneTrust_CookieArray.push({name: "_zm_tracking_guid", value: "2cc9806063754570b3ae93ab976099ed"});
+var _zm_cookie_domain = "zoom.us";
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/static/26.7.63377/js/app/market_onetrust_cookie.min.js" type="text/plain" class="optanon-category-C0004"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript" id="campaign_flags">
+try {
+window.campaignFlags = {
+enableLiveChatSupport: true,
+locale: document.documentElement.getAttribute('lang') || '',
+isLoggedIn: false,
+currencyValue: 'INR',
+currentCountry: 'in'.toLocaleUpperCase(),
+billingCountry: {
+},
+webClusterId: 'aw1'.toLocaleUpperCase(),
+buildVersion: '26.7.63377'.toLocaleUpperCase(),
+datafileRevision: '242',
+};
+window.optimizely = window.optimizely || [];
+window.optimizely.push({
+type: 'user',
+attributes: {
+visitorHasBillingEditPermission: window.campaignFlags.hasBillingEditPermission,
+visitorHasBillingReadPermission: window.campaignFlags.hasBillingReadPermission,
+visitorSoldToCountry: window.campaignFlags.billingCountry.soldTo,
+visitorBillToCountry: window.campaignFlags.billingCountry.billTo,
+visitorIpCountry: window.campaignFlags.currentCountry,
+visitorCurrency: window.campaignFlags.currencyValue,
+visitorLoggedIn: window.campaignFlags.isLoggedIn,
+visitorLocale: window.campaignFlags.locale
+}
+});
+window.campaignVariants = JSON.parse('{}');
+window.campaignBlock = [];
+} catch (e) {
+console.error('Error setting up Optimizely namespaces');
+}
+</script><meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+window.campaignFlags = window.campaignFlags || {};
+window.campaignFlags.enableProPlus = false;
+window.campaignFlags.enableAiModelLayout = false;
+window.campaignFlags.enablePhoneAiModel = false;
+window.campaignFlags.enableAiModelLayoutWithToolTip = false;
+window.campaignFlags.enableAdditionalPage = false;
+window.campaignFlags.enableBtnHideComparison = false;
+window.campaignFlags.msqSupportINR = true;
+window.campaignFlags.msqSupportAPM = true;
+window.campaignFlags.isProAnnualMonthlyPaymentPlanEnabledOnBE = false;
+window.campaignFlags.enableProAnnualMonthlyPaymentPlan = false;
+// Optimizely FX AA Testing
+window.campaignFlags.aaTesting = {
+result: false,
+customStr: '',
+customInt: ''
+};
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" id="billing-tracking-page-loader-utils" type="text/javascript">
+(function () {
+// Simple helper to get own enumerable property values
+function values(obj) {
+var result = [];
+if (!obj) {
+return result;
+}
+for (var key in obj) {
+if (Object.prototype.hasOwnProperty.call(obj, key)) {
+result.push(obj[key]);
+}
+}
+return result;
+}
+// Simple helper to assign properties from sources to target
+function assign(target) {
+if (target == null) {
+throw new TypeError('Cannot convert undefined or null to object');
+}
+target = Object(target);
+for (var i = 1; i < arguments.length; i++) {
+var source = arguments[i];
+if (source != null) {
+for (var key in source) {
+if (Object.prototype.hasOwnProperty.call(source, key)) {
+target[key] = source[key];
+}
+}
+}
+}
+return target;
+}
+// Simple helper to get own enumerable property names
+function keys(obj) {
+var result = [];
+if (!obj) {
+return result;
+}
+for (var key in obj) {
+if (Object.prototype.hasOwnProperty.call(obj, key)) {
+result.push(key);
+}
+}
+return result;
+}
+// Simple helper to create a new object without null/undefined values
+function filterEmptyValues(source) {
+var result = {};
+if (!source || typeof source !== "object") {
+return result;
+}
+for (var key in source) {
+if (Object.prototype.hasOwnProperty.call(source, key)) {
+var value = source[key];
+if (value !== null && value !== undefined) {
+result[key] = value;
+}
+}
+}
+return result;
+}
+function getPageCategoryPayload(pageCategory, pageCategoryProduct, pageCategorySub) {
+return {
+pageCategory: pageCategory,
+pageCategoryProduct: pageCategoryProduct,
+pageCategorySub: pageCategorySub
+}
+}
+// Constants
+var PAGE_CATEGORY_FIELD_KEYS = {
+CATEGORY: "pageCategory",
+CATEGORY_PRODUCT: "pageCategoryProduct",
+CATEGORY_SUB: "pageCategorySub"
+};
+try {
+var pathname = location.pathname;
+var currentPageHandlers = [
+function () {
+switch (pathname) {
+case "/billing/discover_more_products":
+return Object.assign({ pageVersion:"discover more products" }, getPageCategoryPayload("billing", "discover more products"));
+case "/myhome":
+return getPageCategoryPayload("home destination");
+case "/billing/zoomphone/setup":
+return getPageCategoryPayload("billing", "zoom phone setup");
+}
+}
+,
+function () {
+var pathname = location.pathname;
+var dataMap = {
+"/pricing/frontline": "frontline",
+"/pricing/healthcare": "healthcare",
+"/pricing/education": "education",
+"/pricing/developer": "developer",
+"/pricing/zoom-bundles": "zoom bundles",
+"/pricing/zoom-phone": "zoom phone",
+"/pricing/events": "zoom events",
+"/pricing/webinar": "zoom webinars",
+"/pricing/zoom-rooms": "zoom rooms",
+"/pricing/zoom-contact-center": "zoom contact center",
+"/pricing/whiteboard": "zoom whiteboard",
+"/pricing/workvivo": "workvivo",
+"/pricing/revenue-accelerator": "zoom revenue accelerator",
+"/pricing/additional": "additional features",
+"/pricing/docs": "zoom docs",
+"/pricing/clips": "zoom clips",
+"/pricing/workspace-reservation": "zoom workspace reservation",
+"/pricing/visitor-management": "zoom visitor management",
+"/pricing/aic": "zoom ai companion",
+"/pricing/ai-productivity-suite": "zoom ai productivity suite",
+"/pricing/virtual-agent": "zoom virtual agent",
+"/pricing/brighthire": "brighthire",
+"/pricing/my-notes": "zoom my notes",
+"/pricing/scheduler": "zoom scheduler",
+"/pricing/enterprise": "enterprise",
+"/pricing/industries": "industries",
+"/pricing/client/upgrade": "client upgrade",
+"/reseller/pricing/plans": "reseller",
+"/carrier/pricing/plans": "carrier"
+};
+return {
+pageCategory: "pricing",
+pageCategoryProduct: dataMap[pathname] || "workplace"
+}
+}
+];
+if (currentPageHandlers && currentPageHandlers.length) {
+window.extraPageLoadFields = window.extraPageLoadFields || {};
+var pageLoadObj = currentPageHandlers.reduce(function (finalObj, currentHandler) {
+if (typeof currentHandler == "object") {
+assign(finalObj, currentHandler);
+} else if (typeof currentHandler == "function") {
+assign(finalObj, currentHandler());
+}
+return finalObj;
+}, {});
+if (!pageLoadObj || typeof pageLoadObj != "object") {
+pageLoadObj = {};
+}
+var defaultPageCategoryObj = values(PAGE_CATEGORY_FIELD_KEYS).reduce(function (obj, currentKey) {
+obj[currentKey] = undefined;
+return obj;
+}, {})
+assign(window.extraPageLoadFields, defaultPageCategoryObj, pageLoadObj);
+}
+} catch(err) {
+console.warn(err)
+}
+})();
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+var faqSchema = [];
+var offerSchema = [];
+var schema = {
+"@context":"https://schema.org/",
+"@type":[
+"SoftwareApplication",
+"Product"
+],
+"@id":"https://zoom.us/pricing",
+"url":"https://zoom.us/pricing",
+"applicationCategory":"Communication",
+"operatingSystem":"Web Browser",
+"name":"Zoom Pricing & Plans | Zoom",
+"description":"Zoom offers pricing plans to fit your unique needs. Use Zoom for free or explore our Pro and Enterprise-ready packages to learn which one is right for you.",
+"brand":[
+{
+"@id":"https://zoom.us"
+}
+],
+"offers":[
+{
+"@type":"AggregateOffer",
+"priceCurrency":"INR",
+"lowPrice": '00.00',
+"offerCount": 0,
+"offers": offerSchema
+}
+],
+"subjectOf":[
+{
+"@type":"FAQPage",
+"mainEntity": faqSchema
+}
+]
+}
+</script><script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript" defer>
+function pushPageTypeToDataLayer() {
+window.dataLayer = window.dataLayer || [];
+var gtmPageType = "" || undefined;
+var gtmIsSensitiveReferrer = "" || 'false';
+var initialPageLoadObj = {
+'event': 'pageLoad',
+"isSensitiveReferrer": gtmIsSensitiveReferrer
+};
+if (gtmPageType && gtmPageType === "product") {
+initialPageLoadObj.pageType = gtmPageType;
+}
+window.dataLayer.push(initialPageLoadObj);
+}
+function getPageLoadEvent() {
+function getElementValueById(id) {
+var element = document.getElementById(id);
+return element ? element.value || undefined : undefined;
+}
+function getQueryParameterByName(name) {
+if (!window.location.search) {
+return undefined;
+}
+var queryParams = new URLSearchParams(window.location.search);
+return queryParams !== undefined && queryParams.has(name) ? queryParams.get(name) : undefined;
+}
+var gtm_billingIsIncreasePriceForPHPABVariant = getElementValueById("gtm_billingIsIncreasePriceForPHPABVariant");
+var gtm_experimentParts = [];
+if (gtm_billingIsIncreasePriceForPHPABVariant !== undefined && gtm_billingIsIncreasePriceForPHPABVariant !== '-1') {
+gtm_experimentParts.push("ph price increase - " + (gtm_billingIsIncreasePriceForPHPABVariant === "1" ? "variant" : "control"));
+}
+var gtm_experimentVariant = gtm_experimentParts.length > 0 ? gtm_experimentParts.join(',') : undefined;
+var gtm_signUpFrom = getQueryParameterByName('signUpFrom');
+return {
+'event': 'pageLoad',
+'pageName': document.getElementById("gtm_pageName").value || undefined,
+'pageLanguage': document.getElementById("gtm_pageLanguage").value || undefined,
+'userCountry': document.getElementById("gtm_userCountry").value || undefined,
+'zoom_id': window.zmGlobalMrktKey || undefined,
+'fullUrl': window.location.href || undefined,
+'userStatus': document.getElementById("gtm_userStatus").value || undefined,
+'userRole': document.getElementById("gtm_userRole").value || undefined,
+'productUserType': document.getElementById("gtm_productUserType").value || undefined,
+'accountType': document.getElementById("gtm_accountType").value || undefined,
+'accountPlanType': document.getElementById("gtm_accountPlanType").value || undefined,
+'accountChannel': document.getElementById("gtm_accountChannel").value || undefined,
+'domainType': document.getElementById("gtm_domainType").value || undefined,
+'billingCycle': document.getElementById("gtm_billingCycle").value || undefined,
+'expirationDate': document.getElementById("gtm_expirationDate").value || undefined,
+'autoRenew': document.getElementById("gtm_autoRenew").value || undefined,
+'rateMrr': document.getElementById("gtm_rateMrr").value || undefined,
+'chargeType': document.getElementById("gtm_chargeType").value || undefined,
+'licenseCount': document.getElementById("gtm_licenseCount").value || undefined,
+'paidStartDate': document.getElementById("gtm_paidStartDate").value || undefined,
+'licenseDiscount': document.getElementById("gtm_licenseDiscount").value || undefined,
+'addOns': document.getElementById("gtm_addOns").value || undefined,
+'trackingGuid': document.getElementById("gtm_trackingGuid").value || undefined,
+'visitorGuid': document.getElementById("gtm_visitorGuid").value || undefined,
+'salesChannel': document.getElementById("gtm_salesChannel").value || undefined,
+'verticalSegment': document.getElementById("gtm_verticalSegment").value || undefined,
+'salesSegment' : document.getElementById("gtm_salesSegment").value || undefined,
+'salesDivision' : document.getElementById("gtm_salesDivision").value || undefined,
+'billingCountry': document.getElementById("gtm_billingCountry").value || undefined,
+'employeeCount' : document.getElementById("gtm_employeeCount").value || undefined,
+'webClusterId' : document.getElementById("gtm_webClusterId").value || undefined,
+'segmentValue' : document.getElementById("gtm_segmentValue").value || undefined,
+'userAge' : document.getElementById("gtm_userAge")? document.getElementById("gtm_userAge").value : undefined,
+'accountNo' : document.getElementById("gtm_accountNo")? document.getElementById("gtm_accountNo").value : undefined,
+'email' : document.getElementById("gtm_email")? document.getElementById("gtm_email").value : undefined,
+'isFeedbackEnabled' : document.getElementById("gtm_feedbackEnabled")? document.getElementById("gtm_feedbackEnabled").value : undefined,
+'isPaidUser' : document.getElementById("gtm_isPaid")? document.getElementById("gtm_isPaid").value : undefined,
+'couponType': document.getElementById("gtm_couponType")
+? document.getElementById("gtm_couponType").value ? document.getElementById("gtm_couponType").value : undefined
+: undefined,
+'discountType': document.getElementById("gtm_discountType")
+? document.getElementById("gtm_discountType").value ? document.getElementById("gtm_discountType").value : undefined
+: undefined,
+'pageType': document.getElementById("gtm_pageType").value || undefined,
+'experimentVariant': gtm_experimentVariant,
+'accountHealthScore': document.getElementById("gtm_accountHealthScore").value || undefined,
+'phonePropensityScore': document.getElementById("gtm_phonePropensityScore").value || undefined,
+'winbackPropensityScore': document.getElementById("gtm_winbackPropensityScore").value || undefined,
+'meetingsUpsellScore': document.getElementById("gtm_meetingsUpsellScore").value || undefined,
+'meetingsUpsellProduct': document.getElementById("gtm_meetingsUpsellProduct").value || undefined,
+'meetingsUpsellChannel': document.getElementById("gtm_meetingsUpsellChannel").value || undefined,
+'proToBizPropensityScore': document.getElementById("gtm_proToBizPropensityScore").value || undefined,
+'webinarPropensityScore': document.getElementById("gtm_webinarPropensityScore").value || undefined,
+'largeMeetingPropensityScore': document.getElementById("gtm_largeMeetingPropensityScore").value || undefined,
+'webinarChurnRiskFlag': document.getElementById("gtm_webinarChurnRiskFlag").value || undefined,
+'isSensitiveReferrer': document.getElementById("gtm_isSensitiveReferrer").value || undefined,
+'fromOP': document.getElementById("gtm_fromOP").value || undefined,
+'vertical': document.getElementById("gtm_vertical").value || undefined,
+'signUpFrom': gtm_signUpFrom,
+'pageVersion': document.getElementById("gtm_pageVersion").value || undefined,
+}
+}
+function pushToDataLayer (delay) {
+// Fire GTM Page Load event with data.
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push(Object.assign(getPageLoadEvent(), window.extraPageLoadFields || {}));
+}
+pushPageTypeToDataLayer();
+document.addEventListener('DOMContentLoaded', function () {
+// Fire GTM Page Load event with data.
+window.dataLayer = window.dataLayer || [];
+if (window.gtmPromise) {
+window.gtmPromise.then(function () {
+pushToDataLayer();
+});
+} else {
+pushToDataLayer();
+}
+});
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+window.zmGlobalMrktId = "41298a90d33c46c995cf978f87fe60d5" || null;
+window.zmGlobalMrktKey = "" || null;
+window['optimizely'] = window['optimizely'] || [];
+window["optimizely"].push({
+"type": "tags",
+"tags": {
+"zm_usr_id_sha256": window.zmGlobalMrktKey || ""
+}
+});
+</script><script nonce="3cweAVYiT2iSm4HLN-m4bA">
+var optimizely = window["optimizely"] || [];
+optimizely.push({"type": "holdEvents"});
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/static/26.7.63377/js/app/optimizely/helper.min.js"></script>
+<script src="https://file-paa.zoom.us/_oZa5MSIRrW4m5NDnMSc2A/MS4zLlF-BerMKPmiFgVL__CEi9ZdREuOEyHgXDJZb--p90b8/zm-opt.js" nonce="3cweAVYiT2iSm4HLN-m4bA"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+(function () {
+var optimizely = window["optimizely"];
+if (!optimizely || !optimizely.get) return;
+optimizely.get('utils').waitUntil(function () {
+// wait until default defined OneTrust OptanonWrapper function is defined
+return typeof window.OptanonWrapper !== 'undefined';
+}).then(function () {
+(function (origFunc) {
+window.OptanonWrapper = function () {
+origFunc && origFunc();
+var oneTrustConsentId = OneTrust.getDataSubjectId();
+var activeGroups = (OnetrustActiveGroups || '').split(',');
+activeGroups = activeGroups.filter(function (v) {
+return v !== '';
+});
+// send Optimizely events when Performance consent is given
+if (activeGroups.indexOf('C0002') > -1) {
+optimizely.push({
+"type": "tags",
+"tags": {
+"onetrust_id": oneTrustConsentId || ""
+}
+});
+optimizely.push({"type": "sendEvents"});
+}
+};
+})(window.OptanonWrapper);
+});
+})();
+</script>
+<link type="text/css" rel="stylesheet" href="https://st1.zoom.us/static/26.7.63377/css/fonts/internacional.min.css" />
+<link type="text/css" rel="stylesheet" href="https://st1.zoom.us/static/26.7.63377/css/fonts/suisse.min.css" />
+<link type="text/css" rel="stylesheet" href="https://st1.zoom.us/static/26.7.63377/css/all.min.css" />
+<link rel="stylesheet" type="text/css" href="https://st1.zoom.us/static/26.7.63377/css/vue/zoom-components.min.css"/>
+<link href="https://st1.zoom.us/fe-static/fe-frame-popups/assets/app-common.Ca_3u06y.css" rel=stylesheet>
+<link href="https://st1.zoom.us/fe-static/fe-frame-popups/assets/chunk-vendor.Bo8LLGay.css" rel=stylesheet>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+var faqSchema = [];
+var offerSchema = [];
+var schema = {
+"@context":"https://schema.org/",
+"@type":[
+"SoftwareApplication",
+"Product"
+],
+"@id":"https://zoom.us/pricing",
+"url":"https://zoom.us/pricing",
+"applicationCategory":"Communication",
+"operatingSystem":"Web Browser",
+"name":"Zoom Pricing & Plans | Zoom",
+"description":"Zoom offers pricing plans to fit your unique needs. Use Zoom for free or explore our Pro and Enterprise-ready packages to learn which one is right for you.",
+"brand":[
+{
+"@id":"https://zoom.us"
+}
+],
+"offers":[
+{
+"@type":"AggregateOffer",
+"priceCurrency":"INR",
+"lowPrice": '00.00',
+"offerCount": 0,
+"offers": offerSchema
+}
+],
+"subjectOf":[
+{
+"@type":"FAQPage",
+"mainEntity": faqSchema
+}
+]
+}
+</script><link href="https://st1.zoom.us/fe-static/fe-pricing-v3/css/index.0yWNLvgJ.css" rel=stylesheet>
+<link href="https://st1.zoom.us/fe-static/fe-pricing-v3/css/chunk-vendor.B5rGyD1Y.css" rel=stylesheet>
+<link href="https://st1.zoom.us/fe-static/fe-pricing-v3/css/zoom-ui-vue3.B6zYdo0Q.css" rel=stylesheet>
+<link href="https://st1.zoom.us/fe-static/fe-pricing-v3/css/equal-height.Cipy9qbw.css" rel=stylesheet>
+<link href="https://st1.zoom.us/fe-static/fe-pricing-v3/css/eventListeners.gsGpR38r.css" rel=stylesheet>
+<link href="https://st1.zoom.us/fe-static/fe-pricing-v3/css/pricing-phone-home.DEvoJy_k.css" rel=stylesheet>
+<style>
+body div.combobox div.dropdownlist{
+width: calc(100% + 2px) !important;
+}
+.expired-cc-banner {
+padding: 25px;
+margin-bottom: 0px;
+display: flex;
+align-items: center;
+justify-content: center;
+border: 0;
+}
+.expired-cc-banner.warn {
+color: #361E00;
+background-color: #FFF9F2;
+}
+.expired-cc-banner.error {
+color: #44010D;
+background-color: #FFF2F5;
+}
+.expired-cc-banner .alert-warning__content {
+width: 100%;
+margin-left: 20px;
+}
+.expired-cc-banner .zm-icon-warning {
+font-size: 17px;
+color: #B36200;
+}
+.expired-cc-banner .zm-icon-error {
+font-size: 17px;
+color: #E8173D;
+}
+.expired-cc-banner .zm-icon-close {
+color: #131619;
+cursor: pointer;
+}
+</style>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="/csrf_js"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push({
+'country': 'in'
+});
+//ZOOM-163677
+window.sctyName = '{\"TW\":\"country.TW-TW\",\"CN\":\"country.CN\"}';
+</script>
+<link rel="stylesheet" href="https://st1.zoom.us/static/26.7.63377/js/lib/vue/advanced/notification/notification.min.css">
+<link rel="stylesheet" type="text/css" href="https://st1.zoom.us/static/26.7.63377/js/lib/vue/advanced/popup-captcha/popup-captcha.min.css"/>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js" type="text/javascript" charset="UTF-8" data-domain-script="b0bfa2ae-4058-4aef-8632-a5281ce4464a" data-document-language="true" async></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+function OptanonWrapper() {
+$.i18n.load({
+"marketing.privacy.onetrust.do_not_sell":"Your Privacy Choices",
+"marketing.privacy.onetrust.cookie_pref":"Cookie Preferences"
+});
+var doNotSellDOM = document.getElementById('ot-do-not-sell');
+if (doNotSellDOM) {
+doNotSellDOM.text = $.i18n.get("marketing.privacy.onetrust.do_not_sell");
+}
+let cookiePrefDOM = document.getElementById('ot-cookie-pref');
+if(cookiePrefDOM) {
+cookiePrefDOM.text = $.i18n.get("marketing.privacy.onetrust.cookie_pref");
+}
+var activeGroups = (OnetrustActiveGroups || '').split(',');
+activeGroups = activeGroups.filter(function (v) {
+return v !== '';
+});
+// create `OnetrustActiveGroups` cookie
+var oneTrustActiveCookie = activeGroups.length ? activeGroups.join('') : '';
+var date = new Date();
+date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
+var expires = "; expires=" + date.toUTCString();
+document.cookie = "OnetrustActiveGroups=" + oneTrustActiveCookie + expires + "; path=/; secure=true; domain=" + "zoom.us";
+try {
+pushCampaignDecidedEvents();
+} catch (ignore) {
+}
+try {
+window.__zoomOptanonWrapperDone = true;
+} catch (ignoreDone) {
+}
+}
+function pushCampaignDecidedEvents() {
+function parseExperimentDecisions() {
+var decisionsElement = document.getElementById("gtm_experimentDecisions");
+if (!decisionsElement || !decisionsElement.value) {
+return [];
+}
+try {
+var parsed = JSON.parse(decisionsElement.value);
+return Array.isArray(parsed) ? parsed : [];
+} catch (ignore) {
+return [];
+}
+}
+function experimentVariantEntry(decision) {
+function part(key, value) {
+return key + ':' + (value != null && value !== '' ? String(value) : '');
+}
+return part('flagId', decision.flagId) + '|' +
+part('variationId', decision.variationId) + '|' +
+part('experimentId', decision.experimentId);
+}
+var decisions = parseExperimentDecisions();
+if (!decisions.length) {
+return;
+}
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push({
+event: 'experimentViewedArray',
+experimentVariantArray: decisions.map(experimentVariantEntry),
+serverEventTimestamp: (decisions[0] && decisions[0].serverEventTimestamp) ?
+String(decisions[0].serverEventTimestamp) : new Date().toISOString()
+});
+}
+(function(w) {
+function oneTrustAxFun (event) {
+var el = event.target;
+var classLists = el.getAttribute('class');
+if (classLists && classLists.indexOf('ot-sdk-show-settings') > -1) {
+if (event.code === 'Space' || event.code === 'Enter') {
+el.click && el.click();
+}
+}
+}
+window.removeEventListener('keydown', oneTrustAxFun);
+window.addEventListener('keydown', oneTrustAxFun);
+})(window);
+</script>
+<style>
+.ot-sdk-show-settings {
+cursor: pointer;
+}
+#footer-links .sublinks .ot-sdk-show-settings {
+padding-left: 10px;
+border-left: 1px solid;
+margin-left: 10px;
+}
+#ot-do-not-sell {
+position: relative;
+padding-left: 42px !important;
+}
+#ot-do-not-sell::before {
+content: "";
+position: absolute;
+left: 6px;
+top: 50%;
+transform: translateY(-50%);
+width: 30px;
+height: 15px;
+background-image: url('https://st1.zoom.us/static/26.7.63377/image/marketing/privacyoptions.svg');
+background-size: contain;
+background-repeat: no-repeat;
+}
+</style><script nonce="3cweAVYiT2iSm4HLN-m4bA">
+window.microsDatas = {
+cluster: 'aw1',
+isLoggedIn: false,
+enableAicPanel: false,
+enableAdminCenter: false,
+smartBuildServiceDomain: 'https://smart-builder.zoom.us',
+nakSrcAppName: 'zoom_web_settings',
+aicForAdminAgentId: '8d79e57b763245b39f9dcf6c31ebf008',
+useSimplifiedPortal: false,
+useSimplifiedHeaderRaw: false,
+rollbackToClassicSupported: false,
+simplifiedPortalSupported: false,
+simplifiedPortalEnabledSource: "",
+toggleControlBySetting: false,
+isAdminCenter: false,
+displayPersistentCart: false,
+displayPersistentCartV2: false,
+isHaveSideMenu: false,
+showAicCoachMark: true,
+showExternalAccountsCoachMark: false,
+termChange: {
+enable: false,
+termMonths: 0
+},
+newZoomWebExperienceMigrationBanner: {
+showAdminReminderBanner: false,
+adminReminderMilestoneDays: '',
+showCompletedBanner: false,
+timelineDate: ''
+}
+}
+window.microsDatas.footConfig = {
+learningCenter: {
+url: "https://zoom.us/learningcenter",
+label: "Zoom Learning Center"
+},
+tutorials: {
+url: "/zendesk/sso?return_to=https://support.zoom.us/hc/en-us/articles/206618765-Zoom-Video-Tutorials",
+label: "Video Tutorials"
+},
+knowledge: {
+url: "/zendesk/sso?return_to=https://support.zoom.us/hc/en-us",
+label: "Knowledge Base"
+},
+terms: {
+url: "https://explore.zoom.us/en/terms/",
+label: "Terms"
+},
+privacy: {
+url: "https://explore.zoom.us/en/privacy/",
+label: "Privacy"
+},
+trust_center: {
+url: "https://explore.zoom.us/en/trust/",
+label: "Trust Center"
+},
+guidelines: {
+url: "https://explore.zoom.us/en/acceptable-use-guidelines/",
+label: "Acceptable Use Guidelines"
+},
+legal: {
+url: "https://explore.zoom.us/en/trust/legal-compliance/",
+label: "Legal & Compliance"
+},
+cookie: {
+hideOneTrustForLgWebOs: false,
+enable_one_trust_on_footer: true,
+showTrustFlag:false
+},
+}
+</script>
+</head>
+<body class="      " data-cd="zoom.us">
+<div class="total-main-content">
+<div id="skiptocontent">
+<a aria-label="Skip to main content" href="#nested">Skip to Main Content</a>
+</div>
+<div id="accessibilityHome">
+<a aria-label="Accessibility overview" href="https://explore.zoom.us/en/accessibility">Accessibility Overview</a>
+</div>
+<div id="header_container" style="height: 0; line-height: 0"></div>
+<div id="nested" class="zoom-newpd">
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+var faqSchema = [];
+var offerSchema = [];
+var schema = {
+"@context":"https://schema.org/",
+"@type":[
+"SoftwareApplication",
+"Product"
+],
+"@id":"https://zoom.us/pricing",
+"url":"https://zoom.us/pricing",
+"applicationCategory":"Communication",
+"operatingSystem":"Web Browser",
+"name":"Zoom Pricing & Plans | Zoom",
+"description":"Zoom offers pricing plans to fit your unique needs. Use Zoom for free or explore our Pro and Enterprise-ready packages to learn which one is right for you.",
+"brand":[
+{
+"@id":"https://zoom.us"
+}
+],
+"offers":[
+{
+"@type":"AggregateOffer",
+"priceCurrency":"INR",
+"lowPrice": '00.00',
+"offerCount": 0,
+"offers": offerSchema
+}
+],
+"subjectOf":[
+{
+"@type":"FAQPage",
+"mainEntity": faqSchema
+}
+]
+}
+</script><div id='ZN_3pG2Ka4VC8vHWUC'></div>
+<div id="content_container" role="main" >
+<h1 class="offscreen" style="display:none">Pricing</h1>
+<div id="app">
+<svg class="circular" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect opacity="0.9" x="7" y="1" width="2" height="4" rx="1"></rect>
+<rect opacity="0.8" x="3.75781" y="2.34326" width="4" height="2" rx="1" transform="rotate(45 3.75781 2.34326)"></rect>
+<rect opacity="0.7" x="1" y="7" width="4" height="2" rx="1"></rect>
+<rect opacity="0.6" x="5.17188" y="9.41406" width="2" height="4" rx="1" transform="rotate(45 5.17188 9.41406)"></rect>
+<rect opacity="0.5" x="7" y="11" width="2" height="4" rx="1"></rect>
+<rect opacity="0.4" x="10.8281" y="9.41406" width="4" height="2" rx="1" transform="rotate(45 10.8281 9.41406)"></rect>
+<rect opacity="0.3" x="11" y="7" width="4" height="2" rx="1"></rect>
+<rect opacity="0.2" x="12.2422" y="2.34326" width="2" height="4" rx="1" transform="rotate(45 12.2422 2.34326)"></rect>
+</svg>
+<style>
+.circular {
+position: relative;
+top: 150px;
+left: 50%;
+height: auto;
+width: 42px;
+fill: currentColor;
+margin-top: -21px;
+margin-left: -21px;
+animation: loading-rotate 1.6s linear infinite;
+}
+@keyframes loading-rotate {
+100% {
+transform: rotate(360deg);
+}
+}
+</style></div>
+</div>
+<input type="hidden" id="gtm_pageName" value=""/>
+<input type="hidden" id="gtm_pageLanguage" value=""/>
+<input type="hidden" id="gtm_userCountry" value=""/>
+<input type="hidden" id="gtm_userStatus" value=""/>
+<input type="hidden" id="gtm_productUserType" value=""/>
+<input type="hidden" id="gtm_userRole" value=""/>
+<input type="hidden" id="gtm_accountType" value=""/>
+<input type="hidden" id="gtm_accountPlanType" value=""/>
+<input type="hidden" id="gtm_accountChannel" value=""/>
+<input type="hidden" id="gtm_domainType" value=""/>
+<input type="hidden" id="gtm_billingCycle" value=""/>
+<input type="hidden" id="gtm_expirationDate" value=""/>
+<input type="hidden" id="gtm_autoRenew" value=""/>
+<input type="hidden" id="gtm_rateMrr" value=""/>
+<input type="hidden" id="gtm_chargeType" value=""/>
+<input type="hidden" id="gtm_licenseCount" value=""/>
+<input type="hidden" id="gtm_paidStartDate" value=""/>
+<input type="hidden" id="gtm_licenseDiscount" value=""/>
+<input type="hidden" id="gtm_addOns" value=""/>
+<input type="hidden" id="gtm_trackingGuid" value=""/>
+<input type="hidden" id="gtm_visitorGuid" value=""/>
+<input type="hidden" id="gtm_salesChannel" value=""/>
+<input type="hidden" id="gtm_verticalSegment" value=""/>
+<input type="hidden" id="gtm_salesSegment" value=""/>
+<input type="hidden" id="gtm_salesDivision" value=""/>
+<input type="hidden" id="gtm_billingCountry" value=""/>
+<input type="hidden" id="gtm_employeeCount" value=""/>
+<input type="hidden" id="gtm_webClusterId" value=""/>
+<input type="hidden" id="gtm_segmentValue" value=""/>
+<input type="hidden" id="gtm_couponType" value=""/>
+<input type="hidden" id="gtm_discountType" value=""/>
+<input type="hidden" id="gtm_pageType" value=""/>
+<input type="hidden" id="gtm_pageVersion" value=""/>
+<input type="hidden" id="gtm_accountHealthScore" value=""/>
+<input type="hidden" id="gtm_phonePropensityScore" value=""/>
+<input type="hidden" id="gtm_winbackPropensityScore" value=""/>
+<input type="hidden" id="gtm_meetingsUpsellScore" value=""/>
+<input type="hidden" id="gtm_meetingsUpsellProduct" value=""/>
+<input type="hidden" id="gtm_meetingsUpsellChannel" value=""/>
+<input type="hidden" id="gtm_proToBizPropensityScore" value=""/>
+<input type="hidden" id="gtm_webinarPropensityScore" value=""/>
+<input type="hidden" id="gtm_largeMeetingPropensityScore" value=""/>
+<input type="hidden" id="gtm_webinarChurnRiskFlag" value=""/>
+<input type="hidden" id="gtm_isSensitiveReferrer" value=""/>
+<input type="hidden" id="gtm_fromOP" value=""/>
+<input type="hidden" id="gtm_billingIsIncreasePriceForPHPABVariant" value=""/>
+<input type="hidden" id="gtm_vertical" value=""/>
+<input type="hidden" id="gtm_experimentDecisions" value="[]"/>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript" src="https://st1.zoom.us/static/26.7.63377/js/app/optimizely/exp-datalayer.min.js"></script>
+</div>
+<div id="video_dialog" role="alertdialog" class="noheaderfooterdialog modaldialog hideme">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header clearfix">
+<div class="modal-title"></div>
+<button class="close simplemodal-close" aria-label="close">&times;</button>
+</div>
+<div class="modal-body">
+<div class="modal-body-container">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer_container"  role="contentinfo">
+<div class="">
+<div id="footer-new">
+<div class="footer-body">
+<div class="ft-nav">
+<div class="ft-about">
+<div class="h4" role="heading" aria-level="2"><a href="https://explore.zoom.us/en/about/">About</a></div>
+<ul>
+<li><a href="https://blog.zoom.us" tracking-id="footerBlog" tracking-category="NavFooter">Zoom Blog</a></li>
+<li><a href="https://explore.zoom.us/en/customer/all/">Customers</a></li>
+<li><a href="https://explore.zoom.us/en/team/">Our Team</a></li>
+<li><a href="https://careers.zoom.us/home">Careers</a></li>
+<li><a href="https://marketplace.zoom.us/">Integrations</a></li>
+<li><a href="https://partner.zoom.us/">Partners</a></li>
+<li><a href="https://investors.zoom.us/">Investors</a></li>
+<li><a href="https://news.zoom.us/">Press</a></li>
+<li><a href="https://explore.zoom.us/en/zoom-esg/">Sustainability & ESG</a></li>
+<li><a href="https://zoomcares.zoom.us">Zoom Cares</a></li>
+<li><a href="https://explore.zoom.us/en/media-kit/">Media Kit</a></li>
+<li><a href="https://learn-zoom.us/show-me">How to Videos</a></li>
+<li><a href="https://developers.zoom.us/">Developer Platform</a></li>
+<li><a href="https://explore.zoom.us/en/zoom-ventures/">Zoom Ventures</a></li>
+<li><a href="https://shophappy.zoom.us">Zoom Merchandise Store</a></li>
+</ul>
+</div>
+<div class="ft-download" style="">
+<div class="h4" role="heading" aria-level="2"><a href="https://zoom.us/download" tracking-id="footerDownload" tracking-category="NavFooter">Download</a></div>
+<ul>
+<li><a href="https://zoom.us/download#client_4meeting" tracking-id="footerDownloadClient" tracking-category="NavFooter">Zoom Workplace App</a></li>
+<li><a href="https://zoom.us/download#chrome_ext" tracking-id="footerDownloadExtension" tracking-category="NavFooter">Browser Extension</a></li>
+<li><a href="https://zoom.us/download#client_iphone" tracking-id="footerDownloadiOS" tracking-category="NavFooter">iPhone/iPad App</a></li>
+<li><a href="https://zoom.us/download#mobile_app" tracking-id="footerDownloadAndroid" tracking-category="NavFooter">Android App</a></li>
+<li><a href="https://explore.zoom.us/en/virtual-backgrounds/" tracking-category="NavFooter">Zoom Virtual Backgrounds</a></li>
+</ul>
+</div>
+<div class="ft-sales">
+<div class="h4" role="heading" aria-level="2"><a href="https://explore.zoom.us/en/contactsales/">Sales</a></div>
+<ul>
+<li><a href="tel:1.888.799.9666" class="support-phone">1.888.799.9666</a></li>
+<li><a href="https://explore.zoom.us/en/contactsales/">Contact Sales</a></li>
+<li><a href="/pricing">Plans & Pricing</a></li>
+<li><a href="https://explore.zoom.us/en/livedemo/" tracking-id="footerRequestDemo" tracking-category="NavFooter">Request a Demo</a></li>
+<li><a href="https://zoom.us/events" tracking-id="footerWebinars" tracking-category="NavFooter">Webinars and Events</a></li>
+<li><a href="https://ebc.zoom.us/" tracking-id="footerExperienceCenter" tracking-category="NavFooter">Zoom Experience Center</a></li>
+</ul>
+</div>
+<div class="ft-support">
+<div class="h4" role="heading" aria-level="2">
+<a href="https://support.zoom.com/hc/en
+"
+tracking-id="footerSupport"
+tracking-category="NavFooter" target="_blank">
+Support</a>
+</div>
+<ul>
+<li><a href="https://zoom.us/test">Test Zoom</a></li>
+<li><a href="https://zoom.us/account">Account</a></li>
+<li>
+<a href="https://support.zoom.com/hc/en
+"
+tracking-id="footerSupport2"
+tracking-category="NavFooter" target="_blank">
+Support Center</a>
+</li>
+<li><a href="https://learning.zoom.us/learn">Learning Center</a></li>
+<li><a href="https://community.zoom.com">Zoom Community</a></li>
+<li><a href="https://explore.zoom.us/en/contact">Contact Us</a></li>
+<li><a href="https://explore.zoom.us/en/accessibility/">Accessibility</a></li>
+<li><a href="https://devsupport.zoom.us/hc/en-us">Developer support</a></li>
+<li><a href="https://explore.zoom.us/en/trust/legal-compliance/">Privacy, Security, Legal Policies, and Modern Slavery Act Transparency Statement</a></li>
+</ul>
+</div>
+<div class="cm-language">
+<div class="h4" role="heading" aria-level="2"><span style="color:#eaeaea;">Language</span></div>
+<ul class="clearfix">
+<li>
+<div class="dropdown-language dropdown" role="presentation">
+<a role="button" href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-label="Language English" data-hover="dropdown" data-close-others="true" aria-haspopup="listbox">
+<span>English</span>
+<span class="caret"></span>
+</a>
+<ul class="dropdown-menu pull-right">
+<li class="active"><a href="javascript:;" data-locale="en-US">English</a></li>
+<li class=""><a href="javascript:;" data-locale="es-ES">Español</a></li>
+<li class=""><a href="javascript:;" data-locale="de-DE">Deutsch</a></li>
+<li class=""><a href="javascript:;" data-locale="zh-CN">简体中文</a></li>
+<li class=""><a href="javascript:;" data-locale="zh-TW">繁體中文</a></li>
+<li class=""><a href="javascript:;" data-locale="fr-FR">Français</a></li>
+<li class=""><a href="javascript:;" data-locale="pt-PT">Português</a></li>
+<li class=""><a href="javascript:;" data-locale="jp-JP">日本語</a></li>
+<li class=""><a href="javascript:;" data-locale="ru-RU">Русский</a></li>
+<li class=""><a href="javascript:;" data-locale="ko-KO">한국어</a></li>
+<li class=""><a href="javascript:;" data-locale="it-IT">Italiano</a></li>
+<li class=""><a href="javascript:;" data-locale="vi-VN">Tiếng Việt</a></li>
+<li class=""><a href="javascript:;" data-locale="pl-PL">Polski</a></li>
+<li class=""><a href="javascript:;" data-locale="tr-TR">Türkçe</a></li>
+<li class=""><a href="javascript:;" data-locale="id-ID">Bahasa Indonesia</a></li>
+<li class=""><a href="javascript:;" data-locale="nl-NL">Nederlands</a></li>
+<li class=""><a href="javascript:;" data-locale="sv-SE">Svenska</a></li>
+</ul>
+</div>
+</li>
+</ul>
+<input type="hidden" id="cookie_currency" value="INR" />
+<input type="hidden" id="currency_symbol" value="₹" />
+<input type="hidden" id="currency_symbol_map" value="{&quot;USD&quot;:&quot;$&quot;,&quot;CAD&quot;:&quot;CAD&quot;,&quot;AUD&quot;:&quot;A$&quot;,&quot;JPY&quot;:&quot;¥&quot;,&quot;INR&quot;:&quot;₹&quot;,&quot;EUR&quot;:&quot;€&quot;,&quot;CNY&quot;:&quot;¥&quot;,&quot;GBP&quot;:&quot;£&quot;,&quot;NZD&quot;:&quot;NZ$&quot;,&quot;VND&quot;:&quot;₫&quot;,&quot;BRL&quot;:&quot;R$&quot;,&quot;MXN&quot;:&quot;MX$&quot;,&quot;SGD&quot;:&quot;S$&quot;,&quot;IDR&quot;:&quot;Rp&quot;,&quot;KRW&quot;:&quot;₩&quot;,&quot;PHP&quot;:&quot;₱&quot;,&quot;MYR&quot;:&quot;RM&quot;,&quot;SEK&quot;:&quot;kr&quot;,&quot;PLN&quot;:&quot;zł&quot;,&quot;NOK&quot;:&quot;kr&quot;,&quot;DKK&quot;:&quot;kr&quot;,&quot;HKD&quot;:&quot;HK$&quot;,&quot;CHF&quot;:&quot;CHF&quot;,&quot;SAR&quot;:&quot;SAR&quot;,&quot;AED&quot;:&quot;AED&quot;,&quot;ZAR&quot;:&quot;R&quot;}" />
+<div class="h4" role="heading" aria-level="2"><span style="color:#eaeaea;">Currency</span></div>
+<ul class="clearfix">
+<li>
+<div class="dropdown-currency dropdown" role="presentation">
+<a role="button" href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" role="button" data-hover="dropdown" data-close-others="true" aria-haspopup="listbox">
+<span>Indian Rupee ₹</span>
+<span class="caret"></span>
+</a>
+<ul class="dropdown-menu pull-right" >
+<li class="active"><a href="javascript:;" data-currency="INR">Indian Rupee ₹</a></li>
+<li class=""><a href="javascript:;" data-currency="USD">US Dollars $</a></li>
+</ul>
+</div>
+</li>
+</ul>
+<div class="info-icons">
+<a href="https://blog.zoom.us" class="icon" target="_blank" tracking-id="footerBlogIcon" tracking-category="NavFooter">
+<span class="sr-only">Zoom on Blog</span>
+<span class="wordpress"></span>
+</a>
+<a href="https://www.linkedin.com/company/zoom" class="icon" target="_blank">
+<span class="sr-only">Zoom on LinkedIn</span>
+<span class="linkedin"></span>
+</a>
+<a href="https://twitter.com/zoom" class="icon" target="_blank">
+<span class="sr-only">Zoom on Twitter</span>
+<span class="twitter"></span>
+</a>
+<a href="https://www.youtube.com/zoommeetings" class="icon" target="_blank">
+<span class="sr-only">Zoom on Youtube</span>
+<span class="youtube-play"></span>
+</a>
+<a href="https://www.facebook.com/zoom" class="icon" target="_blank">
+<span class="sr-only">Zoom on Facebook</span>
+<span class="facebook"></span>
+</a>
+<a href="https://www.instagram.com/zoom/" class="icon" target="_blank">
+<span class="sr-only">Zoom on Instagram</span>
+<span class="instagram"></span>
+</a>
+</div>
+</div>
+</div>
+<div class="footer-copyright">
+<div class="info">
+Copyright &copy;2026 Zoom Communications, Inc. All rights reserved.<a href="https://explore.zoom.us/en/terms/">Terms</a>
+<a href="https://explore.zoom.us/en/privacy/">Privacy</a>
+<a href="https://explore.zoom.us/en/trust/">Trust Center</a>
+<a href="https://explore.zoom.us/en/acceptable-use-guidelines/">Acceptable Use Guidelines</a>
+<a href="https://explore.zoom.us/en/trust/legal-compliance/">Legal & Compliance</a>
+<a id="ot-do-not-sell" class="ot-sdk-show-settings" tabindex="0" role="link">Do Not Sell My Personal Information</a>
+<a id="ot-cookie-pref" class="ot-sdk-show-settings" tabindex="0" role="link">Cookie Preferences</a>
+<a id="teconsent" style="display: none;"></a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div style="position: relative;min-height: 80px;z-index:-100" id="stopgap-warpper">
+<div id="consent_blackbar" style="position:fixed; bottom: 0;width: 100%;z-index: 1000;">
+</div>
+</div>
+</div>
+<div id="fb-root"></div>
+<input type="hidden" id="__platformCheck" value="os" />
+<div id="notification"></div>
+<style type="text/css">
+@media screen and (max-width: 767px) {
+.navbar-signup-header .navbar-header {
+display: block;
+float: left;
+border: none;
+}
+.navbar-signup-header .collapse {
+display: block;
+}
+#header_container .container > .navbar-collapse {
+background-color: #fff;
+border: none;
+}
+#header_outer .navbar-signup-header .navbar-collapse .navbar-right {
+float: right;
+margin-top: 4px;
+}
+}
+</style>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+var isFreeAccount = true;
+var SB = {
+version: '26.7.63377',
+contextPath: '',
+baseUrl: 'https://zoom.us',
+baseStaticUrl: 'https://st3.zoom.us/static/26.7.63377',
+loggedIn: false,
+fbLoggedIn: false,
+fbAppkey: '113289095462482',
+fbAppPage: 'https://apps.facebook.com/zoomvideocall/',
+fbScope: 'email,public_profile',
+pardotPaymentUrl : 'https://go.pardot.com/l/84442/2015-07-23/mw5t',
+pardotBuyUrl : 'https://go.pardot.com/l/84442/2015-07-14/4xht',
+pardotSubscriptionUrl : 'https://go.pardot.com/l/84442/2015-07-23/mv5y',
+pardotActivateUserUrl : 'https://go.pardot.com/l/84442/2015-10-23/mspcv',
+noSignup: 'false',
+disablePayment: false,
+enablePaypalCommercePlatformGateway4L: false,
+languagePref: 'en-US',
+isGDPRCountry: false
+};
+</script>
+<script type="module" fetchpriority="high" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-frame-popups/frame.BUnwOstZ.js"></script>
+<script type="module" fetchpriority="high" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-frame-popups/chunks/common-helpers.I_CZDrlb.js"></script>
+<script type="module" fetchpriority="high" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-frame-popups/chunks/chunk-vendor.S_FqBkTu.js"></script>
+<script type="module" fetchpriority="high" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-frame-popups/chunks/app-shared.obrI8HBy.js"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/static/26.7.63377/js/lib/vue/vue.min.js"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+window.Vue && window.__MONITOR__ && (window.Vue.config.errorHandler = window.__MONITOR__.vueGlobalErrorHandler)
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/static/26.7.63377/js/lib/vue/zoom-components.min.js"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/static/26.7.63377/js/lib/vue/advanced/popup-captcha/popup-captcha.min.js"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+// common captcha setting
+var routingUrl=""
+var hCaptchaSiteKey="b70088c4-a2aa-46c6-a312-57707474df0a"
+var hCaptchaSiteKeyVisible="b70088c4-a2aa-46c6-a312-57707474df0a"
+var hCaptchaSiteKeyInvisible="c9f81222-01c6-4490-ab62-14a64606f816"
+var gRecaptchaVisible="6LdZ7KgaAAAAACd71H_lz76FwfcJpc4OQ1J7MDWA";
+var gRecaptchaInvisible="6Lf2C54aAAAAAOOpnJT1sg39rowHN362Zj2QSyls";
+var cfRecaptchaCheckboxSiteKey="0x4AAAAAAAZQvKXdvahp4tEM";
+var cfRecaptchaInvisibleSiteKey="0x4AAAAAAAZQvcBUTC_uhZW5";
+var canSkipCaptcha= false || false
+var isGrecaptchaEnt= true || false
+var isCN = false;
+var isSupportGoogleCaptcha = true;
+var isSupportGoogleCaptchaForCN = true || false
+var isSupportHcaptcha = false;
+var isSupportCfCaptcha = false;
+var isSmartCaptcha = true; // default
+var isHcaptcha = false; // default
+var isCfCaptcha = false // default
+if (canSkipCaptcha){
+isSmartCaptcha = true;
+isHcaptcha = false;
+} else if (isSupportGoogleCaptcha) {
+// google captcha
+if (!isCN || isSupportGoogleCaptchaForCN) {
+isSmartCaptcha = false;
+isHcaptcha = false;
+}
+} else if(isSupportCfCaptcha) {
+// cloudflare turnstile captcha
+isSmartCaptcha = false;
+isCfCaptcha = true;
+} else if (isSupportHcaptcha){
+// hcaptcha
+isSmartCaptcha = false;
+isHcaptcha = true;
+} else {
+// smart captcha
+isSmartCaptcha = true;
+isHcaptcha = false;
+}
+// common setting for front-end project
+var clock_out_path = '/clockout';
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+var seoPageUrl = '\/pricing';
+window.enableLocaleLanguageTag = true;
+window.seoPageUrl = seoPageUrl;
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/static/26.7.63377/js/all.min.js"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+$.i18n.load({
+"common.btn_close": "Close",
+"common.btn_yes": "Yes",
+"common.btn_no": "No",
+"common.title.prompt": "Prompt",
+"common.title.confirmation": "Confirmation",
+"common.unknown_error": "Unknown Error!",
+"common.error": "Error",
+"common.enter_time_in_12_hour": "Please enter a valid time in 12-hour",
+"common.tips": "Tips, press Enter to expand",
+"jquery.validation_required":"This field is required.",
+"jquery.validation_remote":"Please fix this field.",
+"jquery.validation_email":"Please enter a valid email address.",
+"jquery.validation_url":"Please enter a valid URL.",
+"jquery.validation_date":"Please enter a valid date.",
+"jquery.validation_dateISO":"Please enter a valid date (ISO).",
+"jquery.validation_number":"Please enter a valid number.",
+"jquery.validation_digits":"Please enter only digits.",
+"jquery.validation_creditcard":"Please enter a valid credit card number.",
+"jquery.validation_equalTo":"Please enter the same value again.",
+"jquery.validation_maxlength":"Please enter no more than {0} characters.",
+"jquery.validation_minlength":"Please enter at least {0} characters.",
+"jquery.validation_rangelength":"Please enter a value between {0} and {1} characters long.",
+"jquery.validation_range":"Please enter a value between {0} and {1}.",
+"jquery.validation_max":"Please enter a value less than or equal to {0}.",
+"jquery.validation_min":"Please enter a value greater than or equal to {0}.",
+"billing.pastdue.notice":"Past Due Notice",
+"billing.pastdue.notice_summary":"You have one or more invoices overdue. Failure to pay the full invoice balance may result in temporary suspension or cancellation of your subscription. Click <a href=\"javascript:void(0)\" class=\"past_due_pay_link\">here<\/a> to pay or click <a href=\"https://support.zoom.us/hc/en-us/sections/4415044540045-Billing-and-Payments\">here<\/a> for support.",
+"billing.pastdue.balance_new":"Your account has an outstanding balance of {0}{1}.",
+"billing.pastdue.terminate_time":"If you do not pay your balance you will revert to a Basic plan on {0}.",
+"billing.pastdue.terminate_soon":"If you do not pay your balance you will revert to a Basic plan.",
+"billing.pastdue.will_loose":"If you do not pay your balance, you will lose access to all paid features and cloud recordings.",
+"billing.pastdue.this_means":"This means that you will lose many of the features you currently have.",
+"billing.pastdue.pay_online":"<a href=\"/billing/report\" onClick=\"ga(\'send\', \'event\', \'billing\', \'click-pastdue-paynow-link\', \'Past Due Notification Pay Now Link\');\">Click here<\/a> to pay your outstanding invoice(s) or call us at 1.888.799.9666 to avoid a service interruption.",
+"billing.pastdue.pay_online_autopay":"Click <a href=\"javascript:void(0)\" class=\"past_due_pay_link\">here<\/a> to pay your outstanding invoice(s) or click <a href=\"https://support.zoom.us/hc/en-us/sections/4415044540045-Billing-and-Payments\">here<\/a> for support.",
+"billing.pastdue.contact_sales":"<a href=\"/billing/contactus\" target=\"_blank\">Contact sales<\/a> or call us at 1.888.799.9666 to avoid a service interruption.",
+"billing.payment.ach.verify.failed":"Your payment method was not successfully verified. Please navigate to <a href=\"/billing/payment\">Billing Information<\/a> to update your payment method.",
+"billing.payment.ach.verify.pending.error":"You are unable to complete this payment since your payment method is pending verification. Please go to <a href=\"/billing/payment\">Billing Information<\/a> and complete verification then retry.",
+"billing.tax_exemption.label":"Tax Status",
+"billing.tax_exemption.link":"Verify Tax Exemption Status",
+"billing.tax_exemption.link_desc":"You will be taken to ECMS to validate your tax exemption status.<br/>Please make sure pop-ups aren\'t blocked.",
+"billing.tax_exemption.in_progress_title":"Tax Exemption Verification in Progress",
+"billing.tax_exemption.in_progress_desc":"Please complete your tax exemption verification on our partner website. When you have finished verifying your tax status you will return here to complete your order.<br/><br/>Please do not make any changes to this page or close out until the verification is complete. If you no longer need to proceed with tax exemption you may close and continue placing your order.",
+"billing.tax_exemption.in_progress_close_button":"Close",
+"billing.tax_exemption.quit_progress_title":"Are you sure?",
+"billing.tax_exemption.quit_progress_desc":"Are you sure you want to abandon tax exemption verification and proceed as tax eligible?",
+"billing.tax_exemption.quit_progress_confirm":"Yes, Abandon",
+"billing.tax_exemption.quit_progress_cancel":"No, Continue",
+"billing.tax_exemption.status_incomplete":"Verification incomplete, please click again if you wish to be tax exempt",
+"billing.tax_exemption.status_exempt":"Tax Exempt",
+"billing.tax_exemption.status_exempt_short":"Exempt",
+"billing.tax_exemption.status_pending":"Pending",
+"billing.tax_exemption.status_pending_desc":"Your tax exemption status is currently under review. You will be charged tax upon placing this order, should the review be approved we will credit any tax charged to the account.",
+"billing.tax_exemption.status_retrieving":"Retrieving...",
+"billing.tax_exemption.status_retrieving_desc":"We are retrieving your tax exemption status, please wait.",
+"billing.tax_exemption.status_nonexempt":"Non-Exempt",
+"meeting.upcoming_meetings":"Upcoming Meetings",
+"meeting.current.start_this_meeting":"Would you like to start this meeting?",
+"meeting.current.start_these_meetings":"Would you like to start one of these meetings?",
+"meeting.current.view_more":"View more...",
+"meeting.current.start_new_meeting":"Start a New Meeting",
+"meeting.password.opt_out_acceptChange_success":"Passcodes will be enabled by default on {0} for your account.",
+"meeting.password.opt_out_success":"Passcodes will not be enabled by default for your account.",
+"meeting.opt_out_desc.zr_upgrade1":"Passcodes will be enabled by default on {0} for your account.",
+"meeting.opt_out_desc.zr_upgrade2":"We recommend upgrading your <a href=\"/location\">Zoom Rooms and Zoom Rooms Controller<\/a> to the latest version for an optimal join experience",
+"meeting.password.opt_out_notice_title":"Important Update",
+"meeting.password.opt_out_notice":"Zoom will update your account settings to turn on passcodes by default for meetings and webinars on {0}. <a href=\"javascript:void(0)\" onclick=\"showMeetingPassWordOptOut()\">Click<\/a> here to learn more or if you wish to opt out of this change.",
+"feature.settings.submit_message_success":"Your settings have been updated.",
+"billing.new_menu_tips.title": "Your Billing has moved!",
+"billing.new_menu_tips.content": "Effortlessly manage your plan, billing, payment history, and more in Plans and Billing. Get an overview of all the new and updated features in our <a href=\"https://support.zoom.us/hc/articles/16542703332621\" target=\"_blank\">support article<\/a>",
+"billing.new_menu_tips_free.title": "Plans and Billing has moved",
+"billing.new_menu_tips_free.content": "Upgrade your plan in Plan Management to access new features!",
+"billing.cstp.phone.reminder1.title": "Set up your Zoom Phone plan",
+"billing.cstp.phone.reminder1.content": "Complete the initial setup guide to activate your Zoom Phone and unlock key features.",
+"billing.cstp.zop.reminder1.title": "Set up your Zoom One Pro plan",
+"billing.cstp.zop.reminder1.content": "Complete the initial setup guide to get your new plan up and running.",
+"billing.cstp.zob.reminder1.title": "Set up your Zoom One Business plan",
+"billing.cstp.zobp.reminder1.title": "Set up your Zoom One Business Plus plan",
+"billing.cstp.zobp.reminder1.content": "Complete the initial setup guide to activate Zoom Phone and get your plan up and running.",
+"billing.cstp.multiple_products.reminder1.title": "Set up your new Zoom plans",
+"billing.cstp.multiple_products.reminder1.content": "Complete the initial setup guides to get your new plans up and running.",
+"billing.cstp.phone.reminder2.title": "Complete your Zoom Phone setup",
+"billing.cstp.single_product.reminder2.content": "Finish the remaining tasks to start enjoying all of the benefits of your new plan.",
+"billing.cstp.zop.reminder2.title": "Complete your Zoom One Pro setup",
+"billing.cstp.zob.reminder2.title": "Complete your Zoom One Business setup",
+"billing.cstp.zobp.reminder2.title": "Complete your Zoom One Business Plus setup",
+"billing.cstp.multiple_products.reminder2.title": "Complete setting up your new Zoom plans",
+"billing.cstp.multiple_products.reminder2.content": "Finish the remaining tasks to start enjoying all of the benefits of your new plans.",
+"billing.cstp.zopp.reminder1.title": "Set up your Zoom Workplace Pro Plus plan",
+"billing.cstp.zopp.reminder2.title": "Complete your Zoom Workplace Pro Plus setup",
+"billing.cstp.zopp.reminder1.content": "Complete the initial setup guide to activate Zoom Phone and get your plan up and running.",
+});
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/static/26.7.63377/js/app/jquery.validate.message.min.js"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+var faqSchema = [];
+var offerSchema = [];
+var schema = {
+"@context":"https://schema.org/",
+"@type":[
+"SoftwareApplication",
+"Product"
+],
+"@id":"https://zoom.us/pricing",
+"url":"https://zoom.us/pricing",
+"applicationCategory":"Communication",
+"operatingSystem":"Web Browser",
+"name":"Zoom Pricing & Plans | Zoom",
+"description":"Zoom offers pricing plans to fit your unique needs. Use Zoom for free or explore our Pro and Enterprise-ready packages to learn which one is right for you.",
+"brand":[
+{
+"@id":"https://zoom.us"
+}
+],
+"offers":[
+{
+"@type":"AggregateOffer",
+"priceCurrency":"INR",
+"lowPrice": '00.00',
+"offerCount": 0,
+"offers": offerSchema
+}
+],
+"subjectOf":[
+{
+"@type":"FAQPage",
+"mainEntity": faqSchema
+}
+]
+}
+</script><script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+$.i18n.load({
+"billing.currencies.usd":"US Dollars",
+"billing.currencies.aud":"Australian Dollars",
+"billing.currencies.eur":"Euros",
+"billing.currencies.gbp":"British Pounds",
+"billing.currencies.jpy":"Japanese Yen",
+"billing.currencies.cad":"Canadian Dollars",
+"billing.currencies.cny":"Chinese Yuan",
+"billing.currencies.nzd":"New Zealand Dollars",
+"billing.currencies.inr":"Indian Rupee",
+"billing.currencies.vnd":"Vietnamese Dong",
+});
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+var billingConf = {
+planInfos: {},
+disabledCurrency: false,
+currencyList: [],
+isOpenUcBundleConf: true,
+isUpgradeDowngradeDisabled: false,
+isFreeAccount: false,
+isPayByCheck: false,
+isPayByMaster: false,
+isPayBySelfSubAcct: false,
+isOpenZpAloneConf: true,
+isHipaaCompliant: false,
+isZoomPhoneAccount: false,
+isHidePhonePlan: false,
+isFreeTrialDisabledAllowAddon: false,
+isOpenZccPage: true,
+disableFreetrialUpgrade: false,
+isInCurrencySwitchProgress: false
+};
+billingConf.isOpenUcBundleConf = false;
+billingConf.disabledFromOptimizely = true;
+billingConf.currencyList.push({value: 'INR',label: "Indian Rupee ₹"});
+billingConf.currencyList.push({value: 'USD',label: "US Dollars $"});
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript" id="page_config">
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA">
+(function (w, d, s, l, i) {
+w[l] = w[l] || [];
+w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
+var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+j.async = true;
+j.id = 'google-gtm-script'
+j.src = '//www.googletagmanager.com/gtm.js?id=' + i + dl;
+f.parentNode.insertBefore(j, f);
+})(window, document, 'script', 'dataLayer', 'GTM-5WKFT9');
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript" defer>
+// Copied and trimmed from "language.json"
+var languageJson = [
+{"param":"", "code":"en-US"},
+{"param":"/es", "code":"es-ES"},
+{"param":"/de", "code":"de-DE"},
+{"param":"/zh-cn", "code":"zh-CN"},
+{"param":"/zh-tw", "code":"zh-TW"},
+{"param":"/fr", "code":"fr-FR"},
+{"param":"/pt", "code":"pt-PT"},
+{"param":"/ja", "code":"jp-JP"},
+{"param":"/ru", "code":"ru-RU"},
+{"param":"/ko", "code":"ko-KO"},
+{"param":"/it", "code":"it-IT"},
+{"param":"/vi", "code":"vi-VN"},
+{"param":"/pl", "code":"pl-PL"},
+{"param":"/tr", "code":"tr-TR"},
+{"param":"/id", "code":"id-ID"},
+{"param":"/nl", "code":"nl-NL"},
+{"param":"/sv", "code":"sv-SE"}
+];
+if (!window.dataModel) {
+window.dataModel = {};
+}
+window.dataModel.pageUrl = '\/pricing';
+var currentLang = 'en-US';
+var languageDataItem = languageJson.find(item => item.code.toLowerCase() === currentLang.toLowerCase());
+var currentLangParam = '';
+if (languageDataItem) {
+currentLangParam = languageDataItem.param;
+}
+function updateLanguageLinks() {
+var pageUrlString = location.pathname.replace(currentLangParam, '');
+var languageItems = $('.dropdown-language .dropdown-menu a');
+languageItems.each(function (i, languageItemEle) {
+var locale = $(languageItemEle).data('locale');
+languageJson.forEach(function (jsonEle) {
+if (jsonEle.code === locale) {
+$(languageItemEle).prop('href', jsonEle.param + pageUrlString).attr('data-localized-url', true);
+}
+});
+});
+}
+updateLanguageLinks();
+window.addEventListener('popstate', updateLanguageLinks);
+var _pushState = history.pushState;
+var _replaceState = history.replaceState;
+history.pushState = function () {
+_pushState.apply(this, arguments);
+updateLanguageLinks();
+};
+history.replaceState = function () {
+_replaceState.apply(this, arguments);
+updateLanguageLinks();
+};
+</script>
+<script type="module" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-pricing-v3/js/index.DwdHmzu6.js"></script>
+<script type="module" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-pricing-v3/js/modulepreload-polyfill.B5Qt9EMX.js"></script>
+<script type="module" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-pricing-v3/js/chunk-vendor.DJxRC_kn.js"></script>
+<script type="module" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-pricing-v3/js/zoom-ui-vue3.DdjQ9-lG.js"></script>
+<script type="module" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-pricing-v3/js/equal-height.DgGzzhBz.js"></script>
+<script type="module" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-pricing-v3/js/eventListeners.DaBifNaW.js"></script>
+<script type="module" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-pricing-v3/js/price.CLMm5Nqp.js"></script>
+<script type="module" nonce="3cweAVYiT2iSm4HLN-m4bA" src="https://st1.zoom.us/fe-static/fe-pricing-v3/js/pricing-widget.BS0yjY2s.js"></script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+window.useZVALazyLoadChatClient = true;
+</script>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA"
+type="text/javascript"
+src="https://us01ccistatic.zoom.us/us01cci/web-sdk/chat-client.js"
+data-apikey="AM_FKF55QOG_vdWum455Vg"
+data-lazy-load-campaign-url="_blank"
+
+async>
+</script>
+<div id="upcomingMeetingDialog" class="modaldialog hideme upcomingMeeting-feature-dialog">
+<input type="hidden" name="mtg_length" id="mtg_length">
+<input type="hidden" name="mtg_length1" id="mtg_length1">
+<input type="hidden" name="start_url" id="start_url">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header clearfix">
+<button class="close simplemodal-close" aria-label="close">&times;</button>
+<h4 tabindex="-1" id="upcoming-meeting-title" class="meeting-delete-header-font" style="display: inline-block;">Upcoming Meetings</h4>
+</div>
+<div class="modal-body">
+<div class="form-group" style="margin-bottom:16px;">
+<div id="one-mtg" class="controls hideme" style="margin-bottom:18px;">Would you like to start this meeting?</div>
+<div id="more-mtg" class="controls hideme" style="margin-bottom:18px;">Would you like to start one of these meetings?</div>
+<div id="mtgs">
+</div>
+<div id="viwe-more" class="controls hideme"><a href="/meeting">View more...</a></div>
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-primary submit" id="scheduleMtg" style="background-color: #fff;color: #232333;border-color: #747487">Start a New Meeting</button>
+</div>
+</div>
+</div>
+</div>
+<link rel="stylesheet" type="text/css" href="https://st1.zoom.us/static/26.7.63377/css/meetings/meeting_delete_dialog.min.css" /><script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+/*Past Due Invoice Message*/
+var cookieLang = $.cookie('_zm_lang');
+if (cookieLang == "" || cookieLang == null) {
+$.cookie('_zm_lang', "en-US", {expires: 365, path: '/', domain: "zoom.us", secure: true});
+}
+</script>
+</div>
+<script nonce="3cweAVYiT2iSm4HLN-m4bA" type="text/javascript">
+function getZvaVisitorId() {
+const match = document.cookie.match(/(?:^|;\s*)_zm_zvaVisitorId=([^;]*)/)
+return match ? decodeURIComponent(match[1]) : null
+}
+window.zoomCampaignWebSdkConfig = window.zoomCampaignWebSdkConfig || {};
+window.zoomCampaignWebSdkConfig.getUserLoginData =
+function() {
+return {
+isLogin: false,
+token: getZvaVisitorId(),
+userIdentityKey: 'zvaVisitorId'
+}
+}
+</script>
+
+<style type="text/css">
+.optout-notice-wrapper {
+width: 100%;
+display: none;
+position: relative;
+}
+.optout-notice-container {
+padding: 24px 48px 24px 24px;
+}
+.meeting-disabledpmi-alert{
+min-width:415px;
+}
+.meeting-edit-disabledpmi-alert{
+min-width:553px;
+}
+.meeting-edit-disabledpmi-alert p,.meeting-disabledpmi-alert p{
+line-height: inherit;
+}
+@media only screen and (max-width: 414px) {
+.optout-notice-container {
+padding: 10px 20px;
+}
+}
+.optout-notice-container div {
+display: inline-block;
+}
+.optout-notice-title {
+font-weight: bold;
+line-height: 150%;
+}
+.optout-notice-medium {
+background-color: #FCF6ED;
+color: #775111;
+}
+.optout-notice-low {
+background-color: #E4F7EB;
+color: #1C7E41;
+}
+.optout-notice-high {
+background-color: #FFE8E8;
+color: #B22424;
+}
+.optout-notice-container a {
+color: #0065F2;
+font-weight: bold;
+text-decoration: none;
+}
+.optout-notice-content {
+padding-right: 24px;
+}
+.optout-notice-close {
+position: absolute;
+top: 10px;
+right: 23px;
+font-size: 30px;
+color: #232333;
+cursor: pointer;
+border: none;
+background: transparent;
+}
+.optout-notice-close:before {
+content: '\00d7';
+}
+#content_container.content_container_hide_header{
+padding-top:0px;
+}
+.body_hide_footer{
+background: #fff;
+}
+.tesla_night_mode{
+background: #131619;
+}
+</style>
+</body>
+</html>

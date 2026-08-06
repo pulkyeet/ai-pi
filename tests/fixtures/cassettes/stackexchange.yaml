@@ -1,0 +1,414 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.stackexchange.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.stackexchange.com/2.3/search/advanced?filter=withbody&order=desc&pagesize=5&q=project+management+tool+alternative&site=stackoverflow&sort=relevance
+  response:
+    body:
+      string: '{"items":[{"tags":["android","gradle","sdk","android-gradle-plugin","android-sdk-tools"],"owner":{"account_id":2312354,"reputation":9031,"user_id":2030208,"user_type":"registered","accept_rate":67,"profile_image":"https://www.gravatar.com/avatar/8dc4fee514bfaa8eb4e6a97c48c8bb10?s=256&d=identicon&r=PG","display_name":"nsvir","link":"https://stackoverflow.com/users/2030208/nsvir"},"is_answered":true,"view_count":656815,"accepted_answer_id":45782695,"answer_count":65,"score":623,"last_activity_date":1706708609,"creation_date":1467194201,"last_edit_date":1616930932,"question_id":38096225,"content_license":"CC
+        BY-SA 4.0","link":"https://stackoverflow.com/questions/38096225/automatically-accept-all-sdk-licences","title":"Automatically
+        accept all SDK licences","body":"<p>Since gradle android plugins <a href=\"https://sites.google.com/a/android.com/tools/tech-docs/new-build-system\"
+        rel=\"noreferrer\">2.2-alpha4</a>:</p>\n<blockquote>\n<p>Gradle will attempt
+        to download missing SDK packages that a project\ndepends on</p>\n</blockquote>\n<p>Which
+        is amazingly cool and was know to be a <a href=\"https://github.com/JakeWharton/sdk-manager-plugin\"
+        rel=\"noreferrer\">JakeWharton project</a>.</p>\n<p>But, to download the SDK
+        library you need to: accept the license agreements or gradle tells you:</p>\n<blockquote>\n<p>You
+        have not accepted the license agreements of the following SDK\ncomponents:
+        [Android SDK Build-Tools 24, Android SDK Platform 24].\nBefore building your
+        project, you need to accept the license\nagreements and complete the installation
+        of the missing components\nusing the Android Studio SDK Manager. Alternatively,
+        to learn how to\ntransfer the license agreements from one workstation to another,
+        go to\n<a href=\"http://d.android.com/r/studio-ui/export-licenses.html\" rel=\"noreferrer\">http://d.android.com/r/studio-ui/export-licenses.html</a></p>\n</blockquote>\n<p>And
+        this is a problem because I would love to install all sdk dependencies while
+        doing a <code>gradle build</code>.</p>\n<p>I am looking for a solution to
+        automatically accept all licenses. Maybe a gradle script ?\nDo you have any
+        ideas ?</p>\n"},{"tags":["android","android-studio","gradle","android-sdk-tools"],"owner":{"account_id":1666389,"reputation":6519,"user_id":1533690,"user_type":"registered","profile_image":"https://www.gravatar.com/avatar/35ef6df6ce0eccdd1bf5bf51ffd7483d?s=256&d=identicon&r=PG","display_name":"codable","link":"https://stackoverflow.com/users/1533690/codable"},"is_answered":true,"view_count":864512,"closed_date":1518708542,"answer_count":15,"score":624,"last_activity_date":1710157668,"creation_date":1475114036,"last_edit_date":1534962882,"question_id":39760172,"link":"https://stackoverflow.com/questions/39760172/you-have-not-accepted-the-license-agreements-of-the-following-sdk-components","closed_reason":"Duplicate","title":"You
+        have not accepted the license agreements of the following SDK components","body":"<p>I
+        downloaded the latest Android SDK tools version 24.4.1. I used the command
+        line to install SDKs. I typed <code>y</code> when asked </p>\n\n<blockquote>\n  <p>Do
+        you accept the license ''android-sdk-license-c81a61d9'' [y/n]: y\n  after
+        that install succeeded.</p>\n</blockquote>\n\n<p>But when using Gradle 3.1
+        to build, the follows shows up </p>\n\n<blockquote>\n  <p>You have not accepted
+        the license agreements of the following SDK components:\n    [Android SDK
+        Platform 23, Android SDK Build-Tools 23.0.1].\n    Before building your project,
+        you need to accept the license agreements and complete the installation of
+        the missing components using the Android Studio SDK Manager.\n    Alternatively,
+        to learn how to transfer the license agreements from one workstation to another,
+        go to <a href=\"http://d.android.com/r/studio-ui/export-licenses.html\" rel=\"noreferrer\">http://d.android.com/r/studio-ui/export-licenses.html</a></p>\n</blockquote>\n\n<p>I
+        checked <code>~/.android</code> and <code>/opt/android-sdk</code> where Android
+        tools are put. Neither contain folder named <code>licenses</code>.</p>\n"},{"tags":["project-management","ontime"],"owner":{"account_id":45980,"reputation":9379,"user_id":135731,"user_type":"registered","accept_rate":72,"profile_image":"https://www.gravatar.com/avatar/737344142a6cee2760c06ecbe8e03d29?s=256&d=identicon&r=PG","display_name":"Brian
+        Scott","link":"https://stackoverflow.com/users/135731/brian-scott"},"is_answered":true,"view_count":5078,"closed_date":1562519628,"accepted_answer_id":1142531,"answer_count":6,"score":3,"last_activity_date":1429450382,"creation_date":1247826795,"last_edit_date":1247827340,"question_id":1142517,"link":"https://stackoverflow.com/questions/1142517/ontime-alternative","closed_reason":"Not
+        suitable for this site","title":"OnTime Alternative?","body":"<p>I''ve recently
+        begun working with a new software development firm. One of the things I would
+        like to do is introduce a software management tool to collectively group the
+        project development efforts within a single source.</p>\n\n<p>I''ve traditionally
+        used <a href=\"http://www.axosoft.com/products/ontime.aspx\" rel=\"nofollow
+        noreferrer\">OnTime</a> and my initial reaction was to introduce it within
+        the new company as well. However, the pricing is a little too high for the
+        Professional version at this point. </p>\n\n<p>Can anyone offer any real alternatives
+        which offer both Feature / Defect / Project management with easy reporting
+        and dashboards? Basically I''m looking for an OnTime alternative which has
+        been proven through use.</p>\n\n<p>Thanks,</p>\n\n<p>Brian</p>\n"},{"tags":["project-management","ms-project"],"owner":{"account_id":15718,"reputation":221,"user_id":33470,"user_type":"registered","accept_rate":17,"profile_image":"https://www.gravatar.com/avatar/e456ceceaf4ff97b84e3acb23880d905?s=256&d=identicon&r=PG","display_name":"David
+        Neeck","link":"https://stackoverflow.com/users/33470/david-neeck"},"is_answered":true,"view_count":2371,"closed_date":1306861663,"accepted_answer_id":257101,"answer_count":11,"score":8,"last_activity_date":1285682964,"creation_date":1225646385,"last_edit_date":1231259006,"question_id":257074,"link":"https://stackoverflow.com/questions/257074/microsoft-project","closed_reason":"off
+        topic","title":"Microsoft Project","body":"<p>Is Microsoft Project the best
+        tool for managing software development or IT projects or is there an alternative
+        that is better?</p>\n"},{"tags":["java","version-control","open-source","project-management"],"owner":{"account_id":343390,"reputation":29877,"user_id":675065,"user_type":"registered","accept_rate":98,"profile_image":"https://i.sstatic.net/C45lx.jpg?s=256","display_name":"Alp","link":"https://stackoverflow.com/users/675065/alp"},"is_answered":true,"view_count":843,"closed_date":1323265280,"accepted_answer_id":8399261,"answer_count":3,"score":2,"last_activity_date":1323197588,"creation_date":1323170950,"question_id":8399188,"link":"https://stackoverflow.com/questions/8399188/a-good-team-of-version-control-project-management-and-hosting-for-an-open-sourc","closed_reason":"off
+        topic","title":"A good team of version control, project management and hosting
+        for an open-source Java project","body":"<p>I want to release a Java project
+        as open-source, but i am unsure about the right platform and version control
+        system.</p>\n\n<p><strong>There are three considerations to be thought of:</strong></p>\n\n<ol>\n<li>Which
+        version control software?</li>\n<li>Which project mangement library?</li>\n<li>Hosted
+        or on my own server?</li>\n</ol>\n\n<h2>Version Control</h2>\n\n<p>Currently
+        i am using <strong>SVN</strong>, and i planned to migrate to <strong>GIT</strong>.
+        But there are also other possibilities like <strong>Mercurial</strong> or
+        <strong>Bazaar</strong>. GIT and Mercurial seem to be very similar and i didn''t
+        understand the pro''s and con''s of both yet. Also, i''d like to know if there
+        are also any other good alternatives.</p>\n\n<h2>Project Management</h2>\n\n<p>Currently,
+        i use <strong>Maven</strong> to manage the Java library dependencies and to
+        carry out the releases. There are also other tools like <strong>Hudson</strong>
+        or <strong>Apache Ivy</strong> and many others. They should be able to handle
+        library dependencies and be able to include currently released versions. Deployment
+        automation is also a plus.</p>\n\n<h2>To host or not to host?</h2>\n\n<p>Currently
+        i use an own server to host my SVN code and Maven releases. There are so many
+        hosted solutions out there, and i think one of them would be nice to make
+        it easier for people to join my project if they are interested.</p>\n\n<p>Some
+        of the platforms i heard about or used are for example <strong>Github</strong>,
+        <strong>Bitbucket</strong>, <strong>Google Code</strong> or <strong>Sourceforge</strong>.
+        They should be able to easily integrate support for the selected version control
+        and project management software. Additional stuff for developers like a bugtracker
+        and a wiki are good too and need to be considered useful.</p>\n\n<h2>The best
+        team</h2>\n\n<p>So, which combination would you recommend? I''d like to gather
+        all information and create an overview so that people can decide for themselves
+        which setup meets their needs at best.</p>\n"}],"has_more":true,"quota_max":300,"quota_remaining":299}'
+    headers:
+      access-control-allow-credentials:
+      - 'false'
+      access-control-allow-methods:
+      - GET, POST
+      access-control-allow-origin:
+      - '*'
+      cache-control:
+      - private
+      cf-cache-status:
+      - DYNAMIC
+      cf-ray:
+      - a26e76949a0b59e8-DEL
+      connection:
+      - keep-alive
+      content-length:
+      - '9279'
+      content-security-policy:
+      - upgrade-insecure-requests; frame-ancestors 'self' https://stackexchange.com
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Thu, 06 Aug 2026 13:42:09 GMT
+      server:
+      - cloudflare
+      set-cookie:
+      - REDACTED
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains
+      vary:
+      - accept-encoding
+      x-clacks-overhead:
+      - GNU Terry Pratchett
+      x-content-type-options:
+      - nosniff
+      x-providence-cookie:
+      - 065fa2d4-f6aa-4ee0-bf60-2c0d13898bad
+      x-request-guid:
+      - 9216ff94-e15a-4894-b3d1-8963aeaf13eb
+      x-worker-origin-response-time:
+      - '314000000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      cookie:
+      - REDACTED
+      host:
+      - api.stackexchange.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.stackexchange.com/2.3/search/advanced?filter=withbody&order=desc&pagesize=5&q=project+management+tool+alternative&site=stackoverflow&sort=relevance
+  response:
+    body:
+      string: '{"items":[{"tags":["android","gradle","sdk","android-gradle-plugin","android-sdk-tools"],"owner":{"account_id":2312354,"reputation":9031,"user_id":2030208,"user_type":"registered","accept_rate":67,"profile_image":"https://www.gravatar.com/avatar/8dc4fee514bfaa8eb4e6a97c48c8bb10?s=256&d=identicon&r=PG","display_name":"nsvir","link":"https://stackoverflow.com/users/2030208/nsvir"},"is_answered":true,"view_count":656815,"accepted_answer_id":45782695,"answer_count":65,"score":623,"last_activity_date":1706708609,"creation_date":1467194201,"last_edit_date":1616930932,"question_id":38096225,"content_license":"CC
+        BY-SA 4.0","link":"https://stackoverflow.com/questions/38096225/automatically-accept-all-sdk-licences","title":"Automatically
+        accept all SDK licences","body":"<p>Since gradle android plugins <a href=\"https://sites.google.com/a/android.com/tools/tech-docs/new-build-system\"
+        rel=\"noreferrer\">2.2-alpha4</a>:</p>\n<blockquote>\n<p>Gradle will attempt
+        to download missing SDK packages that a project\ndepends on</p>\n</blockquote>\n<p>Which
+        is amazingly cool and was know to be a <a href=\"https://github.com/JakeWharton/sdk-manager-plugin\"
+        rel=\"noreferrer\">JakeWharton project</a>.</p>\n<p>But, to download the SDK
+        library you need to: accept the license agreements or gradle tells you:</p>\n<blockquote>\n<p>You
+        have not accepted the license agreements of the following SDK\ncomponents:
+        [Android SDK Build-Tools 24, Android SDK Platform 24].\nBefore building your
+        project, you need to accept the license\nagreements and complete the installation
+        of the missing components\nusing the Android Studio SDK Manager. Alternatively,
+        to learn how to\ntransfer the license agreements from one workstation to another,
+        go to\n<a href=\"http://d.android.com/r/studio-ui/export-licenses.html\" rel=\"noreferrer\">http://d.android.com/r/studio-ui/export-licenses.html</a></p>\n</blockquote>\n<p>And
+        this is a problem because I would love to install all sdk dependencies while
+        doing a <code>gradle build</code>.</p>\n<p>I am looking for a solution to
+        automatically accept all licenses. Maybe a gradle script ?\nDo you have any
+        ideas ?</p>\n"},{"tags":["android","android-studio","gradle","android-sdk-tools"],"owner":{"account_id":1666389,"reputation":6519,"user_id":1533690,"user_type":"registered","profile_image":"https://www.gravatar.com/avatar/35ef6df6ce0eccdd1bf5bf51ffd7483d?s=256&d=identicon&r=PG","display_name":"codable","link":"https://stackoverflow.com/users/1533690/codable"},"is_answered":true,"view_count":864512,"closed_date":1518708542,"answer_count":15,"score":624,"last_activity_date":1710157668,"creation_date":1475114036,"last_edit_date":1534962882,"question_id":39760172,"link":"https://stackoverflow.com/questions/39760172/you-have-not-accepted-the-license-agreements-of-the-following-sdk-components","closed_reason":"Duplicate","title":"You
+        have not accepted the license agreements of the following SDK components","body":"<p>I
+        downloaded the latest Android SDK tools version 24.4.1. I used the command
+        line to install SDKs. I typed <code>y</code> when asked </p>\n\n<blockquote>\n  <p>Do
+        you accept the license ''android-sdk-license-c81a61d9'' [y/n]: y\n  after
+        that install succeeded.</p>\n</blockquote>\n\n<p>But when using Gradle 3.1
+        to build, the follows shows up </p>\n\n<blockquote>\n  <p>You have not accepted
+        the license agreements of the following SDK components:\n    [Android SDK
+        Platform 23, Android SDK Build-Tools 23.0.1].\n    Before building your project,
+        you need to accept the license agreements and complete the installation of
+        the missing components using the Android Studio SDK Manager.\n    Alternatively,
+        to learn how to transfer the license agreements from one workstation to another,
+        go to <a href=\"http://d.android.com/r/studio-ui/export-licenses.html\" rel=\"noreferrer\">http://d.android.com/r/studio-ui/export-licenses.html</a></p>\n</blockquote>\n\n<p>I
+        checked <code>~/.android</code> and <code>/opt/android-sdk</code> where Android
+        tools are put. Neither contain folder named <code>licenses</code>.</p>\n"},{"tags":["project-management","ontime"],"owner":{"account_id":45980,"reputation":9379,"user_id":135731,"user_type":"registered","accept_rate":72,"profile_image":"https://www.gravatar.com/avatar/737344142a6cee2760c06ecbe8e03d29?s=256&d=identicon&r=PG","display_name":"Brian
+        Scott","link":"https://stackoverflow.com/users/135731/brian-scott"},"is_answered":true,"view_count":5078,"closed_date":1562519628,"accepted_answer_id":1142531,"answer_count":6,"score":3,"last_activity_date":1429450382,"creation_date":1247826795,"last_edit_date":1247827340,"question_id":1142517,"link":"https://stackoverflow.com/questions/1142517/ontime-alternative","closed_reason":"Not
+        suitable for this site","title":"OnTime Alternative?","body":"<p>I''ve recently
+        begun working with a new software development firm. One of the things I would
+        like to do is introduce a software management tool to collectively group the
+        project development efforts within a single source.</p>\n\n<p>I''ve traditionally
+        used <a href=\"http://www.axosoft.com/products/ontime.aspx\" rel=\"nofollow
+        noreferrer\">OnTime</a> and my initial reaction was to introduce it within
+        the new company as well. However, the pricing is a little too high for the
+        Professional version at this point. </p>\n\n<p>Can anyone offer any real alternatives
+        which offer both Feature / Defect / Project management with easy reporting
+        and dashboards? Basically I''m looking for an OnTime alternative which has
+        been proven through use.</p>\n\n<p>Thanks,</p>\n\n<p>Brian</p>\n"},{"tags":["project-management","ms-project"],"owner":{"account_id":15718,"reputation":221,"user_id":33470,"user_type":"registered","accept_rate":17,"profile_image":"https://www.gravatar.com/avatar/e456ceceaf4ff97b84e3acb23880d905?s=256&d=identicon&r=PG","display_name":"David
+        Neeck","link":"https://stackoverflow.com/users/33470/david-neeck"},"is_answered":true,"view_count":2371,"closed_date":1306861663,"accepted_answer_id":257101,"answer_count":11,"score":8,"last_activity_date":1285682964,"creation_date":1225646385,"last_edit_date":1231259006,"question_id":257074,"link":"https://stackoverflow.com/questions/257074/microsoft-project","closed_reason":"off
+        topic","title":"Microsoft Project","body":"<p>Is Microsoft Project the best
+        tool for managing software development or IT projects or is there an alternative
+        that is better?</p>\n"},{"tags":["java","version-control","open-source","project-management"],"owner":{"account_id":343390,"reputation":29877,"user_id":675065,"user_type":"registered","accept_rate":98,"profile_image":"https://i.sstatic.net/C45lx.jpg?s=256","display_name":"Alp","link":"https://stackoverflow.com/users/675065/alp"},"is_answered":true,"view_count":843,"closed_date":1323265280,"accepted_answer_id":8399261,"answer_count":3,"score":2,"last_activity_date":1323197588,"creation_date":1323170950,"question_id":8399188,"link":"https://stackoverflow.com/questions/8399188/a-good-team-of-version-control-project-management-and-hosting-for-an-open-sourc","closed_reason":"off
+        topic","title":"A good team of version control, project management and hosting
+        for an open-source Java project","body":"<p>I want to release a Java project
+        as open-source, but i am unsure about the right platform and version control
+        system.</p>\n\n<p><strong>There are three considerations to be thought of:</strong></p>\n\n<ol>\n<li>Which
+        version control software?</li>\n<li>Which project mangement library?</li>\n<li>Hosted
+        or on my own server?</li>\n</ol>\n\n<h2>Version Control</h2>\n\n<p>Currently
+        i am using <strong>SVN</strong>, and i planned to migrate to <strong>GIT</strong>.
+        But there are also other possibilities like <strong>Mercurial</strong> or
+        <strong>Bazaar</strong>. GIT and Mercurial seem to be very similar and i didn''t
+        understand the pro''s and con''s of both yet. Also, i''d like to know if there
+        are also any other good alternatives.</p>\n\n<h2>Project Management</h2>\n\n<p>Currently,
+        i use <strong>Maven</strong> to manage the Java library dependencies and to
+        carry out the releases. There are also other tools like <strong>Hudson</strong>
+        or <strong>Apache Ivy</strong> and many others. They should be able to handle
+        library dependencies and be able to include currently released versions. Deployment
+        automation is also a plus.</p>\n\n<h2>To host or not to host?</h2>\n\n<p>Currently
+        i use an own server to host my SVN code and Maven releases. There are so many
+        hosted solutions out there, and i think one of them would be nice to make
+        it easier for people to join my project if they are interested.</p>\n\n<p>Some
+        of the platforms i heard about or used are for example <strong>Github</strong>,
+        <strong>Bitbucket</strong>, <strong>Google Code</strong> or <strong>Sourceforge</strong>.
+        They should be able to easily integrate support for the selected version control
+        and project management software. Additional stuff for developers like a bugtracker
+        and a wiki are good too and need to be considered useful.</p>\n\n<h2>The best
+        team</h2>\n\n<p>So, which combination would you recommend? I''d like to gather
+        all information and create an overview so that people can decide for themselves
+        which setup meets their needs at best.</p>\n"}],"has_more":true,"quota_max":300,"quota_remaining":299}'
+    headers:
+      access-control-allow-credentials:
+      - 'false'
+      access-control-allow-methods:
+      - GET, POST
+      access-control-allow-origin:
+      - '*'
+      cache-control:
+      - private
+      cf-cache-status:
+      - DYNAMIC
+      cf-ray:
+      - a26e7696bb9c59e8-DEL
+      connection:
+      - keep-alive
+      content-length:
+      - '9279'
+      content-security-policy:
+      - upgrade-insecure-requests; frame-ancestors 'self' https://stackexchange.com
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Thu, 06 Aug 2026 13:42:10 GMT
+      server:
+      - cloudflare
+      set-cookie:
+      - REDACTED
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains
+      vary:
+      - accept-encoding
+      x-clacks-overhead:
+      - GNU Terry Pratchett
+      x-content-type-options:
+      - nosniff
+      x-providence-cookie:
+      - 065fa2d4-f6aa-4ee0-bf60-2c0d13898bad
+      x-request-guid:
+      - 2b5068b4-beec-4852-8655-3833e04a354f
+      x-worker-origin-response-time:
+      - '281000000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      cookie:
+      - REDACTED
+      host:
+      - api.stackexchange.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.stackexchange.com/2.3/search/advanced?filter=withbody&order=desc&pagesize=5&q=project+management+tool+alternative&site=stackoverflow&sort=relevance
+  response:
+    body:
+      string: '{"items":[{"tags":["android","gradle","sdk","android-gradle-plugin","android-sdk-tools"],"owner":{"account_id":2312354,"reputation":9031,"user_id":2030208,"user_type":"registered","accept_rate":67,"profile_image":"https://www.gravatar.com/avatar/8dc4fee514bfaa8eb4e6a97c48c8bb10?s=256&d=identicon&r=PG","display_name":"nsvir","link":"https://stackoverflow.com/users/2030208/nsvir"},"is_answered":true,"view_count":656815,"accepted_answer_id":45782695,"answer_count":65,"score":623,"last_activity_date":1706708609,"creation_date":1467194201,"last_edit_date":1616930932,"question_id":38096225,"content_license":"CC
+        BY-SA 4.0","link":"https://stackoverflow.com/questions/38096225/automatically-accept-all-sdk-licences","title":"Automatically
+        accept all SDK licences","body":"<p>Since gradle android plugins <a href=\"https://sites.google.com/a/android.com/tools/tech-docs/new-build-system\"
+        rel=\"noreferrer\">2.2-alpha4</a>:</p>\n<blockquote>\n<p>Gradle will attempt
+        to download missing SDK packages that a project\ndepends on</p>\n</blockquote>\n<p>Which
+        is amazingly cool and was know to be a <a href=\"https://github.com/JakeWharton/sdk-manager-plugin\"
+        rel=\"noreferrer\">JakeWharton project</a>.</p>\n<p>But, to download the SDK
+        library you need to: accept the license agreements or gradle tells you:</p>\n<blockquote>\n<p>You
+        have not accepted the license agreements of the following SDK\ncomponents:
+        [Android SDK Build-Tools 24, Android SDK Platform 24].\nBefore building your
+        project, you need to accept the license\nagreements and complete the installation
+        of the missing components\nusing the Android Studio SDK Manager. Alternatively,
+        to learn how to\ntransfer the license agreements from one workstation to another,
+        go to\n<a href=\"http://d.android.com/r/studio-ui/export-licenses.html\" rel=\"noreferrer\">http://d.android.com/r/studio-ui/export-licenses.html</a></p>\n</blockquote>\n<p>And
+        this is a problem because I would love to install all sdk dependencies while
+        doing a <code>gradle build</code>.</p>\n<p>I am looking for a solution to
+        automatically accept all licenses. Maybe a gradle script ?\nDo you have any
+        ideas ?</p>\n"},{"tags":["android","android-studio","gradle","android-sdk-tools"],"owner":{"account_id":1666389,"reputation":6519,"user_id":1533690,"user_type":"registered","profile_image":"https://www.gravatar.com/avatar/35ef6df6ce0eccdd1bf5bf51ffd7483d?s=256&d=identicon&r=PG","display_name":"codable","link":"https://stackoverflow.com/users/1533690/codable"},"is_answered":true,"view_count":864512,"closed_date":1518708542,"answer_count":15,"score":624,"last_activity_date":1710157668,"creation_date":1475114036,"last_edit_date":1534962882,"question_id":39760172,"link":"https://stackoverflow.com/questions/39760172/you-have-not-accepted-the-license-agreements-of-the-following-sdk-components","closed_reason":"Duplicate","title":"You
+        have not accepted the license agreements of the following SDK components","body":"<p>I
+        downloaded the latest Android SDK tools version 24.4.1. I used the command
+        line to install SDKs. I typed <code>y</code> when asked </p>\n\n<blockquote>\n  <p>Do
+        you accept the license ''android-sdk-license-c81a61d9'' [y/n]: y\n  after
+        that install succeeded.</p>\n</blockquote>\n\n<p>But when using Gradle 3.1
+        to build, the follows shows up </p>\n\n<blockquote>\n  <p>You have not accepted
+        the license agreements of the following SDK components:\n    [Android SDK
+        Platform 23, Android SDK Build-Tools 23.0.1].\n    Before building your project,
+        you need to accept the license agreements and complete the installation of
+        the missing components using the Android Studio SDK Manager.\n    Alternatively,
+        to learn how to transfer the license agreements from one workstation to another,
+        go to <a href=\"http://d.android.com/r/studio-ui/export-licenses.html\" rel=\"noreferrer\">http://d.android.com/r/studio-ui/export-licenses.html</a></p>\n</blockquote>\n\n<p>I
+        checked <code>~/.android</code> and <code>/opt/android-sdk</code> where Android
+        tools are put. Neither contain folder named <code>licenses</code>.</p>\n"},{"tags":["project-management","ontime"],"owner":{"account_id":45980,"reputation":9379,"user_id":135731,"user_type":"registered","accept_rate":72,"profile_image":"https://www.gravatar.com/avatar/737344142a6cee2760c06ecbe8e03d29?s=256&d=identicon&r=PG","display_name":"Brian
+        Scott","link":"https://stackoverflow.com/users/135731/brian-scott"},"is_answered":true,"view_count":5078,"closed_date":1562519628,"accepted_answer_id":1142531,"answer_count":6,"score":3,"last_activity_date":1429450382,"creation_date":1247826795,"last_edit_date":1247827340,"question_id":1142517,"link":"https://stackoverflow.com/questions/1142517/ontime-alternative","closed_reason":"Not
+        suitable for this site","title":"OnTime Alternative?","body":"<p>I''ve recently
+        begun working with a new software development firm. One of the things I would
+        like to do is introduce a software management tool to collectively group the
+        project development efforts within a single source.</p>\n\n<p>I''ve traditionally
+        used <a href=\"http://www.axosoft.com/products/ontime.aspx\" rel=\"nofollow
+        noreferrer\">OnTime</a> and my initial reaction was to introduce it within
+        the new company as well. However, the pricing is a little too high for the
+        Professional version at this point. </p>\n\n<p>Can anyone offer any real alternatives
+        which offer both Feature / Defect / Project management with easy reporting
+        and dashboards? Basically I''m looking for an OnTime alternative which has
+        been proven through use.</p>\n\n<p>Thanks,</p>\n\n<p>Brian</p>\n"},{"tags":["project-management","ms-project"],"owner":{"account_id":15718,"reputation":221,"user_id":33470,"user_type":"registered","accept_rate":17,"profile_image":"https://www.gravatar.com/avatar/e456ceceaf4ff97b84e3acb23880d905?s=256&d=identicon&r=PG","display_name":"David
+        Neeck","link":"https://stackoverflow.com/users/33470/david-neeck"},"is_answered":true,"view_count":2371,"closed_date":1306861663,"accepted_answer_id":257101,"answer_count":11,"score":8,"last_activity_date":1285682964,"creation_date":1225646385,"last_edit_date":1231259006,"question_id":257074,"link":"https://stackoverflow.com/questions/257074/microsoft-project","closed_reason":"off
+        topic","title":"Microsoft Project","body":"<p>Is Microsoft Project the best
+        tool for managing software development or IT projects or is there an alternative
+        that is better?</p>\n"},{"tags":["java","version-control","open-source","project-management"],"owner":{"account_id":343390,"reputation":29877,"user_id":675065,"user_type":"registered","accept_rate":98,"profile_image":"https://i.sstatic.net/C45lx.jpg?s=256","display_name":"Alp","link":"https://stackoverflow.com/users/675065/alp"},"is_answered":true,"view_count":843,"closed_date":1323265280,"accepted_answer_id":8399261,"answer_count":3,"score":2,"last_activity_date":1323197588,"creation_date":1323170950,"question_id":8399188,"link":"https://stackoverflow.com/questions/8399188/a-good-team-of-version-control-project-management-and-hosting-for-an-open-sourc","closed_reason":"off
+        topic","title":"A good team of version control, project management and hosting
+        for an open-source Java project","body":"<p>I want to release a Java project
+        as open-source, but i am unsure about the right platform and version control
+        system.</p>\n\n<p><strong>There are three considerations to be thought of:</strong></p>\n\n<ol>\n<li>Which
+        version control software?</li>\n<li>Which project mangement library?</li>\n<li>Hosted
+        or on my own server?</li>\n</ol>\n\n<h2>Version Control</h2>\n\n<p>Currently
+        i am using <strong>SVN</strong>, and i planned to migrate to <strong>GIT</strong>.
+        But there are also other possibilities like <strong>Mercurial</strong> or
+        <strong>Bazaar</strong>. GIT and Mercurial seem to be very similar and i didn''t
+        understand the pro''s and con''s of both yet. Also, i''d like to know if there
+        are also any other good alternatives.</p>\n\n<h2>Project Management</h2>\n\n<p>Currently,
+        i use <strong>Maven</strong> to manage the Java library dependencies and to
+        carry out the releases. There are also other tools like <strong>Hudson</strong>
+        or <strong>Apache Ivy</strong> and many others. They should be able to handle
+        library dependencies and be able to include currently released versions. Deployment
+        automation is also a plus.</p>\n\n<h2>To host or not to host?</h2>\n\n<p>Currently
+        i use an own server to host my SVN code and Maven releases. There are so many
+        hosted solutions out there, and i think one of them would be nice to make
+        it easier for people to join my project if they are interested.</p>\n\n<p>Some
+        of the platforms i heard about or used are for example <strong>Github</strong>,
+        <strong>Bitbucket</strong>, <strong>Google Code</strong> or <strong>Sourceforge</strong>.
+        They should be able to easily integrate support for the selected version control
+        and project management software. Additional stuff for developers like a bugtracker
+        and a wiki are good too and need to be considered useful.</p>\n\n<h2>The best
+        team</h2>\n\n<p>So, which combination would you recommend? I''d like to gather
+        all information and create an overview so that people can decide for themselves
+        which setup meets their needs at best.</p>\n"}],"has_more":true,"quota_max":300,"quota_remaining":297}'
+    headers:
+      access-control-allow-credentials:
+      - 'false'
+      access-control-allow-methods:
+      - GET, POST
+      access-control-allow-origin:
+      - '*'
+      cache-control:
+      - private
+      cf-cache-status:
+      - DYNAMIC
+      cf-ray:
+      - a26e76989cdb59e8-DEL
+      connection:
+      - keep-alive
+      content-length:
+      - '9279'
+      content-security-policy:
+      - upgrade-insecure-requests; frame-ancestors 'self' https://stackexchange.com
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Thu, 06 Aug 2026 13:42:10 GMT
+      server:
+      - cloudflare
+      set-cookie:
+      - REDACTED
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains
+      vary:
+      - accept-encoding
+      x-clacks-overhead:
+      - GNU Terry Pratchett
+      x-content-type-options:
+      - nosniff
+      x-providence-cookie:
+      - 065fa2d4-f6aa-4ee0-bf60-2c0d13898bad
+      x-request-guid:
+      - e6112259-1810-4eee-b499-c93bf833e914
+      x-worker-origin-response-time:
+      - '283000000'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,437 @@
+{
+  "known_page_results": [
+    {
+      "domain": "clickup.com",
+      "category": "project-management",
+      "url": "https://clickup.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 5293
+    },
+    {
+      "domain": "trello.com",
+      "category": "project-management",
+      "url": "https://trello.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 6775
+    },
+    {
+      "domain": "hubspot.com",
+      "category": "crm",
+      "url": "https://hubspot.com/pricing",
+      "status": 200,
+      "static_hit": false,
+      "extracted_chars": 0
+    },
+    {
+      "domain": "airtable.com",
+      "category": "productivity",
+      "url": "https://airtable.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 3573
+    },
+    {
+      "domain": "freshdesk.com",
+      "category": "support",
+      "url": "https://freshdesk.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 14034
+    },
+    {
+      "domain": "asana.com",
+      "category": "project-management",
+      "url": "https://asana.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 5631
+    },
+    {
+      "domain": "notion.so",
+      "category": "productivity",
+      "url": "https://notion.so/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 8504
+    },
+    {
+      "domain": "zoom.us",
+      "category": "communication",
+      "url": "https://zoom.us/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 171
+    },
+    {
+      "domain": "typeform.com",
+      "category": "forms",
+      "url": "https://typeform.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 6373
+    },
+    {
+      "domain": "mailchimp.com",
+      "category": "email-marketing",
+      "url": "https://mailchimp.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 19379
+    },
+    {
+      "domain": "slack.com",
+      "category": "communication",
+      "url": "https://slack.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 4220
+    },
+    {
+      "domain": "calendly.com",
+      "category": "scheduling",
+      "url": "https://calendly.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 8039
+    },
+    {
+      "domain": "intercom.com",
+      "category": "support",
+      "url": "https://intercom.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 6308
+    },
+    {
+      "domain": "zendesk.com",
+      "category": "support",
+      "url": "https://zendesk.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 13344
+    },
+    {
+      "domain": "monday.com",
+      "category": "project-management",
+      "url": "https://monday.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 41934
+    },
+    {
+      "domain": "github.com",
+      "category": "dev-tools",
+      "url": "https://github.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 46192
+    },
+    {
+      "domain": "vercel.com",
+      "category": "dev-infra",
+      "url": "https://vercel.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 7502
+    },
+    {
+      "domain": "gitlab.com",
+      "category": "dev-tools",
+      "url": "https://gitlab.com/pricing",
+      "status": 403,
+      "static_hit": false,
+      "extracted_chars": 0
+    },
+    {
+      "domain": "newrelic.com",
+      "category": "observability",
+      "url": "https://newrelic.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 11439
+    },
+    {
+      "domain": "canva.com",
+      "category": "design",
+      "url": "https://canva.com/pricing",
+      "status": 403,
+      "static_hit": false,
+      "extracted_chars": 0
+    },
+    {
+      "domain": "stripe.com",
+      "category": "payments",
+      "url": "https://stripe.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 4253
+    },
+    {
+      "domain": "datadoghq.com",
+      "category": "observability",
+      "url": "https://datadoghq.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 68594
+    },
+    {
+      "domain": "netlify.com",
+      "category": "dev-infra",
+      "url": "https://netlify.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 12929
+    },
+    {
+      "domain": "shopify.com",
+      "category": "ecommerce",
+      "url": "https://shopify.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 7082
+    },
+    {
+      "domain": "twilio.com",
+      "category": "communication-infra",
+      "url": "https://twilio.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 4851
+    },
+    {
+      "domain": "bigcommerce.com",
+      "category": "ecommerce",
+      "url": "https://bigcommerce.com/pricing",
+      "status": 403,
+      "static_hit": false,
+      "extracted_chars": 0
+    },
+    {
+      "domain": "sentry.io",
+      "category": "observability",
+      "url": "https://sentry.io/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 2839
+    },
+    {
+      "domain": "zapier.com",
+      "category": "automation",
+      "url": "https://zapier.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 14700
+    },
+    {
+      "domain": "squarespace.com",
+      "category": "website-builder",
+      "url": "https://squarespace.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 4693
+    },
+    {
+      "domain": "sendgrid.com",
+      "category": "email-infra",
+      "url": "https://sendgrid.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 1687
+    },
+    {
+      "domain": "webflow.com",
+      "category": "website-builder",
+      "url": "https://webflow.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 8345
+    },
+    {
+      "domain": "auth0.com",
+      "category": "security",
+      "url": "https://auth0.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 13137
+    },
+    {
+      "domain": "miro.com",
+      "category": "design",
+      "url": "https://miro.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 7272
+    },
+    {
+      "domain": "loom.com",
+      "category": "video",
+      "url": "https://loom.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 11923
+    },
+    {
+      "domain": "make.com",
+      "category": "automation",
+      "url": "https://make.com/pricing",
+      "status": 403,
+      "static_hit": false,
+      "extracted_chars": 0
+    },
+    {
+      "domain": "linear.app",
+      "category": "project-management",
+      "url": "https://linear.app/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 2030
+    },
+    {
+      "domain": "figma.com",
+      "category": "design",
+      "url": "https://figma.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 4689
+    },
+    {
+      "domain": "atlassian.com",
+      "category": "project-management",
+      "url": "https://atlassian.com/software/jira/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 138
+    },
+    {
+      "domain": "postman.com",
+      "category": "dev-tools",
+      "url": "https://postman.com/pricing",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 15738
+    },
+    {
+      "domain": "salesforce.com",
+      "category": "crm",
+      "url": "https://salesforce.com/editions-pricing/sales-cloud/",
+      "status": 200,
+      "static_hit": true,
+      "extracted_chars": 4040
+    }
+  ],
+  "guess_hits_by_domain": {
+    "trello.com": [
+      "/pricing"
+    ],
+    "monday.com": [
+      "/pricing"
+    ],
+    "clickup.com": [
+      "/pricing",
+      "/plans"
+    ],
+    "asana.com": [
+      "/plans",
+      "/pricing"
+    ],
+    "notion.so": [
+      "/pricing"
+    ],
+    "airtable.com": [
+      "/pricing"
+    ],
+    "freshdesk.com": [
+      "/pricing",
+      "/plans"
+    ],
+    "zendesk.com": [
+      "/pricing"
+    ],
+    "intercom.com": [
+      "/pricing"
+    ],
+    "zoom.us": [
+      "/pricing",
+      "/plans"
+    ],
+    "slack.com": [
+      "/pricing"
+    ],
+    "typeform.com": [
+      "/pricing"
+    ],
+    "calendly.com": [
+      "/pricing"
+    ],
+    "mailchimp.com": [
+      "/pricing"
+    ],
+    "sendgrid.com": [
+      "/plans",
+      "/pricing",
+      "/pricing-plans"
+    ],
+    "stripe.com": [
+      "/pricing"
+    ],
+    "twilio.com": [
+      "/pricing"
+    ],
+    "github.com": [
+      "/pricing",
+      "/plans"
+    ],
+    "vercel.com": [
+      "/pricing",
+      "/plans",
+      "/pricing-plans"
+    ],
+    "datadoghq.com": [
+      "/pricing"
+    ],
+    "netlify.com": [
+      "/pricing"
+    ],
+    "newrelic.com": [
+      "/pricing"
+    ],
+    "sentry.io": [
+      "/pricing"
+    ],
+    "webflow.com": [
+      "/pricing"
+    ],
+    "figma.com": [
+      "/pricing"
+    ],
+    "squarespace.com": [
+      "/pricing"
+    ],
+    "shopify.com": [
+      "/pricing"
+    ],
+    "zapier.com": [
+      "/pricing"
+    ],
+    "loom.com": [
+      "/pricing",
+      "/plans"
+    ],
+    "miro.com": [
+      "/pricing"
+    ],
+    "linear.app": [
+      "/pricing"
+    ],
+    "auth0.com": [
+      "/pricing"
+    ],
+    "postman.com": [
+      "/pricing-plans",
+      "/pricing",
+      "/plans"
+    ]
+  }
+}

@@ -1,0 +1,350 @@
+[
+  {
+    "domain": "asana.com",
+    "category": "project-management",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 5631,
+    "has_price": true,
+    "matched_price_snippet": "$13.49"
+  },
+  {
+    "domain": "trello.com",
+    "category": "project-management",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 6775,
+    "has_price": true,
+    "matched_price_snippet": "$6"
+  },
+  {
+    "domain": "monday.com",
+    "category": "project-management",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 41934,
+    "has_price": true,
+    "matched_price_snippet": "$\n9"
+  },
+  {
+    "domain": "clickup.com",
+    "category": "project-management",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 5293,
+    "has_price": true,
+    "matched_price_snippet": "Free Forever Plan"
+  },
+  {
+    "domain": "notion.so",
+    "category": "productivity",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 8504,
+    "has_price": true,
+    "matched_price_snippet": "$10"
+  },
+  {
+    "domain": "airtable.com",
+    "category": "productivity",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 3573,
+    "has_price": true,
+    "matched_price_snippet": "Free plan"
+  },
+  {
+    "domain": "hubspot.com",
+    "category": "crm",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 0,
+    "has_price": false,
+    "matched_price_snippet": null
+  },
+  {
+    "domain": "zendesk.com",
+    "category": "support",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 13344,
+    "has_price": true,
+    "matched_price_snippet": "\u00a319"
+  },
+  {
+    "domain": "intercom.com",
+    "category": "support",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 6308,
+    "has_price": true,
+    "matched_price_snippet": "$29"
+  },
+  {
+    "domain": "freshdesk.com",
+    "category": "support",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 14034,
+    "has_price": true,
+    "matched_price_snippet": "$49"
+  },
+  {
+    "domain": "slack.com",
+    "category": "communication",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 4220,
+    "has_price": true,
+    "matched_price_snippet": "Free</div><div class=\"plan"
+  },
+  {
+    "domain": "zoom.us",
+    "category": "communication",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 171,
+    "has_price": true,
+    "matched_price_snippet": "$2"
+  },
+  {
+    "domain": "calendly.com",
+    "category": "scheduling",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 8039,
+    "has_price": true,
+    "matched_price_snippet": "$10"
+  },
+  {
+    "domain": "typeform.com",
+    "category": "forms",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 6373,
+    "has_price": true,
+    "matched_price_snippet": "Free plan"
+  },
+  {
+    "domain": "mailchimp.com",
+    "category": "email-marketing",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 19379,
+    "has_price": true,
+    "matched_price_snippet": "Free plan"
+  },
+  {
+    "domain": "sendgrid.com",
+    "category": "email-infra",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 1687,
+    "has_price": true,
+    "matched_price_snippet": "$2"
+  },
+  {
+    "domain": "twilio.com",
+    "category": "communication-infra",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 4851,
+    "has_price": true,
+    "matched_price_snippet": "$0.00"
+  },
+  {
+    "domain": "stripe.com",
+    "category": "payments",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 4253,
+    "has_price": true,
+    "matched_price_snippet": "\u20b9200"
+  },
+  {
+    "domain": "github.com",
+    "category": "dev-tools",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 46192,
+    "has_price": true,
+    "matched_price_snippet": "$ 0"
+  },
+  {
+    "domain": "gitlab.com",
+    "category": "dev-tools",
+    "fetched": false,
+    "has_price": false
+  },
+  {
+    "domain": "vercel.com",
+    "category": "dev-infra",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 7502,
+    "has_price": true,
+    "matched_price_snippet": "$0.50"
+  },
+  {
+    "domain": "netlify.com",
+    "category": "dev-infra",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 12929,
+    "has_price": true,
+    "matched_price_snippet": "$15"
+  },
+  {
+    "domain": "datadoghq.com",
+    "category": "observability",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 68594,
+    "has_price": true,
+    "matched_price_snippet": "$1.30"
+  },
+  {
+    "domain": "newrelic.com",
+    "category": "observability",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 11439,
+    "has_price": true,
+    "matched_price_snippet": "$0.40"
+  },
+  {
+    "domain": "sentry.io",
+    "category": "observability",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 2839,
+    "has_price": true,
+    "matched_price_snippet": "$0"
+  },
+  {
+    "domain": "figma.com",
+    "category": "design",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 4689,
+    "has_price": true,
+    "matched_price_snippet": "$16"
+  },
+  {
+    "domain": "canva.com",
+    "category": "design",
+    "fetched": false,
+    "has_price": false
+  },
+  {
+    "domain": "webflow.com",
+    "category": "website-builder",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 8345,
+    "has_price": true,
+    "matched_price_snippet": "free, no matter what plan"
+  },
+  {
+    "domain": "squarespace.com",
+    "category": "website-builder",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 4693,
+    "has_price": true,
+    "matched_price_snippet": "free plan"
+  },
+  {
+    "domain": "shopify.com",
+    "category": "ecommerce",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 7082,
+    "has_price": true,
+    "matched_price_snippet": "\u20b97,000"
+  },
+  {
+    "domain": "bigcommerce.com",
+    "category": "ecommerce",
+    "fetched": false,
+    "has_price": false
+  },
+  {
+    "domain": "zapier.com",
+    "category": "automation",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 14700,
+    "has_price": true,
+    "matched_price_snippet": "$0"
+  },
+  {
+    "domain": "make.com",
+    "category": "automation",
+    "fetched": false,
+    "has_price": false
+  },
+  {
+    "domain": "loom.com",
+    "category": "video",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 11923,
+    "has_price": true,
+    "matched_price_snippet": "free on our Starter plan"
+  },
+  {
+    "domain": "miro.com",
+    "category": "design",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 7272,
+    "has_price": true,
+    "matched_price_snippet": "Free plan"
+  },
+  {
+    "domain": "linear.app",
+    "category": "project-management",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 2030,
+    "has_price": true,
+    "matched_price_snippet": "$0"
+  },
+  {
+    "domain": "postman.com",
+    "category": "dev-tools",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 15738,
+    "has_price": true,
+    "matched_price_snippet": "$0"
+  },
+  {
+    "domain": "auth0.com",
+    "category": "security",
+    "known_path": "/pricing",
+    "fetched": true,
+    "extracted_chars": 13137,
+    "has_price": true,
+    "matched_price_snippet": "Free Plan"
+  },
+  {
+    "domain": "atlassian.com",
+    "category": "project-management",
+    "known_path": "/software/jira/pricing",
+    "fetched": true,
+    "extracted_chars": 138,
+    "has_price": true,
+    "matched_price_snippet": "Free plan"
+  },
+  {
+    "domain": "salesforce.com",
+    "category": "crm",
+    "known_path": "/editions-pricing/sales-cloud/",
+    "fetched": true,
+    "extracted_chars": 4040,
+    "has_price": true,
+    "matched_price_snippet": "Free plan"
+  }
+]

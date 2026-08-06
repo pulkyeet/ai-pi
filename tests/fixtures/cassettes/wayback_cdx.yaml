@@ -1,0 +1,494 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - web.archive.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://web.archive.org/cdx/search/cdx?collapse=urlkey&filter=statuscode%3A200&limit=50&matchType=domain&output=json&url=stripe.com
+  response:
+    body:
+      string: '[["urlkey","timestamp","original","mimetype","statuscode","digest","length"],
+
+        ["com,stripe)/","19961218234205","http://www.stripe.com:80/","text/html","200","ZD2BRVI43ZMW4QUJHXOFHIQXKNT7PACV","342"],
+
+        ["com,stripe)/-api/book-of-the-week","20260424160638","https://stripe.com/-api/book-of-the-week","application/json","200","JWY66FDNDI757XYPOFEEHQHSRUOR7UEF","2259"],
+
+        ["com,stripe)/-api/customers/all/case-studies/2","20260625122916","https://stripe.com/-api/customers/all/case-studies/2","application/json","200","GXYWF53VGTDUN2LMJJRLQ3MNIMFIK36H","211627"],
+
+        ["com,stripe)/-api/customers/all/case-studies/3","20260625122918","https://stripe.com/-api/customers/all/case-studies/3","application/json","200","CIRAQ642XSR3UJPEXEMTXD5XI44OTKWS","192640"],
+
+        ["com,stripe)/-api/customers/all/case-studies/4","20260625122920","https://stripe.com/-api/customers/all/case-studies/4","application/json","200","EU2SXBOWA6AGDMKZCNRZ36ZE2KBPCQ2P","241381"],
+
+        ["com,stripe)/-api/customers/all/case-studies/5","20260625122940","https://stripe.com/-api/customers/all/case-studies/5","application/json","200","WTRL5GMUVGGPGAE3Y455SWWQJ5Y2CBFG","205153"],
+
+        ["com,stripe)/-api/customers/all/case-studies/6","20260625122942","https://stripe.com/-api/customers/all/case-studies/6","application/json","200","F34T5BUSB2MMQWE5VKPV73IKC2YOJ7WE","67082"],
+
+        ["com,stripe)/-api/enrich","20250619150101","https://stripe.com/-api/enrich","application/json","200","QJKBKMEW6TMF2UM7MFTEIPVIENY5Z7BU","1537"],
+
+        ["com,stripe)/-api/geoip","20220403151201","https://stripe.com/-api/geoip","application/json","200","MADTM7E6S657NQ5WLL5GOFK6YQRG2P7C","641"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/11j8274vcybn70eefumvhj/2025-09-15t00:00-07:00","20260516024021","https://stripe.com/-api/resources/related-queries/accounting/11j8274VCybn70EeFuMVHJ/2025-09-15T00:00-07:00","application/json","200","DBUHSJL5FPFHKAMCRBFQWTI27VTX5Z3D","2122"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/13kxlmmck0y5d7mfsnzofv/2024-10-06t00:00-04:00","20260516024020","https://stripe.com/-api/resources/related-queries/accounting/13kXLMmCk0y5d7mfSnZOFv/2024-10-06T00:00-04:00","application/json","200","AA573IQWQPFQ5626ADRH5IWPJOI7I6ZC","2085"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/17uwam7llciqmvz1mu1fbs/2024-09-16t00:00-07:00","20260516024027","https://stripe.com/-api/resources/related-queries/accounting/17UWAM7lLcIqmVz1Mu1fBs/2024-09-16T00:00-07:00","application/json","200","PC5Z26BTZMDPEP7KKTSWGHKDAAMKNJZY","2075"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/19ydbeirf8wqrpufvqokuw/2024-08-26t00:00+02:00","20260516024020","https://stripe.com/-api/resources/related-queries/accounting/19yDBeirF8WQrPuFVQokuW/2024-08-26T00:00+02:00","application/json","200","C4BMJCACYFU737OTYYLQS5CZBHVXTD2M","2122"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1fqzyyyjwxumafudosbn5l/2025-01-26t00:00-05:00","20260516024050","https://stripe.com/-api/resources/related-queries/accounting/1FQzyYyjWXumAFudOsBn5L/2025-01-26T00:00-05:00","application/json","200","JZ5C43TXF5ONIA2WY4WJ3T2YKPLTAKHW","2031"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1l6axqhttxuoa3hrgpnan2/2024-09-18t00:00-04:00","20260516024027","https://stripe.com/-api/resources/related-queries/accounting/1l6axqhtTxUOa3hrGPNAN2/2024-09-18T00:00-04:00","application/json","200","CQIAKWGW5W54MNWEZVFLZ5YAHNKKUBLG","2087"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1moiz5yolewbgzhqcsjmaz/2023-06-12t00:00-07:00","20260513225234","https://stripe.com/-api/resources/related-queries/accounting/1moiZ5YOLewbgZhqCSJmaZ/2023-06-12T00:00-07:00","application/json","200","72NXUYLQPM3M3Q24PEKWNGVSU6ZPDWHH","2017"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1poi4atkdquuwbpsyieyf1/2023-05-09t00:00-07:00","20260516024043","https://stripe.com/-api/resources/related-queries/accounting/1poI4aTKdQuuWbPSyIEYF1/2023-05-09T00:00-07:00","application/json","200","QYVOFE6KHG6EZF5757XFK42VNNB4INWC","2011"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1qmhynfquwcudl0mzf8zdz/2023-12-12t00:00+01:00","20260516024033","https://stripe.com/-api/resources/related-queries/accounting/1QmhynFqUWcudl0mZf8zDz/2023-12-12T00:00+01:00","application/json","200","TSI3JCDJZYOQMBE25HX2ZBKXCQBFUBJU","2015"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1xnrcz3agvjj1o2ziqhdaq/2024-06-13t00:00-04:00","20260516024046","https://stripe.com/-api/resources/related-queries/accounting/1XNRCZ3aGVjJ1o2ziQHDaq/2024-06-13T00:00-04:00","application/json","200","3ILX2JTLBZAGZTAIO57X4AJOD42J5RAT","2127"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1xrxj7qcku8znbh90ihmb9/2024-10-27t00:00-04:00","20260516024045","https://stripe.com/-api/resources/related-queries/accounting/1xRxJ7QcKU8zNbh90ihmB9/2024-10-27T00:00-04:00","application/json","200","FAKPNZZW52ORATMGKJLT6AX7GVA6J4K6","2133"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1yv1x4kzaxsf2zdmodghyv/2024-11-07t00:00-05:00","20260516024023","https://stripe.com/-api/resources/related-queries/accounting/1yv1X4kzaxSF2ZDmOdGHYv/2024-11-07T00:00-05:00","application/json","200","V6PMSG4ERURL44K2XVLEEN4JHCJAG4HS","2099"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1z2ffp6za8q6mq1dinugpg/2025-05-19t00:00-04:00","20260516024021","https://stripe.com/-api/resources/related-queries/accounting/1Z2ffp6Za8Q6MQ1DINuGPG/2025-05-19T00:00-04:00","application/json","200","3ODQPHEWNL2ZFBOUM2OFMB5IO7ASAIOH","2030"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/20ayud7hxb2l0fah2ogspt/2024-09-23t00:00-07:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/20ayuD7Hxb2L0FAh2OGSpt/2024-09-23T00:00-07:00","application/json","200","OAXPZCHJZG3WOZOIJFU6JLYIXA66EU5W","2123"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/22aumeiiqpq4khmkryfv08/2025-11-25t00:00+05:30","20260516024034","https://stripe.com/-api/resources/related-queries/accounting/22aUMeIiqpQ4khmkrYFv08/2025-11-25T00:00+05:30","application/json","200","M66SC4ZQQQXMKWAJM6WODDN6ITMNNSCG","2017"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/253j6i4ltdvvybb9sgz04a/2024-10-27t00:00-04:00","20260516024028","https://stripe.com/-api/resources/related-queries/accounting/253j6i4LTDVVYbB9SGz04a/2024-10-27T00:00-04:00","application/json","200","7KDLXJ3DRHBBRX7OGS7MSBIDXRMUWB5C","2147"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/28wvmhfblwgopte1itpith/2024-04-05t00:00-04:00","20260516024024","https://stripe.com/-api/resources/related-queries/accounting/28wvMHfBlwGoptE1iTpIth/2024-04-05T00:00-04:00","application/json","200","R3BETHKBKXK7VTNCROQOSEJIQU5PLMIX","2037"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2ewkjvqtx7picp1gnirjbw/2025-11-11t00:00+05:30","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2eWKjvQTX7PIcP1gNiRjbW/2025-11-11T00:00+05:30","application/json","200","64YDH7DIXNF7KVPPAMDM4TWPGAZF3JQQ","2060"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2fpq9r6btbu4ibmuuunivb/2024-11-14t00:00-08:00","20260516024032","https://stripe.com/-api/resources/related-queries/accounting/2fPq9R6btbu4ibmUUUNIVb/2024-11-14T00:00-08:00","application/json","200","NORGBTEYSSVXOZK252MBX7YYTXOVXGKM","2123"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2hdksvitjqgavrgkqikmlk/2024-04-26t00:00-04:00","20260516024029","https://stripe.com/-api/resources/related-queries/accounting/2HdkSviTJqgavrGKQIKmlk/2024-04-26T00:00-04:00","application/json","200","K4AC6VKOOB7RHJSTROJV76VIHNBQH3FP","2135"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2jl3gthi8wsm7uvti7x2vg/2024-05-10t00:00-04:00","20260516024038","https://stripe.com/-api/resources/related-queries/accounting/2jL3GThI8WSM7Uvti7x2VG/2024-05-10T00:00-04:00","application/json","200","JLPQYMTN6MZFUCULZH3G3VHU6ACITUAW","2181"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2lsj0otls7cvhlr4ajlrfm/2024-01-22t00:00+01:00","20260516024037","https://stripe.com/-api/resources/related-queries/accounting/2Lsj0OtLS7Cvhlr4ajlRFm/2024-01-22T00:00+01:00","application/json","200","OGIOUUENEZGSM2M3ZOVVYTQTWSMACN3J","1993"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2maocxfi218kzjdmm2b7gs/2024-09-18t00:00-04:00","20260516024037","https://stripe.com/-api/resources/related-queries/accounting/2MAOCxFi218kzJDMM2B7Gs/2024-09-18T00:00-04:00","application/json","200","LKICSC3XRGHUWBPSRGYEAQFMFS2EDGOF","2060"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2pbexsgmwzl9xcfpfanfbo/2025-05-12t00:00-07:00","20260516024036","https://stripe.com/-api/resources/related-queries/accounting/2PBEXsGmWzL9XCfPfanfBO/2025-05-12T00:00-07:00","application/json","200","NEGXK22S3PUHUT2YGBGD225JOILTAUBQ","2018"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2slc75s4w1o3ggpyk1cz87/2024-09-29t00:00-04:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/2slc75s4w1O3gGPyk1Cz87/2024-09-29T00:00-04:00","application/json","200","2762ZQE24XIMP3CPH6EKB5S4KIKMTVZI","2064"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2sxqmc5zjbz0pglya8pxoe/2025-11-11t00:00+01:00","20260516024024","https://stripe.com/-api/resources/related-queries/accounting/2SXqmc5zJBz0PGLYA8PXOE/2025-11-11T00:00+01:00","application/json","200","GW7RJPWHKZEZNJDQIPY4TEGG3FMYUPFZ","2045"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2tubz4mr9elepbyabloryv/2025-10-30t00:00+05:30","20260516024039","https://stripe.com/-api/resources/related-queries/accounting/2Tubz4MR9ElEPBYABLoRyv/2025-10-30T00:00+05:30","application/json","200","LHIILO3ZFUDAJDSSQDIVLBYVXGRZV7JY","2065"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2u4wvko1zfa9yqkinntlch/2024-07-11t00:00+02:00","20260516024044","https://stripe.com/-api/resources/related-queries/accounting/2u4WvKo1ZFA9YQkiNntlch/2024-07-11T00:00+02:00","application/json","200","FSISRBXRFZWZWHOT5P3MNJ6VBWHOQVP7","2044"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2vlqxvioqlfgv60ryvf7uv/2025-07-17t00:00+05:30","20260516024017","https://stripe.com/-api/resources/related-queries/accounting/2VlqXVioqLfgv60rYvf7uv/2025-07-17T00:00+05:30","application/json","200","IUI73SJJVEF4EO55I3XB5RXQYOHXSPJL","2057"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2vomvfrpa1yecjjibwfew9/2024-10-22t00:00-04:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2VOMVfRpA1yEcjJibWfeW9/2024-10-22T00:00-04:00","application/json","200","A6OUED635VIFYZXITWGPK2X4ZUYVU35O","2080"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2wpau5uv40moj9dqqejfq/2025-07-25t00:00+05:30","20260516024039","https://stripe.com/-api/resources/related-queries/accounting/2wPaU5Uv40moJ9DQQEjfQ/2025-07-25T00:00+05:30","application/json","200","GDCHOCBQVHZXXIEQJL2XYYBX4LZJYRVE","2034"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2xq4gfpixy0sjoe7cqgemx/2024-10-18t00:00-04:00","20260516024018","https://stripe.com/-api/resources/related-queries/accounting/2XQ4gFpixy0SJoE7cQGeMx/2024-10-18T00:00-04:00","application/json","200","LXOD6S7RAZ3HU4ZB4FJHNLLDG4A52HSB","2085"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2xwf50qpp7sggkhmumla68/2024-10-02t00:00-04:00","20260516024036","https://stripe.com/-api/resources/related-queries/accounting/2XWf50QPP7sggkhmumLa68/2024-10-02T00:00-04:00","application/json","200","YAMJKL3HVOWYLIKLVAE5P5O65SPA7BX5","2044"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2yk6ydcxcwmsh8if5j5pfy/2024-05-14t00:00-04:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2YK6ydCXcwMSH8if5J5pFY/2024-05-14T00:00-04:00","application/json","200","QHTTTYBG7JC6GFCTZFDYX5LGL5HZTDU7","2155"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2yneb75k4baclajd2gh3h1/2023-04-26t00:00-07:00","20260516024019","https://stripe.com/-api/resources/related-queries/accounting/2YNeb75k4BAclaJd2Gh3h1/2023-04-26T00:00-07:00","application/json","200","PZJ4UL7Q5IYD47WBDM26L4IZP3BVU6HT","1975"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/36btsa2drekb0musqev0r0/2025-12-20t00:00+05:30","20260516024035","https://stripe.com/-api/resources/related-queries/accounting/36BtSa2drEKB0MusQeV0r0/2025-12-20T00:00+05:30","application/json","200","NXO7OQEMRR3KF3U5NIJHG2KI7OG7RWGG","2057"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3rigqblpqckjl8pnp5c1vn/2024-04-13t00:00-04:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/3RIgQblPQCkJL8PnP5C1VN/2024-04-13T00:00-04:00","application/json","200","DQKONYRR63GSQISESBUESWTB22E7VW6I","2089"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3syfyjofn2dbenadx6n988/2025-01-28t00:00-05:00","20260516024026","https://stripe.com/-api/resources/related-queries/accounting/3sYfYjOfn2dBenAdX6n988/2025-01-28T00:00-05:00","application/json","200","YZ6T5S6JZCWBEXUXWX3SLTVLNAR5BLMR","2042"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3ve0zeparp2ypf0itwdb8v/2024-08-20t00:00+02:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/3vE0zEpARp2yPF0ITwDB8v/2024-08-20T00:00+02:00","application/json","200","WTGJBQHQJSLRZOPWIMLCJR5E7MYYGC6I","2098"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/41rhjyoezwvj7z9oskctt7/2024-10-31t00:00-04:00","20260516024031","https://stripe.com/-api/resources/related-queries/accounting/41rHjyOEzWVj7z9oskCtt7/2024-10-31T00:00-04:00","application/json","200","IRYTLI7MQGQW72VLMV45RXSE6DZ2RXEN","2077"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/43tcwhiklya9bu0kou1dob/2024-06-16t00:00-04:00","20260516024033","https://stripe.com/-api/resources/related-queries/accounting/43tCWHiKLYa9Bu0KOu1dob/2024-06-16T00:00-04:00","application/json","200","QZ2JIHE3GFVDL3JNSYYRHLEJQSHJRNOX","2089"]]
+
+        '
+    headers:
+      connection:
+      - keep-alive
+      content-length:
+      - '13830'
+      content-type:
+      - application/json
+      date:
+      - Thu, 06 Aug 2026 13:41:50 GMT
+      permissions-policy:
+      - interest-cohort=()
+      referrer-policy:
+      - no-referrer-when-downgrade
+      server:
+      - nginx
+      server-timing:
+      - exclusion.robots;dur=0.091653, exclusion.robots.policy;dur=0.074213, esindex;dur=0.018148
+      - TR;dur=0,Tw;dur=0,Tc;dur=0
+      - BYPASS
+      set-cookie:
+      - REDACTED
+      transfer-encoding:
+      - chunked
+      x-app-server:
+      - wwwb-app207-dc8
+      x-be:
+      - wb_cdx_pygwb
+      x-location:
+      - cdx
+      x-na:
+      - '0'
+      x-nid:
+      - Bharti Airtel Ltd., Telemedia Services
+      x-page-cache:
+      - BYPASS
+      x-rl:
+      - '0'
+      x-tr:
+      - '1655'
+      x-ts:
+      - '200'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      cookie:
+      - REDACTED
+      host:
+      - web.archive.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://web.archive.org/cdx/search/cdx?collapse=urlkey&filter=statuscode%3A200&limit=50&matchType=domain&output=json&url=stripe.com
+  response:
+    body:
+      string: '[["urlkey","timestamp","original","mimetype","statuscode","digest","length"],
+
+        ["com,stripe)/","19961218234205","http://www.stripe.com:80/","text/html","200","ZD2BRVI43ZMW4QUJHXOFHIQXKNT7PACV","342"],
+
+        ["com,stripe)/-api/book-of-the-week","20260424160638","https://stripe.com/-api/book-of-the-week","application/json","200","JWY66FDNDI757XYPOFEEHQHSRUOR7UEF","2259"],
+
+        ["com,stripe)/-api/customers/all/case-studies/2","20260625122916","https://stripe.com/-api/customers/all/case-studies/2","application/json","200","GXYWF53VGTDUN2LMJJRLQ3MNIMFIK36H","211627"],
+
+        ["com,stripe)/-api/customers/all/case-studies/3","20260625122918","https://stripe.com/-api/customers/all/case-studies/3","application/json","200","CIRAQ642XSR3UJPEXEMTXD5XI44OTKWS","192640"],
+
+        ["com,stripe)/-api/customers/all/case-studies/4","20260625122920","https://stripe.com/-api/customers/all/case-studies/4","application/json","200","EU2SXBOWA6AGDMKZCNRZ36ZE2KBPCQ2P","241381"],
+
+        ["com,stripe)/-api/customers/all/case-studies/5","20260625122940","https://stripe.com/-api/customers/all/case-studies/5","application/json","200","WTRL5GMUVGGPGAE3Y455SWWQJ5Y2CBFG","205153"],
+
+        ["com,stripe)/-api/customers/all/case-studies/6","20260625122942","https://stripe.com/-api/customers/all/case-studies/6","application/json","200","F34T5BUSB2MMQWE5VKPV73IKC2YOJ7WE","67082"],
+
+        ["com,stripe)/-api/enrich","20250619150101","https://stripe.com/-api/enrich","application/json","200","QJKBKMEW6TMF2UM7MFTEIPVIENY5Z7BU","1537"],
+
+        ["com,stripe)/-api/geoip","20220403151201","https://stripe.com/-api/geoip","application/json","200","MADTM7E6S657NQ5WLL5GOFK6YQRG2P7C","641"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/11j8274vcybn70eefumvhj/2025-09-15t00:00-07:00","20260516024021","https://stripe.com/-api/resources/related-queries/accounting/11j8274VCybn70EeFuMVHJ/2025-09-15T00:00-07:00","application/json","200","DBUHSJL5FPFHKAMCRBFQWTI27VTX5Z3D","2122"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/13kxlmmck0y5d7mfsnzofv/2024-10-06t00:00-04:00","20260516024020","https://stripe.com/-api/resources/related-queries/accounting/13kXLMmCk0y5d7mfSnZOFv/2024-10-06T00:00-04:00","application/json","200","AA573IQWQPFQ5626ADRH5IWPJOI7I6ZC","2085"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/17uwam7llciqmvz1mu1fbs/2024-09-16t00:00-07:00","20260516024027","https://stripe.com/-api/resources/related-queries/accounting/17UWAM7lLcIqmVz1Mu1fBs/2024-09-16T00:00-07:00","application/json","200","PC5Z26BTZMDPEP7KKTSWGHKDAAMKNJZY","2075"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/19ydbeirf8wqrpufvqokuw/2024-08-26t00:00+02:00","20260516024020","https://stripe.com/-api/resources/related-queries/accounting/19yDBeirF8WQrPuFVQokuW/2024-08-26T00:00+02:00","application/json","200","C4BMJCACYFU737OTYYLQS5CZBHVXTD2M","2122"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1fqzyyyjwxumafudosbn5l/2025-01-26t00:00-05:00","20260516024050","https://stripe.com/-api/resources/related-queries/accounting/1FQzyYyjWXumAFudOsBn5L/2025-01-26T00:00-05:00","application/json","200","JZ5C43TXF5ONIA2WY4WJ3T2YKPLTAKHW","2031"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1l6axqhttxuoa3hrgpnan2/2024-09-18t00:00-04:00","20260516024027","https://stripe.com/-api/resources/related-queries/accounting/1l6axqhtTxUOa3hrGPNAN2/2024-09-18T00:00-04:00","application/json","200","CQIAKWGW5W54MNWEZVFLZ5YAHNKKUBLG","2087"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1moiz5yolewbgzhqcsjmaz/2023-06-12t00:00-07:00","20260513225234","https://stripe.com/-api/resources/related-queries/accounting/1moiZ5YOLewbgZhqCSJmaZ/2023-06-12T00:00-07:00","application/json","200","72NXUYLQPM3M3Q24PEKWNGVSU6ZPDWHH","2017"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1poi4atkdquuwbpsyieyf1/2023-05-09t00:00-07:00","20260516024043","https://stripe.com/-api/resources/related-queries/accounting/1poI4aTKdQuuWbPSyIEYF1/2023-05-09T00:00-07:00","application/json","200","QYVOFE6KHG6EZF5757XFK42VNNB4INWC","2011"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1qmhynfquwcudl0mzf8zdz/2023-12-12t00:00+01:00","20260516024033","https://stripe.com/-api/resources/related-queries/accounting/1QmhynFqUWcudl0mZf8zDz/2023-12-12T00:00+01:00","application/json","200","TSI3JCDJZYOQMBE25HX2ZBKXCQBFUBJU","2015"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1xnrcz3agvjj1o2ziqhdaq/2024-06-13t00:00-04:00","20260516024046","https://stripe.com/-api/resources/related-queries/accounting/1XNRCZ3aGVjJ1o2ziQHDaq/2024-06-13T00:00-04:00","application/json","200","3ILX2JTLBZAGZTAIO57X4AJOD42J5RAT","2127"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1xrxj7qcku8znbh90ihmb9/2024-10-27t00:00-04:00","20260516024045","https://stripe.com/-api/resources/related-queries/accounting/1xRxJ7QcKU8zNbh90ihmB9/2024-10-27T00:00-04:00","application/json","200","FAKPNZZW52ORATMGKJLT6AX7GVA6J4K6","2133"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1yv1x4kzaxsf2zdmodghyv/2024-11-07t00:00-05:00","20260516024023","https://stripe.com/-api/resources/related-queries/accounting/1yv1X4kzaxSF2ZDmOdGHYv/2024-11-07T00:00-05:00","application/json","200","V6PMSG4ERURL44K2XVLEEN4JHCJAG4HS","2099"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1z2ffp6za8q6mq1dinugpg/2025-05-19t00:00-04:00","20260516024021","https://stripe.com/-api/resources/related-queries/accounting/1Z2ffp6Za8Q6MQ1DINuGPG/2025-05-19T00:00-04:00","application/json","200","3ODQPHEWNL2ZFBOUM2OFMB5IO7ASAIOH","2030"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/20ayud7hxb2l0fah2ogspt/2024-09-23t00:00-07:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/20ayuD7Hxb2L0FAh2OGSpt/2024-09-23T00:00-07:00","application/json","200","OAXPZCHJZG3WOZOIJFU6JLYIXA66EU5W","2123"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/22aumeiiqpq4khmkryfv08/2025-11-25t00:00+05:30","20260516024034","https://stripe.com/-api/resources/related-queries/accounting/22aUMeIiqpQ4khmkrYFv08/2025-11-25T00:00+05:30","application/json","200","M66SC4ZQQQXMKWAJM6WODDN6ITMNNSCG","2017"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/253j6i4ltdvvybb9sgz04a/2024-10-27t00:00-04:00","20260516024028","https://stripe.com/-api/resources/related-queries/accounting/253j6i4LTDVVYbB9SGz04a/2024-10-27T00:00-04:00","application/json","200","7KDLXJ3DRHBBRX7OGS7MSBIDXRMUWB5C","2147"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/28wvmhfblwgopte1itpith/2024-04-05t00:00-04:00","20260516024024","https://stripe.com/-api/resources/related-queries/accounting/28wvMHfBlwGoptE1iTpIth/2024-04-05T00:00-04:00","application/json","200","R3BETHKBKXK7VTNCROQOSEJIQU5PLMIX","2037"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2ewkjvqtx7picp1gnirjbw/2025-11-11t00:00+05:30","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2eWKjvQTX7PIcP1gNiRjbW/2025-11-11T00:00+05:30","application/json","200","64YDH7DIXNF7KVPPAMDM4TWPGAZF3JQQ","2060"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2fpq9r6btbu4ibmuuunivb/2024-11-14t00:00-08:00","20260516024032","https://stripe.com/-api/resources/related-queries/accounting/2fPq9R6btbu4ibmUUUNIVb/2024-11-14T00:00-08:00","application/json","200","NORGBTEYSSVXOZK252MBX7YYTXOVXGKM","2123"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2hdksvitjqgavrgkqikmlk/2024-04-26t00:00-04:00","20260516024029","https://stripe.com/-api/resources/related-queries/accounting/2HdkSviTJqgavrGKQIKmlk/2024-04-26T00:00-04:00","application/json","200","K4AC6VKOOB7RHJSTROJV76VIHNBQH3FP","2135"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2jl3gthi8wsm7uvti7x2vg/2024-05-10t00:00-04:00","20260516024038","https://stripe.com/-api/resources/related-queries/accounting/2jL3GThI8WSM7Uvti7x2VG/2024-05-10T00:00-04:00","application/json","200","JLPQYMTN6MZFUCULZH3G3VHU6ACITUAW","2181"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2lsj0otls7cvhlr4ajlrfm/2024-01-22t00:00+01:00","20260516024037","https://stripe.com/-api/resources/related-queries/accounting/2Lsj0OtLS7Cvhlr4ajlRFm/2024-01-22T00:00+01:00","application/json","200","OGIOUUENEZGSM2M3ZOVVYTQTWSMACN3J","1993"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2maocxfi218kzjdmm2b7gs/2024-09-18t00:00-04:00","20260516024037","https://stripe.com/-api/resources/related-queries/accounting/2MAOCxFi218kzJDMM2B7Gs/2024-09-18T00:00-04:00","application/json","200","LKICSC3XRGHUWBPSRGYEAQFMFS2EDGOF","2060"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2pbexsgmwzl9xcfpfanfbo/2025-05-12t00:00-07:00","20260516024036","https://stripe.com/-api/resources/related-queries/accounting/2PBEXsGmWzL9XCfPfanfBO/2025-05-12T00:00-07:00","application/json","200","NEGXK22S3PUHUT2YGBGD225JOILTAUBQ","2018"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2slc75s4w1o3ggpyk1cz87/2024-09-29t00:00-04:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/2slc75s4w1O3gGPyk1Cz87/2024-09-29T00:00-04:00","application/json","200","2762ZQE24XIMP3CPH6EKB5S4KIKMTVZI","2064"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2sxqmc5zjbz0pglya8pxoe/2025-11-11t00:00+01:00","20260516024024","https://stripe.com/-api/resources/related-queries/accounting/2SXqmc5zJBz0PGLYA8PXOE/2025-11-11T00:00+01:00","application/json","200","GW7RJPWHKZEZNJDQIPY4TEGG3FMYUPFZ","2045"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2tubz4mr9elepbyabloryv/2025-10-30t00:00+05:30","20260516024039","https://stripe.com/-api/resources/related-queries/accounting/2Tubz4MR9ElEPBYABLoRyv/2025-10-30T00:00+05:30","application/json","200","LHIILO3ZFUDAJDSSQDIVLBYVXGRZV7JY","2065"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2u4wvko1zfa9yqkinntlch/2024-07-11t00:00+02:00","20260516024044","https://stripe.com/-api/resources/related-queries/accounting/2u4WvKo1ZFA9YQkiNntlch/2024-07-11T00:00+02:00","application/json","200","FSISRBXRFZWZWHOT5P3MNJ6VBWHOQVP7","2044"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2vlqxvioqlfgv60ryvf7uv/2025-07-17t00:00+05:30","20260516024017","https://stripe.com/-api/resources/related-queries/accounting/2VlqXVioqLfgv60rYvf7uv/2025-07-17T00:00+05:30","application/json","200","IUI73SJJVEF4EO55I3XB5RXQYOHXSPJL","2057"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2vomvfrpa1yecjjibwfew9/2024-10-22t00:00-04:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2VOMVfRpA1yEcjJibWfeW9/2024-10-22T00:00-04:00","application/json","200","A6OUED635VIFYZXITWGPK2X4ZUYVU35O","2080"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2wpau5uv40moj9dqqejfq/2025-07-25t00:00+05:30","20260516024039","https://stripe.com/-api/resources/related-queries/accounting/2wPaU5Uv40moJ9DQQEjfQ/2025-07-25T00:00+05:30","application/json","200","GDCHOCBQVHZXXIEQJL2XYYBX4LZJYRVE","2034"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2xq4gfpixy0sjoe7cqgemx/2024-10-18t00:00-04:00","20260516024018","https://stripe.com/-api/resources/related-queries/accounting/2XQ4gFpixy0SJoE7cQGeMx/2024-10-18T00:00-04:00","application/json","200","LXOD6S7RAZ3HU4ZB4FJHNLLDG4A52HSB","2085"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2xwf50qpp7sggkhmumla68/2024-10-02t00:00-04:00","20260516024036","https://stripe.com/-api/resources/related-queries/accounting/2XWf50QPP7sggkhmumLa68/2024-10-02T00:00-04:00","application/json","200","YAMJKL3HVOWYLIKLVAE5P5O65SPA7BX5","2044"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2yk6ydcxcwmsh8if5j5pfy/2024-05-14t00:00-04:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2YK6ydCXcwMSH8if5J5pFY/2024-05-14T00:00-04:00","application/json","200","QHTTTYBG7JC6GFCTZFDYX5LGL5HZTDU7","2155"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2yneb75k4baclajd2gh3h1/2023-04-26t00:00-07:00","20260516024019","https://stripe.com/-api/resources/related-queries/accounting/2YNeb75k4BAclaJd2Gh3h1/2023-04-26T00:00-07:00","application/json","200","PZJ4UL7Q5IYD47WBDM26L4IZP3BVU6HT","1975"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/36btsa2drekb0musqev0r0/2025-12-20t00:00+05:30","20260516024035","https://stripe.com/-api/resources/related-queries/accounting/36BtSa2drEKB0MusQeV0r0/2025-12-20T00:00+05:30","application/json","200","NXO7OQEMRR3KF3U5NIJHG2KI7OG7RWGG","2057"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3rigqblpqckjl8pnp5c1vn/2024-04-13t00:00-04:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/3RIgQblPQCkJL8PnP5C1VN/2024-04-13T00:00-04:00","application/json","200","DQKONYRR63GSQISESBUESWTB22E7VW6I","2089"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3syfyjofn2dbenadx6n988/2025-01-28t00:00-05:00","20260516024026","https://stripe.com/-api/resources/related-queries/accounting/3sYfYjOfn2dBenAdX6n988/2025-01-28T00:00-05:00","application/json","200","YZ6T5S6JZCWBEXUXWX3SLTVLNAR5BLMR","2042"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3ve0zeparp2ypf0itwdb8v/2024-08-20t00:00+02:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/3vE0zEpARp2yPF0ITwDB8v/2024-08-20T00:00+02:00","application/json","200","WTGJBQHQJSLRZOPWIMLCJR5E7MYYGC6I","2098"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/41rhjyoezwvj7z9oskctt7/2024-10-31t00:00-04:00","20260516024031","https://stripe.com/-api/resources/related-queries/accounting/41rHjyOEzWVj7z9oskCtt7/2024-10-31T00:00-04:00","application/json","200","IRYTLI7MQGQW72VLMV45RXSE6DZ2RXEN","2077"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/43tcwhiklya9bu0kou1dob/2024-06-16t00:00-04:00","20260516024033","https://stripe.com/-api/resources/related-queries/accounting/43tCWHiKLYa9Bu0KOu1dob/2024-06-16T00:00-04:00","application/json","200","QZ2JIHE3GFVDL3JNSYYRHLEJQSHJRNOX","2089"]]
+
+        '
+    headers:
+      connection:
+      - keep-alive
+      content-length:
+      - '13830'
+      content-type:
+      - application/json
+      date:
+      - Thu, 06 Aug 2026 13:41:52 GMT
+      permissions-policy:
+      - interest-cohort=()
+      referrer-policy:
+      - no-referrer-when-downgrade
+      server:
+      - nginx
+      server-timing:
+      - exclusion.robots;dur=0.073530, exclusion.robots.policy;dur=0.059925, esindex;dur=0.016375
+      - TR;dur=0,Tw;dur=0,Tc;dur=1
+      - BYPASS
+      transfer-encoding:
+      - chunked
+      x-app-server:
+      - wwwb-app207-dc8
+      x-be:
+      - wb_cdx_pygwb
+      x-location:
+      - cdx
+      x-na:
+      - '0'
+      x-nid:
+      - Bharti Airtel Ltd., Telemedia Services
+      x-page-cache:
+      - BYPASS
+      x-rl:
+      - '0'
+      x-tr:
+      - '1933'
+      x-ts:
+      - '200'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      cookie:
+      - REDACTED
+      host:
+      - web.archive.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: http://web.archive.org/cdx/search/cdx?collapse=urlkey&filter=statuscode%3A200&limit=50&matchType=domain&output=json&url=stripe.com
+  response:
+    body:
+      string: '[["urlkey","timestamp","original","mimetype","statuscode","digest","length"],
+
+        ["com,stripe)/","19961218234205","http://www.stripe.com:80/","text/html","200","ZD2BRVI43ZMW4QUJHXOFHIQXKNT7PACV","342"],
+
+        ["com,stripe)/-api/book-of-the-week","20260424160638","https://stripe.com/-api/book-of-the-week","application/json","200","JWY66FDNDI757XYPOFEEHQHSRUOR7UEF","2259"],
+
+        ["com,stripe)/-api/customers/all/case-studies/2","20260625122916","https://stripe.com/-api/customers/all/case-studies/2","application/json","200","GXYWF53VGTDUN2LMJJRLQ3MNIMFIK36H","211627"],
+
+        ["com,stripe)/-api/customers/all/case-studies/3","20260625122918","https://stripe.com/-api/customers/all/case-studies/3","application/json","200","CIRAQ642XSR3UJPEXEMTXD5XI44OTKWS","192640"],
+
+        ["com,stripe)/-api/customers/all/case-studies/4","20260625122920","https://stripe.com/-api/customers/all/case-studies/4","application/json","200","EU2SXBOWA6AGDMKZCNRZ36ZE2KBPCQ2P","241381"],
+
+        ["com,stripe)/-api/customers/all/case-studies/5","20260625122940","https://stripe.com/-api/customers/all/case-studies/5","application/json","200","WTRL5GMUVGGPGAE3Y455SWWQJ5Y2CBFG","205153"],
+
+        ["com,stripe)/-api/customers/all/case-studies/6","20260625122942","https://stripe.com/-api/customers/all/case-studies/6","application/json","200","F34T5BUSB2MMQWE5VKPV73IKC2YOJ7WE","67082"],
+
+        ["com,stripe)/-api/enrich","20250619150101","https://stripe.com/-api/enrich","application/json","200","QJKBKMEW6TMF2UM7MFTEIPVIENY5Z7BU","1537"],
+
+        ["com,stripe)/-api/geoip","20220403151201","https://stripe.com/-api/geoip","application/json","200","MADTM7E6S657NQ5WLL5GOFK6YQRG2P7C","641"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/11j8274vcybn70eefumvhj/2025-09-15t00:00-07:00","20260516024021","https://stripe.com/-api/resources/related-queries/accounting/11j8274VCybn70EeFuMVHJ/2025-09-15T00:00-07:00","application/json","200","DBUHSJL5FPFHKAMCRBFQWTI27VTX5Z3D","2122"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/13kxlmmck0y5d7mfsnzofv/2024-10-06t00:00-04:00","20260516024020","https://stripe.com/-api/resources/related-queries/accounting/13kXLMmCk0y5d7mfSnZOFv/2024-10-06T00:00-04:00","application/json","200","AA573IQWQPFQ5626ADRH5IWPJOI7I6ZC","2085"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/17uwam7llciqmvz1mu1fbs/2024-09-16t00:00-07:00","20260516024027","https://stripe.com/-api/resources/related-queries/accounting/17UWAM7lLcIqmVz1Mu1fBs/2024-09-16T00:00-07:00","application/json","200","PC5Z26BTZMDPEP7KKTSWGHKDAAMKNJZY","2075"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/19ydbeirf8wqrpufvqokuw/2024-08-26t00:00+02:00","20260516024020","https://stripe.com/-api/resources/related-queries/accounting/19yDBeirF8WQrPuFVQokuW/2024-08-26T00:00+02:00","application/json","200","C4BMJCACYFU737OTYYLQS5CZBHVXTD2M","2122"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1fqzyyyjwxumafudosbn5l/2025-01-26t00:00-05:00","20260516024050","https://stripe.com/-api/resources/related-queries/accounting/1FQzyYyjWXumAFudOsBn5L/2025-01-26T00:00-05:00","application/json","200","JZ5C43TXF5ONIA2WY4WJ3T2YKPLTAKHW","2031"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1l6axqhttxuoa3hrgpnan2/2024-09-18t00:00-04:00","20260516024027","https://stripe.com/-api/resources/related-queries/accounting/1l6axqhtTxUOa3hrGPNAN2/2024-09-18T00:00-04:00","application/json","200","CQIAKWGW5W54MNWEZVFLZ5YAHNKKUBLG","2087"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1moiz5yolewbgzhqcsjmaz/2023-06-12t00:00-07:00","20260513225234","https://stripe.com/-api/resources/related-queries/accounting/1moiZ5YOLewbgZhqCSJmaZ/2023-06-12T00:00-07:00","application/json","200","72NXUYLQPM3M3Q24PEKWNGVSU6ZPDWHH","2017"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1poi4atkdquuwbpsyieyf1/2023-05-09t00:00-07:00","20260516024043","https://stripe.com/-api/resources/related-queries/accounting/1poI4aTKdQuuWbPSyIEYF1/2023-05-09T00:00-07:00","application/json","200","QYVOFE6KHG6EZF5757XFK42VNNB4INWC","2011"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1qmhynfquwcudl0mzf8zdz/2023-12-12t00:00+01:00","20260516024033","https://stripe.com/-api/resources/related-queries/accounting/1QmhynFqUWcudl0mZf8zDz/2023-12-12T00:00+01:00","application/json","200","TSI3JCDJZYOQMBE25HX2ZBKXCQBFUBJU","2015"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1xnrcz3agvjj1o2ziqhdaq/2024-06-13t00:00-04:00","20260516024046","https://stripe.com/-api/resources/related-queries/accounting/1XNRCZ3aGVjJ1o2ziQHDaq/2024-06-13T00:00-04:00","application/json","200","3ILX2JTLBZAGZTAIO57X4AJOD42J5RAT","2127"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1xrxj7qcku8znbh90ihmb9/2024-10-27t00:00-04:00","20260516024045","https://stripe.com/-api/resources/related-queries/accounting/1xRxJ7QcKU8zNbh90ihmB9/2024-10-27T00:00-04:00","application/json","200","FAKPNZZW52ORATMGKJLT6AX7GVA6J4K6","2133"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1yv1x4kzaxsf2zdmodghyv/2024-11-07t00:00-05:00","20260516024023","https://stripe.com/-api/resources/related-queries/accounting/1yv1X4kzaxSF2ZDmOdGHYv/2024-11-07T00:00-05:00","application/json","200","V6PMSG4ERURL44K2XVLEEN4JHCJAG4HS","2099"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/1z2ffp6za8q6mq1dinugpg/2025-05-19t00:00-04:00","20260516024021","https://stripe.com/-api/resources/related-queries/accounting/1Z2ffp6Za8Q6MQ1DINuGPG/2025-05-19T00:00-04:00","application/json","200","3ODQPHEWNL2ZFBOUM2OFMB5IO7ASAIOH","2030"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/20ayud7hxb2l0fah2ogspt/2024-09-23t00:00-07:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/20ayuD7Hxb2L0FAh2OGSpt/2024-09-23T00:00-07:00","application/json","200","OAXPZCHJZG3WOZOIJFU6JLYIXA66EU5W","2123"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/22aumeiiqpq4khmkryfv08/2025-11-25t00:00+05:30","20260516024034","https://stripe.com/-api/resources/related-queries/accounting/22aUMeIiqpQ4khmkrYFv08/2025-11-25T00:00+05:30","application/json","200","M66SC4ZQQQXMKWAJM6WODDN6ITMNNSCG","2017"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/253j6i4ltdvvybb9sgz04a/2024-10-27t00:00-04:00","20260516024028","https://stripe.com/-api/resources/related-queries/accounting/253j6i4LTDVVYbB9SGz04a/2024-10-27T00:00-04:00","application/json","200","7KDLXJ3DRHBBRX7OGS7MSBIDXRMUWB5C","2147"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/28wvmhfblwgopte1itpith/2024-04-05t00:00-04:00","20260516024024","https://stripe.com/-api/resources/related-queries/accounting/28wvMHfBlwGoptE1iTpIth/2024-04-05T00:00-04:00","application/json","200","R3BETHKBKXK7VTNCROQOSEJIQU5PLMIX","2037"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2ewkjvqtx7picp1gnirjbw/2025-11-11t00:00+05:30","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2eWKjvQTX7PIcP1gNiRjbW/2025-11-11T00:00+05:30","application/json","200","64YDH7DIXNF7KVPPAMDM4TWPGAZF3JQQ","2060"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2fpq9r6btbu4ibmuuunivb/2024-11-14t00:00-08:00","20260516024032","https://stripe.com/-api/resources/related-queries/accounting/2fPq9R6btbu4ibmUUUNIVb/2024-11-14T00:00-08:00","application/json","200","NORGBTEYSSVXOZK252MBX7YYTXOVXGKM","2123"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2hdksvitjqgavrgkqikmlk/2024-04-26t00:00-04:00","20260516024029","https://stripe.com/-api/resources/related-queries/accounting/2HdkSviTJqgavrGKQIKmlk/2024-04-26T00:00-04:00","application/json","200","K4AC6VKOOB7RHJSTROJV76VIHNBQH3FP","2135"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2jl3gthi8wsm7uvti7x2vg/2024-05-10t00:00-04:00","20260516024038","https://stripe.com/-api/resources/related-queries/accounting/2jL3GThI8WSM7Uvti7x2VG/2024-05-10T00:00-04:00","application/json","200","JLPQYMTN6MZFUCULZH3G3VHU6ACITUAW","2181"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2lsj0otls7cvhlr4ajlrfm/2024-01-22t00:00+01:00","20260516024037","https://stripe.com/-api/resources/related-queries/accounting/2Lsj0OtLS7Cvhlr4ajlRFm/2024-01-22T00:00+01:00","application/json","200","OGIOUUENEZGSM2M3ZOVVYTQTWSMACN3J","1993"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2maocxfi218kzjdmm2b7gs/2024-09-18t00:00-04:00","20260516024037","https://stripe.com/-api/resources/related-queries/accounting/2MAOCxFi218kzJDMM2B7Gs/2024-09-18T00:00-04:00","application/json","200","LKICSC3XRGHUWBPSRGYEAQFMFS2EDGOF","2060"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2pbexsgmwzl9xcfpfanfbo/2025-05-12t00:00-07:00","20260516024036","https://stripe.com/-api/resources/related-queries/accounting/2PBEXsGmWzL9XCfPfanfBO/2025-05-12T00:00-07:00","application/json","200","NEGXK22S3PUHUT2YGBGD225JOILTAUBQ","2018"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2slc75s4w1o3ggpyk1cz87/2024-09-29t00:00-04:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/2slc75s4w1O3gGPyk1Cz87/2024-09-29T00:00-04:00","application/json","200","2762ZQE24XIMP3CPH6EKB5S4KIKMTVZI","2064"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2sxqmc5zjbz0pglya8pxoe/2025-11-11t00:00+01:00","20260516024024","https://stripe.com/-api/resources/related-queries/accounting/2SXqmc5zJBz0PGLYA8PXOE/2025-11-11T00:00+01:00","application/json","200","GW7RJPWHKZEZNJDQIPY4TEGG3FMYUPFZ","2045"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2tubz4mr9elepbyabloryv/2025-10-30t00:00+05:30","20260516024039","https://stripe.com/-api/resources/related-queries/accounting/2Tubz4MR9ElEPBYABLoRyv/2025-10-30T00:00+05:30","application/json","200","LHIILO3ZFUDAJDSSQDIVLBYVXGRZV7JY","2065"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2u4wvko1zfa9yqkinntlch/2024-07-11t00:00+02:00","20260516024044","https://stripe.com/-api/resources/related-queries/accounting/2u4WvKo1ZFA9YQkiNntlch/2024-07-11T00:00+02:00","application/json","200","FSISRBXRFZWZWHOT5P3MNJ6VBWHOQVP7","2044"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2vlqxvioqlfgv60ryvf7uv/2025-07-17t00:00+05:30","20260516024017","https://stripe.com/-api/resources/related-queries/accounting/2VlqXVioqLfgv60rYvf7uv/2025-07-17T00:00+05:30","application/json","200","IUI73SJJVEF4EO55I3XB5RXQYOHXSPJL","2057"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2vomvfrpa1yecjjibwfew9/2024-10-22t00:00-04:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2VOMVfRpA1yEcjJibWfeW9/2024-10-22T00:00-04:00","application/json","200","A6OUED635VIFYZXITWGPK2X4ZUYVU35O","2080"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2wpau5uv40moj9dqqejfq/2025-07-25t00:00+05:30","20260516024039","https://stripe.com/-api/resources/related-queries/accounting/2wPaU5Uv40moJ9DQQEjfQ/2025-07-25T00:00+05:30","application/json","200","GDCHOCBQVHZXXIEQJL2XYYBX4LZJYRVE","2034"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2xq4gfpixy0sjoe7cqgemx/2024-10-18t00:00-04:00","20260516024018","https://stripe.com/-api/resources/related-queries/accounting/2XQ4gFpixy0SJoE7cQGeMx/2024-10-18T00:00-04:00","application/json","200","LXOD6S7RAZ3HU4ZB4FJHNLLDG4A52HSB","2085"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2xwf50qpp7sggkhmumla68/2024-10-02t00:00-04:00","20260516024036","https://stripe.com/-api/resources/related-queries/accounting/2XWf50QPP7sggkhmumLa68/2024-10-02T00:00-04:00","application/json","200","YAMJKL3HVOWYLIKLVAE5P5O65SPA7BX5","2044"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2yk6ydcxcwmsh8if5j5pfy/2024-05-14t00:00-04:00","20260516024030","https://stripe.com/-api/resources/related-queries/accounting/2YK6ydCXcwMSH8if5J5pFY/2024-05-14T00:00-04:00","application/json","200","QHTTTYBG7JC6GFCTZFDYX5LGL5HZTDU7","2155"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/2yneb75k4baclajd2gh3h1/2023-04-26t00:00-07:00","20260516024019","https://stripe.com/-api/resources/related-queries/accounting/2YNeb75k4BAclaJd2Gh3h1/2023-04-26T00:00-07:00","application/json","200","PZJ4UL7Q5IYD47WBDM26L4IZP3BVU6HT","1975"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/36btsa2drekb0musqev0r0/2025-12-20t00:00+05:30","20260516024035","https://stripe.com/-api/resources/related-queries/accounting/36BtSa2drEKB0MusQeV0r0/2025-12-20T00:00+05:30","application/json","200","NXO7OQEMRR3KF3U5NIJHG2KI7OG7RWGG","2057"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3rigqblpqckjl8pnp5c1vn/2024-04-13t00:00-04:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/3RIgQblPQCkJL8PnP5C1VN/2024-04-13T00:00-04:00","application/json","200","DQKONYRR63GSQISESBUESWTB22E7VW6I","2089"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3syfyjofn2dbenadx6n988/2025-01-28t00:00-05:00","20260516024026","https://stripe.com/-api/resources/related-queries/accounting/3sYfYjOfn2dBenAdX6n988/2025-01-28T00:00-05:00","application/json","200","YZ6T5S6JZCWBEXUXWX3SLTVLNAR5BLMR","2042"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/3ve0zeparp2ypf0itwdb8v/2024-08-20t00:00+02:00","20260516024022","https://stripe.com/-api/resources/related-queries/accounting/3vE0zEpARp2yPF0ITwDB8v/2024-08-20T00:00+02:00","application/json","200","WTGJBQHQJSLRZOPWIMLCJR5E7MYYGC6I","2098"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/41rhjyoezwvj7z9oskctt7/2024-10-31t00:00-04:00","20260516024031","https://stripe.com/-api/resources/related-queries/accounting/41rHjyOEzWVj7z9oskCtt7/2024-10-31T00:00-04:00","application/json","200","IRYTLI7MQGQW72VLMV45RXSE6DZ2RXEN","2077"],
+
+        ["com,stripe)/-api/resources/related-queries/accounting/43tcwhiklya9bu0kou1dob/2024-06-16t00:00-04:00","20260516024033","https://stripe.com/-api/resources/related-queries/accounting/43tCWHiKLYa9Bu0KOu1dob/2024-06-16T00:00-04:00","application/json","200","QZ2JIHE3GFVDL3JNSYYRHLEJQSHJRNOX","2089"]]
+
+        '
+    headers:
+      connection:
+      - keep-alive
+      content-length:
+      - '13830'
+      content-type:
+      - application/json
+      date:
+      - Thu, 06 Aug 2026 13:41:55 GMT
+      permissions-policy:
+      - interest-cohort=()
+      referrer-policy:
+      - no-referrer-when-downgrade
+      server:
+      - nginx
+      server-timing:
+      - exclusion.robots;dur=0.073250, exclusion.robots.policy;dur=0.060853, esindex;dur=0.015104
+      - TR;dur=0,Tw;dur=0,Tc;dur=1
+      - BYPASS
+      transfer-encoding:
+      - chunked
+      x-app-server:
+      - wwwb-app207-dc8
+      x-be:
+      - wb_cdx_pygwb
+      x-location:
+      - cdx
+      x-na:
+      - '0'
+      x-nid:
+      - Bharti Airtel Ltd., Telemedia Services
+      x-page-cache:
+      - BYPASS
+      x-rl:
+      - '0'
+      x-tr:
+      - '2967'
+      x-ts:
+      - '200'
+    status:
+      code: 200
+      message: OK
+version: 1

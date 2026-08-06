@@ -2,60 +2,257 @@
 
 ## Project Overview
 
-_Brief description of what this project does and its purpose._
+AI Product Investigator: type a product idea, get an evidence-backed discovery report in under
+three minutes, where every sentence traces to a dated character span in a fetched page. Full
+spec: [`ai-product-investigator-masterplan.md`](../ai-product-investigator-masterplan.md).
+Execution order and phase-by-phase design: [`docs/execution_phases/`](execution_phases/README.md).
+
+The whole design rests on one mechanism: a claim is only ever written if its quote is found
+verbatim in stored page text (`source_text.find(quote)`), so every prose sentence in a report can
+cite a real character span. Everything else — the closed claim vocabulary, computed confidence,
+SQL-only contradiction detection — exists to make that one guarantee cheap to keep.
 
 ## Architecture
 
 ### High-Level Design
 
-_Document the overall architecture and how major components interact._
+```
+free text -> Interpret (ResearchBrief) -> Plan (task DAG)
+  -> Executor (asyncio DAG over Postgres tasks, SKIP LOCKED leasing)
+    -> fetch/search/domain-retriever tasks -> claim extraction (span-bound)
+      -> entity resolution -> grading + confidence + contradictions
+        -> synthesis (citation-constrained) -> Report (persisted, SSE)
+```
+
+See masterplan §3 for the full flow diagram and §4 for each stage's design.
 
 ### Key Components
 
-- **Component 1**: Description
-- **Component 2**: Description
+- **Executor** ([Phase 02](execution_phases/phase-02-executor-core.md), **built** — see
+  `src/api/executor/`): hand-rolled asyncio DAG over a Postgres `tasks` table (`SELECT ... FOR
+  UPDATE SKIP LOCKED`). No Celery, no Redis, no arq — this table *is* the queue.
+  `Executor.submit(run_id, plan, *, budget_weight, ...) -> AsyncIterator[ExecutorEvent]` is the
+  only public entry point. Deliberately domain-agnostic: its `TaskSpec`/`ExecutionPlan`/
+  `ExecutorEvent` types (in `api.executor.protocol`) use `kind: str`, not the Phase 00 `TaskKind`
+  enum, and nothing under `src/api/executor/` imports `api.models.*` — real domain `Plan`s get
+  adapted into this generic shape at the Phase 10 boundary. Hardened against a synthetic-only
+  chaos suite (`tests/integration/test_chaos.py`): worker-kill + sweep recovery, zombie-write
+  rejection (both idempotency guards independently), retry-storm containment, runaway-fan-out
+  budget halt, all-branches-fail clean termination, timeout enforcement.
+- **Claim extraction & span binding** ([Phase 06](execution_phases/phase-06-claim-extraction-span-binding.md),
+  not yet built): the core guarantee. A claim's `quote` must be found verbatim in the page's stored
+  text or the claim is dropped, never repaired or fuzzy-matched.
+- **Typed contracts** ([Phase 00](execution_phases/phase-00-foundation-contracts-ci.md), **built** —
+  see `src/api/models/`): closed `ClaimAttribute` vocabulary, `EntityKey`, `Plan`/`TaskKind`,
+  `RunEvent` union, `Report` output contract. Everything downstream is built on these being frozen
+  and correct.
+- **External dependency reality check** ([Phase 01](execution_phases/phase-01-dependency-validation-spike.md),
+  **done** — see [`docs/external_apis.md`](external_apis.md)): every vendor the plan depends on
+  (Exa, OpenRouter/DeepSeek, GitHub, HN Algolia, Wayback CDX, npm/PyPI, Stack Exchange) smoke-tested
+  against real traffic with measured cost/latency/rate limits, not assumed. Playwright's fate
+  (masterplan §14 open item #3) is decided here: deferred behind a flag, not built.
+- **Evidence grading & confidence** ([Phase 08](execution_phases/phase-08-grading-confidence-contradictions.md),
+  not yet built): confidence is a deterministic formula over grade/domain-count/age/contradiction,
+  never model-generated. Contradiction detection is a single SQL `GROUP BY`.
 
 ## Important Patterns & Conventions
 
 ### Code Style
 
-_Any conventions to follow when writing code._
+- `ruff` for lint + format (replaces black/isort/flake8), `mypy --strict` on `src/api/`.
+- Scope lint/format/type commands to `src tests migrations` — **never run `ruff format .` at the
+  repo root.** It will reformat embedded Python code fences inside the markdown docs (masterplan,
+  phase docs), which are hand-aligned documentation, not source. This bit us once during Phase 00;
+  the `Makefile` targets are scoped specifically to prevent a repeat.
+- Raw SQL via asyncpg, not an ORM — `db.py` is a thin pool/connection helper. Chosen because the
+  executor's `FOR UPDATE SKIP LOCKED` and the contradiction `GROUP BY` are both clearer as SQL, and
+  the whole point of the schema is that it's simple enough to hand-write and reason about directly.
+  (Alembic itself still needs a synchronous SQLAlchemy engine to *run* migrations — `psycopg` +
+  `sqlalchemy` are migration-only dependencies; the app runtime path stays asyncpg-only.)
+- `StrEnum` + Pydantic everywhere a vocabulary needs to be closed. If you're tempted to accept a
+  bare `str` for something like a claim attribute or entity scheme, don't — the whole system's
+  guarantees (contradiction detection, injection resistance) depend on these being enumerable.
 
 ### Naming Conventions
 
-_How we name files, functions, variables, etc._
+- One module per concern under `src/api/`; no `utils.py`.
+- Python package root is `src/api/`, installed editable via `pyproject.toml`.
+- Every LLM prompt (from Phase 05 onward) lives in a versioned file under `src/api/prompts/`,
+  never inline in code, so `extractor_version` is meaningful.
 
 ### File Organization
 
-_How the codebase is organized._
+```
+src/api/
+├── config.py, db.py, logging.py     # Settings, asyncpg pool, structlog+OTel bootstrap
+├── models/                          # Pydantic contracts (Phase 00 — built)
+├── executor/                        # Domain-agnostic task DAG executor (Phase 02 — built):
+│                                     # core.py (Executor.submit), lease.py (claim/renew/
+│                                     # complete/fail/sweep), budget.py, retry.py, protocol.py
+│                                     # (own TaskSpec/ExecutionPlan/ExecutorEvent — no
+│                                     # api.models.* imports; see Key Components)
+└── prompts/                         # versioned prompt files (empty until Phase 05)
+migrations/versions/                 # hand-written, reviewed Alembic migrations
+spikes/                              # Phase 01 throwaway vendor smoke tests — kept as the
+                                      # reproducible evidence behind docs/external_apis.md;
+                                      # `import spikes` from src/api is banned by a ruff rule
+tests/
+├── unit/          # pure functions, no I/O, always run
+├── integration/    # real Postgres, replayed HTTP fixtures; also the Phase 01 fixture-corpus
+│                    # integrity tests (secret-scrub + offline-replay), which need no Postgres;
+│                    # _synthetic.py/_db.py/_worker_process.py (leading underscore, not
+│                    # collected as tests) back the Phase 02 executor/chaos suites
+├── live/           # real external APIs, @pytest.mark.live, excluded by default
+└── fixtures/{cassettes,pages}/      # VCR cassettes (7 vendors) + 40 real pricing pages,
+                                      # ~30MB total — the Phase 01 fixture corpus
+docs/
+├── tracker.md            # this file's sibling — living status log
+├── working_knowledge.md  # this file — architecture/conventions reference
+├── external_apis.md      # Phase 01 deliverable — measured vendor limits/costs/verdicts
+└── execution_phases/     # the 16-phase build plan, one doc per phase
+```
 
 ## Key Technologies & Dependencies
 
-- Technology/Library: Brief description
-- Technology/Library: Brief description
+- **FastAPI + Python 3.12 + asyncio** — API layer (not yet built past Phase 00 scaffolding).
+- **Postgres 16 + pgvector** — sole datastore; pgvector reserved for complaint near-dup detection
+  (Phase 11), unused today but the extension is enabled from migration `0001`.
+- **asyncpg** — app runtime DB access. **psycopg + SQLAlchemy** — Alembic migration runner only.
+- **Alembic** — hand-written migrations, autogenerate off.
+- **pydantic / pydantic-settings** — every contract and all config.
+- **structlog + OpenTelemetry** — structured logging and tracing, wired from Phase 00 so no phase
+  ships without observability.
+- **uv** — dependency management and the Python interpreter itself (pins 3.12; this environment's
+  system Python is 3.11, uv fetches 3.12+ on demand).
+- **Supabase** (Postgres + Auth) is the target for deployed environments; local dev uses
+  `docker-compose.yml`'s `pgvector/pgvector:pg16` with a migration-created `auth.users` stub so the
+  schema is identical without a real Supabase project.
+- **Exa** (search) and **OpenRouter** (`deepseek/deepseek-v4-flash` for extraction) — both
+  validated in Phase 01; see [`docs/external_apis.md`](external_apis.md) for measured cost/recall.
+- **vcrpy + trafilatura + playwright** — Phase 01 spike-only deps (`spikes` extra in
+  `pyproject.toml`). `httpx` and `vcrpy` also live in `dev` since the fixture-corpus integrity
+  tests need them permanently; `trafilatura`/`playwright` are not needed outside `spikes/`.
+- Full stack table and the reasoning behind each choice: masterplan §11 and §12 (decision log).
 
 ## Common Workflows
 
 ### Setting Up Development Environment
 
-_Steps to get the project running locally._
+```bash
+uv sync --extra dev          # installs deps incl. dev tools, uv fetches Python 3.12 if needed
+cp .env.example .env         # fill in DATABASE_URL, OPENROUTER_API_KEY, EXA_API_KEY, GITHUB_TOKEN
+make db-up                   # docker-compose up postgres, waits for pg_isready
+# create the test DB once (not scripted yet — see Known Issues)
+docker compose exec -T postgres psql -U postgres -c "CREATE DATABASE ai_pi_test;"
+make migrate                 # alembic upgrade head
+```
 
 ### Running Tests
 
-_How to run the test suite._
+```bash
+make check      # ruff check + format --check + mypy --strict + pytest (== CI)
+make unit        # fast tier only, no Postgres needed
+make integration  # needs make db-up first (and the ai_pi_test DB — see above)
+```
+
+Integration tests skip gracefully (not fail) if no Postgres is reachable at
+`TEST_DATABASE_URL` (defaults to `postgresql://postgres:postgres@localhost:5432/ai_pi_test`).
+
+CI (`.github/workflows/ci.yml`) runs `make migrate` against `TEST_DATABASE_URL` before `make
+check` — the Phase 02 executor integration tests assume the schema already exists rather than
+self-migrating (only `test_migrations.py` does that). A separate nightly workflow
+(`.github/workflows/nightly.yml`) runs `tests/integration/{test_lease,test_executor,test_chaos}.py`
+50x via `pytest-repeat` (`--count=50`), per the Phase 02 exit criterion that concurrency fixes be
+proven flake-free under repetition, not just a single green run. Run the same locally with
+`uv run pytest tests/integration/test_lease.py tests/integration/test_executor.py tests/integration/test_chaos.py --count=N --no-cov`.
 
 ### Building for Production
 
-_Steps to build/deploy._
+Not yet reached — deployment is [Phase 15](execution_phases/phase-15-deployment-observability.md).
+Target: Fly.io (app + worker) + Supabase (Postgres + Auth) + Vercel (frontend), all under $5/mo
+fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model section.
 
 ## Known Issues & Gotchas
 
-_Document any quirks, workarounds, or things that commonly trip people up._
+- **`array_length(arr, 1) >= 1` does not reject empty Postgres arrays.** `array_length` returns
+  `NULL` for `ARRAY[]`, and `NULL >= 1` is `NULL`, which a `CHECK` constraint treats as *passing*
+  (a constraint only fails on an explicit `FALSE`). The `findings_must_cite` constraint originally
+  used this pattern and silently allowed empty `claim_ids`, defeating rule 1 of the masterplan
+  ("every finding cites at least one claim"). Fixed by switching to `cardinality(arr) >= 1`, which
+  returns `0` (not `NULL`) for an empty array. Caught only once live-Postgres integration tests
+  actually ran — a reminder that `make check`'s DB-backed tier is not optional to exercise before
+  trusting a schema change. Any future array-emptiness constraint should use `cardinality`, not
+  `array_length`.
+- **Never use `id(obj)` to generate "unique" test fixture values (emails, URLs, etc.) across test
+  functions in the same process.** CPython reuses object ids after garbage collection, so two
+  different tests can produce the same "unique" value and collide on a real unique constraint. Use
+  `uuid.uuid4()`. Bit `tests/integration/test_migrations.py` once; fixed there.
+- **`ruff format .` at the repo root reformats Python fences embedded in markdown docs** — see Code
+  Style above. Always scope to `src tests migrations`.
+- **Docker isn't always reachable from a WSL shell** even when Docker Desktop is running on
+  Windows — needs WSL integration enabled in Docker Desktop settings first. If `docker compose`
+  commands fail with "command not found" or connection errors, check that before assuming
+  Postgres itself is misconfigured.
+- **`ai_pi_test` database is not auto-created.** `docker-compose.yml` only provisions `ai_pi`
+  (the dev DB). Integration tests default to `ai_pi_test`. Create it manually once per fresh
+  container (see Setup above), or point `TEST_DATABASE_URL` at `ai_pi` instead. Worth scripting
+  into `make db-up` in a later phase if this keeps tripping people up.
+- **Stack Exchange's quota is reported in the JSON response body** (`quota_max`/`quota_remaining`
+  fields), never in HTTP headers, despite what you'd assume from every other rate-limited API.
+  Poll the body, not `response.headers`.
+- **GitHub's Starring endpoint (`/repos/{owner}/{repo}/stargazers`) 403s for a fine-grained PAT**
+  with the default "Public repositories (read-only)" access, on both REST and GraphQL, even though
+  star data is public. Needed for the masterplan's 90-day star-velocity signal ([Phase 04](execution_phases/phase-04-search-domain-retrievers.md)/[07](execution_phases/phase-07-entity-resolution.md)).
+  Fix: use a classic PAT, or add an explicit Starring permission to the fine-grained token — not
+  yet done as of Phase 01's close.
+- **GitHub's Search API has its own, much stricter rate limit: 30 req/min**, separate from the
+  general REST 5,000 req/hr. The masterplan's `is:issue label:X sort:reactions-desc` query pattern
+  must budget against 30/min, not 5,000/hr.
+- **Vendors localize pricing pages by request geography.** `hubspot.com/pricing` served ₹ (INR)
+  pricing to this environment's egress IP, not $. A price-detection regex that only matches `$`
+  will silently misclassify a real, successfully-fetched page as a crawl failure. Match
+  `[$€£¥₹]` plus currency codes, not just `$`.
+- **OpenRouter's default routing is not sticky to one backend node**, so a provider's server-side
+  prompt cache (tested against DeepSeek) mostly misses even across byte-identical prefixes fired
+  back-to-back — measured 1/10 hit rate in Phase 01. The saving is real when it lands (matches the
+  pricing ratio exactly), but don't count on it in a cost model without further work (e.g. pinning
+  to a single upstream provider, not just parameters).
+- **LLM extraction calls without a strict `response_format` schema have unbounded, unpredictable
+  output length and tail latency.** Measured p95 62.1s (up to 6,266 completion tokens for one call)
+  free-form, versus p95 14.7s with schema enforcement on the same prompt shape. Always use
+  `response_format` for extraction calls — see [Phase 05](execution_phases/phase-05-llm-gateway.md)/[06](execution_phases/phase-06-claim-extraction-span-binding.md).
+- **Never gate a terminal-state decision on "nothing happened in a time window" when a precise,
+  state-based predicate is available instead.** The executor's first dead-branch detector
+  ("nothing claimable + nothing running + something pending ⇒ unreachable, skip it") raced against
+  retry backoff: a task waiting out a very short jittered delay (full jitter can land near zero)
+  could have that delay elapse in the gap between the dispatch loop's claim attempt and its
+  dead-branch check, and get skipped instead of retried. It passed on every single unrepeated run
+  and only showed up under `pytest-repeat` (~1 failure in 6 on the tightest-timing test) — exactly
+  the "concurrency bugs are probabilistic, a single green run is weak evidence" trap [Phase
+  02](execution_phases/phase-02-executor-core.md) warns about. Fixed by making
+  `api.executor.lease.skip_unreachable` depend only on dependency state (a `pending` task is dead
+  iff one of its `depends_on` names a `failed`/`skipped`/missing task — never on timing), which is
+  both simpler and provably race-free. Re-verify any future "is this actually stuck or just slow"
+  logic against `pytest-repeat` before trusting a single green run.
+- **`tasks.lease_expires_at` is intentionally dual-purpose.** While `status='running'` it's the
+  lease deadline (crash-recovery sweep target); while `status='pending'` after a retryable
+  failure, the same column holds "earliest retry time" (`lease.claim_next`'s claimability filter
+  checks both meanings the same way: `lease_expires_at IS NULL OR lease_expires_at <= now()`).
+  Deliberate, to avoid a second column for what is, in both cases, "don't touch this row before
+  this timestamp" — see [Phase 02](execution_phases/phase-02-executor-core.md).
 
 ## Useful Resources & References
 
-- Link: Description
-- Link: Description
+- [`ai-product-investigator-masterplan.md`](../ai-product-investigator-masterplan.md) — the full
+  product/architecture spec. Read before touching any module; it's the authority on *why*, not
+  just *what*.
+- [`docs/execution_phases/README.md`](execution_phases/README.md) — phase index, dependency graph,
+  global conventions (test layout, definition of done, determinism rules).
+- [`docs/tracker.md`](tracker.md) — living status log: what's done, open decisions, next steps.
+  Check this first when resuming work after a gap.
+- [`docs/external_apis.md`](external_apis.md) — measured vendor limits, costs, and go/no-go
+  verdicts from Phase 01. Re-verify before deployment; nightly `tests/live/test_vendors.py`
+  catches drift in the meantime.
 
 ## Contact & Questions
 

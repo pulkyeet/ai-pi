@@ -32,3 +32,13 @@ class Settings(BaseSettings):
     max_competitors_profiled: int | None = None
     max_pages_per_entity: int | None = None
     max_community_threads: int | None = None
+
+    # Executor concurrency (masterplan §4.2 — per-service semaphores, one per
+    # worker process). Given as concrete numbers in the masterplan itself
+    # (unlike the quota knobs above), so they default here rather than
+    # waiting on Phase 14; that phase may still retune them against measured
+    # vendor rate limits.
+    search_concurrency: int = 4
+    crawl_concurrency: int = 8
+    llm_concurrency: int = 6
+    task_lease_duration_s: float = 120.0

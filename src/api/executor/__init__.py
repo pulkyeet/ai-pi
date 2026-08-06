@@ -1,0 +1,35 @@
+from api.executor.core import Executor
+from api.executor.protocol import (
+    ExecutionPlan,
+    ExecutorEvent,
+    HandlerRegistry,
+    HandlerResult,
+    RunFinished,
+    SpawnRequest,
+    TaskCompleted,
+    TaskContext,
+    TaskFailed,
+    TaskHandler,
+    TaskProgress,
+    TaskSkipped,
+    TaskSpec,
+    TaskStarted,
+)
+
+__all__ = [
+    "Executor",
+    "ExecutionPlan",
+    "ExecutorEvent",
+    "HandlerRegistry",
+    "HandlerResult",
+    "RunFinished",
+    "SpawnRequest",
+    "TaskCompleted",
+    "TaskContext",
+    "TaskFailed",
+    "TaskHandler",
+    "TaskProgress",
+    "TaskSkipped",
+    "TaskSpec",
+    "TaskStarted",
+]

@@ -1,0 +1,206 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - api.npmjs.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.npmjs.org/downloads/point/last-week/react
+  response:
+    body:
+      string: '{"downloads":163919885,"start":"2026-07-30","end":"2026-08-05","package":"react"}'
+    headers:
+      access-control-allow-headers:
+      - Authorization, Content-Type, If-None-Match
+      access-control-allow-methods:
+      - GET, HEAD, POST, PUT, DELETE, OPTIONS
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - WWW-Authenticate, Server-Authorization
+      cache-control:
+      - public, max-age=300
+      cf-cache-status:
+      - HIT
+      cf-ray:
+      - a26e76732fb91b55-DEL
+      connection:
+      - keep-alive
+      content-length:
+      - '81'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Thu, 06 Aug 2026 13:42:04 GMT
+      expires:
+      - Thu, 06 Aug 2026 13:47:04 GMT
+      last-modified:
+      - Thu, 06 Aug 2026 13:42:04 GMT
+      request-id:
+      - a26e427b2dac5801_2e78
+      server:
+      - cloudflare
+      set-cookie:
+      - REDACTED
+      transfer-encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      cookie:
+      - REDACTED
+      host:
+      - api.npmjs.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.npmjs.org/downloads/point/last-week/react
+  response:
+    body:
+      string: '{"downloads":163919885,"start":"2026-07-30","end":"2026-08-05","package":"react"}'
+    headers:
+      access-control-allow-headers:
+      - Authorization, Content-Type, If-None-Match
+      access-control-allow-methods:
+      - GET, HEAD, POST, PUT, DELETE, OPTIONS
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - WWW-Authenticate, Server-Authorization
+      age:
+      - '2127'
+      cache-control:
+      - public, max-age=300
+      cf-cache-status:
+      - HIT
+      cf-ray:
+      - a26e7674bd251b55-DEL
+      connection:
+      - keep-alive
+      content-length:
+      - '81'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Thu, 06 Aug 2026 13:42:04 GMT
+      expires:
+      - Thu, 06 Aug 2026 13:47:04 GMT
+      last-modified:
+      - Thu, 06 Aug 2026 13:42:04 GMT
+      request-id:
+      - a26e427b2dac5801_2e78
+      server:
+      - cloudflare
+      transfer-encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      cookie:
+      - REDACTED
+      host:
+      - api.npmjs.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://api.npmjs.org/downloads/point/last-week/react
+  response:
+    body:
+      string: '{"downloads":163919885,"start":"2026-07-30","end":"2026-08-05","package":"react"}'
+    headers:
+      access-control-allow-headers:
+      - Authorization, Content-Type, If-None-Match
+      access-control-allow-methods:
+      - GET, HEAD, POST, PUT, DELETE, OPTIONS
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - WWW-Authenticate, Server-Authorization
+      age:
+      - '2127'
+      cache-control:
+      - public, max-age=300
+      cf-cache-status:
+      - HIT
+      cf-ray:
+      - a26e7674dd7c1b55-DEL
+      connection:
+      - keep-alive
+      content-length:
+      - '81'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Thu, 06 Aug 2026 13:42:04 GMT
+      expires:
+      - Thu, 06 Aug 2026 13:47:04 GMT
+      last-modified:
+      - Thu, 06 Aug 2026 13:42:04 GMT
+      request-id:
+      - a26e427b2dac5801_2e78
+      server:
+      - cloudflare
+      transfer-encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - pypistats.org
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://pypistats.org/api/packages/requests/recent
+  response:
+    body:
+      string: '{"data":{"last_day":69247393,"last_month":1721683513,"last_week":423409518},"package":"requests","type":"recent_downloads"}
+
+        '
+    headers:
+      content-length:
+      - '124'
+      content-type:
+      - application/json
+      date:
+      - Thu, 06 Aug 2026 13:42:05 GMT
+      server:
+      - gunicorn
+    status:
+      code: 200
+      message: OK
+version: 1

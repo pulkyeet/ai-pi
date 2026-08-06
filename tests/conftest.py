@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+from collections.abc import AsyncIterator
 
 import asyncpg
 import pytest
@@ -36,3 +37,12 @@ def skip_without_postgres(postgres_available: bool) -> None:
             f"no Postgres reachable at {TEST_DATABASE_URL}; "
             "run `make db-up` (needs Docker) to enable integration tests"
         )
+
+
+@pytest.fixture
+async def pg_pool(postgres_dsn: str, skip_without_postgres: None) -> AsyncIterator[asyncpg.Pool]:
+    pool = await asyncpg.create_pool(dsn=postgres_dsn)
+    try:
+        yield pool
+    finally:
+        await pool.close()
