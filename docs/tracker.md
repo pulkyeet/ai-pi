@@ -4,9 +4,12 @@ Last Updated: 2026-08-06
 
 ## Current Status
 
-- **Phase**: Pre-implementation — planning complete
-- **Focus**: Execution phases derived from the masterplan; ready to start Phase 00
-- **Blockers**: None. Two credential requests should start immediately (see Next Steps).
+- **Phase**: Phase 00 implemented — contracts, migration, and tooling in place; DB-backed
+  verification still pending (see Blockers)
+- **Focus**: Foundation, Contracts & CI
+- **Blockers**: `make db-up` / integration tests need Docker, which isn't reachable from the
+  current WSL shell (Docker Desktop WSL integration not enabled). CI runs the Postgres-backed
+  checks; a local run needs that enabled or a manually pointed `TEST_DATABASE_URL`.
 
 ## Recent Activities
 
@@ -21,10 +24,24 @@ Last Updated: 2026-08-06
 - **Resolved D4 to Fly.io as primary** — Hetzner VPS option removed entirely, not deferred
 - **Resolved D3** — arq dropped from the masterplan; the `SKIP LOCKED` executor is the queue
 - Confirmed Supabase for v1 with Postgres-on-Fly as the named fallback
+- **Implemented Phase 00**: repo scaffold (`pyproject.toml`, `Makefile`, `docker-compose.yml`,
+  `.env.example`, `alembic.ini`), `src/api/{config,db,logging}.py`, all six model modules
+  (`claims`, `entity`, `plan`, `events`, `brief`, `report`), migration `0001_initial` (full
+  masterplan §4.3 schema plus the three Phase 00 deltas), unit + integration test suites, and
+  `.github/workflows/ci.yml`. `ruff check`, `ruff format --check`, `mypy --strict`, and the unit
+  test tier (44 tests, 96.78% coverage on `src/api/models/`) all pass locally.
+- **Resolved the Phase 00 "asyncpg vs SQLAlchemy Core" open decision**: asyncpg + hand-written
+  SQL, per the phase doc's own lean. Alembic itself still needs a synchronous SQLAlchemy engine
+  to run migrations, so `psycopg[binary]` + `sqlalchemy` were added as a migration-only
+  dependency; the app runtime path stays asyncpg-only.
+- Integration tests (`alembic upgrade/downgrade`, CHECK/UNIQUE constraint tests) are written and
+  skip gracefully (not fail) when no Postgres is reachable — verified locally as 4 skips. Not yet
+  run against a live database in this environment; CI has a Postgres service container and will
+  exercise them on push.
 
 ## Ongoing Work
 
-- [ ] Phase 00 — Foundation, Contracts & CI
+- [x] Phase 00 — Foundation, Contracts & CI (code complete; DB-backed exit criteria unverified locally, pending Docker/CI)
 - [ ] Phase 01 — Dependency Validation Spike (start credential requests first)
 
 ## Completed Milestones
