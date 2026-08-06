@@ -15,6 +15,8 @@ dependencies = [
     "tldextract>=5.1",
     "psycopg[binary]>=3.2",
     "sqlalchemy>=2.0",
+    "httpx>=0.27",
+    "trafilatura>=1.12",
 ]
 
 [project.optional-dependencies]
@@ -31,13 +33,13 @@ dev = [
     "hypothesis>=6.112",
     # Needed permanently by tests/integration/test_fixture_corpus.py, which
     # enforces the Phase 01 cassette-corpus exit criteria on every CI run.
-    "httpx>=0.27",
+    # (httpx itself moved to core deps in Phase 03 — api.retrieval uses it.)
     "vcrpy>=6.0",
 ]
-# Phase 01 spike-only deps. Nothing in src/api may import these — spikes/ is
+# Phase 01 spike-only dep. Nothing in src/api may import this — spikes/ is
 # throwaway and archived at phase end (see docs/execution_phases/phase-01-*.md).
+# (trafilatura moved to core deps in Phase 03 — api.retrieval.extract_text uses it.)
 spikes = [
-    "trafilatura>=1.12",
     "playwright>=1.47",
 ]
 
@@ -75,14 +77,18 @@ ignore_missing_imports = true
 module = "asyncpg.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "trafilatura.*"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
     "live: hits real external services; excluded from the default run",
 ]
-addopts = """-m 'not live' --cov=src/api/models --cov=src/api/executor \
+addopts = """-m 'not live' --cov=src/api/models --cov=src/api/executor --cov=src/api/retrieval \
 --cov-report=term-missing --cov-fail-under=85"""
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["src/api/models", "src/api/executor"]
+source = ["src/api/models", "src/api/executor", "src/api/retrieval"]

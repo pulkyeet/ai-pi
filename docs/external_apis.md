@@ -2,10 +2,11 @@
 
 Recorded: 2026-08-06. Re-verify before deployment (see [Phase 15](execution_phases/phase-15-deployment-observability.md)).
 
-Produced by [Phase 01](execution_phases/phase-01-dependency-validation-spike.md). All numbers below
-are measured, not estimated — see `spikes/` for the scripts and `tests/fixtures/cassettes/` +
-`tests/fixtures/pages/` for the recorded evidence. `tests/live/test_vendors.py` re-checks response
-shape nightly so this document doesn't silently rot.
+Produced by [Phase 01](execution_phases/phase-01-dependency-validation-spike.md); the "Fetch &
+path-guessing" section below was added by [Phase 03](execution_phases/phase-03-fetch-source-cache.md).
+All numbers below are measured, not estimated — see `spikes/` for the scripts and
+`tests/fixtures/cassettes/` + `tests/fixtures/pages/` for the recorded evidence.
+`tests/live/test_vendors.py` re-checks response shape nightly so this document doesn't silently rot.
 
 ## Go / No-Go
 
@@ -46,6 +47,55 @@ Mid-difficulty recall: 3/4 (missed a fixed competitor list for `"customer feedba
 - **Cost of Playwright**: ~300–400MB image size delta (Chromium binary alone; headless-shell variant is ~262MB, full Chromium ~389MB), ~650MB RSS across all Chrome-related processes while a page is loaded, 35–83ms cold start once the binary is already present in the image.
 - **Decision: Playwright deferred behind a feature flag, not built.** Static hit rate (88%) clears the masterplan §12.10 threshold (≥80%) with room to spare, and the failures that remain are either enterprise path-guessing misses (unrelated to JS rendering) or anti-bot walls Playwright doesn't solve anyway. Per the phase doc's own decision rule, it ships only if Phase 14 benchmark recall turns out to be JS-rendering-limited. **Masterplan §14 open item #3 is closed: no.**
 - **Gotcha found and fixed on the spot**: the initial price-detection regex matched `$` only. `hubspot.com/pricing` served India-localized pricing in ₹ to this environment's egress IP, and was miscounted as a static failure until the regex was broadened to `[$€£¥₹]` + currency codes. Real vendors localize by request geography — any production price-detection logic needs the same fix.
+
+## Fetch & path-guessing (Phase 03)
+
+Measured for real against `api.retrieval.guess_path` (the shipped implementation, not a spike
+approximation) with the phase doc's 7-candidate `PRICING_PATHS` list, over the same 40-domain
+corpus Phase 01 used — see `spikes/pathguess_hitrate.py`.
+
+- **Path-guess hit rate: 75% (30/40)**, using `guess_path`'s real success criterion: HTTP 200 *and*
+  `looks_price_shaped()` matches the page's own **extracted, normalised** text (not raw HTML).
+  Below Phase 01's 82% (33/40) baseline, and below the masterplan's 80% bar. Not a regression in
+  the crawl mechanics — a difference in what's being measured, and a genuine, actionable finding
+  in its own right (see below).
+- **Why it's lower than Phase 01's number, specifically:** Phase 01's `spikes/crawl_static.py`
+  counted a page as a hit if the price regex matched *either* the trafilatura-extracted text *or*
+  the raw HTML body (`has_price(extracted) or has_price(text)`). Matching raw HTML catches prices
+  sitting in `<script>` JSON blobs, structured-data tags, or other markup trafilatura correctly
+  excludes as boilerplate. `guess_path` deliberately matches only the extracted, normalised text —
+  it has to, because that's the same text `sources.extracted_text` stores and claim extraction
+  (Phase 06) binds spans against (masterplan §4.8's byte-identical-text guarantee). Matching raw
+  HTML here would make the routing heuristic and the stored content disagree about what "found
+  the price" means.
+- **Four newly-visible misses, root-caused individually** (`vercel.com`, `zoom.us`, `stripe.com`,
+  `sendgrid.com` — all Phase 01 hits):
+  - `vercel.com`: 200 OK, 39KB of raw HTML, but `trafilatura.extract(favor_precision=True)` returns
+    **zero characters** — a JS-rendered SPA shell with no server-rendered price content, exactly
+    the failure mode Phase 01's crawl-viability spike already named as a Playwright-relevant gap.
+  - `zoom.us`: extracts to 557 characters of plan-tier *names* (`Basic`, `Meetings`, `AI Companion`)
+    with no adjacent price digits — the numbers themselves are client-rendered.
+  - `stripe.com`: extracts 2,872 real characters of pricing prose, but it's percentage- and
+    cents-based (`2.9% + 30¢` style), which `PRICE_TOKEN_RE`'s currency-symbol set
+    (`[$€£¥₹]`) doesn't match — a real gap in the loose price-token heuristic for usage-based
+    pricing models, distinct from a crawl failure.
+  - `sendgrid.com`: the `/pricing` page's actual current content (checked live) is a redirect
+    notice — *"SendGrid ❤️ Twilio. We're finally moving in together on Twilio.com!"* — genuinely no
+    pricing information there any more, not an extraction bug.
+  - The remaining misses (`hubspot.com`, `gitlab.com`, `canva.com`, `bigcommerce.com`, `make.com`,
+    `atlassian.com`) reproduce Phase 01's own already-documented misses (anti-bot walls, geo-priced
+    content, or genuine off-path enterprise pricing).
+- **Consequence, quantified per the phase doc's own risk table:** at 75% instead of the assumed
+  80%, roughly 1 in 4 competitor pricing lookups falls through to a real search query instead of a
+  direct fetch — not the ~4× blowup a total path-guessing failure would cause, since 3 of every 4
+  lookups still avoid search entirely. Still comfortably inside Exa's ~179 runs/month ceiling
+  (Search bake-off, above) even in the worst case. **Not a blocker; a real, measured number to
+  carry into Phase 14's quota math instead of the Phase 01 estimate.**
+- **Not changed in response to this number:** `PRICE_TOKEN_RE` and `favor_precision=True` are the
+  phase doc's own specified design (byte-identical extracted text takes priority over maximising
+  path-guess recall). Loosening either to chase a higher hit-rate number would be measuring the
+  wrong thing — see `docs/execution_phases/phase-03-fetch-source-cache.md`'s own extraction design
+  section.
 
 ## LLM
 

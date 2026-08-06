@@ -4,12 +4,16 @@ Last Updated: 2026-08-06
 
 ## Current Status
 
-- **Phase**: Phase 02 complete — the domain-agnostic executor (`src/api/executor/`) passes its
-  full chaos suite (worker SIGKILL + sweep recovery, zombie-write rejection under both guards,
-  retry-storm containment, runaway-fan-out budget halt, all-branches-fail clean termination,
-  timeout enforcement), verified flake-free at 30x local repeat and wired to run 50x nightly in CI.
-- **Focus**: Ready to begin Phase 03 — Fetch, Text Extraction & Source Cache
-- **Blockers**: None for Phase 03. Two open, non-blocking credential items carried forward:
+- **Phase**: Phase 03 complete — `src/api/retrieval/` (`fetch_source(url) -> Source`) is built and
+  green: URL canonicalisation (idempotence proven by property test), conditional-request caching
+  (7d positive / 24h negative TTL), robots.txt + hardcoded no-crawl enforcement, per-host
+  politeness, trafilatura extraction with a single canonical normalisation pass, and path-guessing
+  with its own positive/negative cache and attempt log. **Real measured path-guess hit rate: 75%
+  (30/40)** against the 40-domain corpus — see `docs/external_apis.md`'s new "Fetch &
+  path-guessing (Phase 03)" section for the full breakdown and why it differs from Phase 01's 82%.
+  `make check` green: 147 tests, 95.8% coverage overall, every `retrieval/` module ≥ 90%.
+- **Focus**: Ready to begin Phase 04 — Search & Domain Retrievers
+- **Blockers**: None for Phase 04. Two open, non-blocking credential items carried forward:
   Product Hunt developer token (not started) and Reddit API application (not yet submitted —
   see Next Steps). GitHub's fine-grained PAT also needs a permission upgrade before Phase 04/07
   build on star-velocity (see Recent Activities).
@@ -163,6 +167,77 @@ Last Updated: 2026-08-06
     self-migrating (only `test_migrations.py` did that before).
   - Full design/scope: [`docs/execution_phases/phase-02-executor-core.md`](execution_phases/phase-02-executor-core.md).
 
+- **Implemented Phase 03**: `src/api/retrieval/` — `canonical.py` (`canonicalize_url`, 8-rule
+  canonicalisation, idempotence proven by a structured-URL Hypothesis strategy since fuzzing raw
+  strings mostly produces invalid URLs that don't exercise the rules), `robots.py` (`RobotsCache`,
+  24h TTL, hardcoded G2/Capterra no-crawl set enforced independently of robots.txt),
+  `extract_text.py` (trafilatura wrapper + the single canonical `normalise()` pass, idempotence
+  proven the same way), `pathguess.py` (`PRICING_PATHS`/`DOCS_PATHS`/`CHANGELOG_PATHS`,
+  `PRICE_TOKEN_RE`, `guess_path` orchestrator), `fetch.py` (`HostThrottle`, retry loop reusing
+  Phase 02's `api.executor.retry` unmodified, conditional requests, streamed size cap, the
+  `fetch_source(url) -> Source` entry point), `cache.py` (source cache + path-guess cache
+  read/write), `errors.py` (typed failure hierarchy). New model: `api.models.source.Source`.
+  Migration `0003_fetch_source_cache` adds `sources.etag`/`sources.last_modified` and two new
+  tables, `path_guess_cache` (positive/negative resolution per root domain + path kind) and
+  `path_guess_attempts` (append-only instrumentation log — the raw material for the hit-rate
+  measurement). `trafilatura` and `httpx` promoted from Phase 01's spike-only/dev-only deps to
+  core `src/api` dependencies now that `api.retrieval` uses them for real; `playwright` stays
+  spikes-only (still deferred, per Phase 01's decision). `make check` green: 147 tests (up from
+  ~104), 95.8% coverage overall, every `retrieval/` module individually ≥ 90%. Coverage scope and
+  the pytest `--cov` flags extended to include `src/api/retrieval`.
+  - **HTTP integration tests use `httpx.MockTransport`, not VCR cassettes** — a deliberate
+    deviation from Phase 01's cassette convention, but not an arbitrary one: the phase doc's own
+    test spec for the cache-hit-makes-zero-network-calls case says "asserted by a mock transport
+    that fails on any request," which only makes sense for `httpx.MockTransport`. VCR cassettes
+    exist to replay *real vendor* traffic (Exa, GitHub, ...); this layer's own HTTP mechanics
+    (retries, redirects, conditional requests, size caps) have no vendor to record against, so a
+    scripted transport (`tests/integration/_http.py`) is the more direct fit and needs no cassette
+    files. The Phase 01 fixture corpus (`tests/fixtures/pages/`, `manifest.json`) is still reused
+    as-is for extraction-quality testing rather than duplicated.
+  - **Two deliberate design decisions surfaced before writing code:**
+    1. **Path-guessing gets its own cache table, not a general reuse of the source cache's TTL.**
+       The phase doc asks for positive (7d) vs negative (24h) TTL specifically on the
+       *path-resolution* outcome ("does this domain have a `/pricing`"), which is a different
+       question from "is this specific URL's content still fresh" — conflating the two would mean
+       a 404 on `/pricing` (already negatively cached as a `Source` row) and "no pricing page
+       exists for this domain" caching would need to derive one from the other implicitly.
+       `path_guess_cache`/`path_guess_attempts` make both the resolution and the instrumentation
+       explicit and independently queryable (`cache.path_guess_hit_rate()` is a real SQL
+       aggregate, not a derived guess).
+    2. **Canonicalisation's rule 2 (force https where the host actually redirects to it) is split
+       across two places.** `canonicalize_url()` itself never upgrades scheme without evidence
+       (it's a pure function with no network access, so it can't observe a redirect) — the upgrade
+       happens in `fetch.fetch_source` after `_fetch_with_retries` returns, by comparing the
+       post-redirect `final_url`'s scheme against what was requested. This matches the phase doc's
+       own framing ("record the observed redirect rather than assuming") and keeps
+       `canonicalize_url` itself pure and unit-testable in isolation.
+  - **A genuine bug found and fixed while writing the canonicalisation property test**: the first
+    percent-encoding pass did `quote(unquote(component), safe=...)`, i.e. decode everything then
+    selectively re-encode. That's wrong for *reserved* characters — `%2F` (an encoded literal slash
+    inside one path segment) decoded to a real `/` and was never re-encoded, silently changing
+    `foo%2Fbar` (one segment) into `foo/bar` (two segments), a real change to what the URL means,
+    not just its spelling. Caught by `test_canonicalisation_table`'s `%2f` case before it reached
+    the property test. Fixed by only decoding `%XX` sequences that spell an RFC 3986 *unreserved*
+    character, leaving every reserved-character escape (including `%2F`) alone but still
+    uppercasing its hex — see `canonical._renormalise_percent_encoding`'s docstring.
+  - **Real path-guessing hit rate measured at 75% (30/40)**, run for real via
+    `spikes/pathguess_hitrate.py` against `api.retrieval.guess_path` — below both Phase 01's 82%
+    and the masterplan's 80% bar, but not a crawl-mechanics regression: `guess_path` matches its
+    price-token regex only against the extracted, *normalised* text (as it must, since that's the
+    same text span binding will bind against in Phase 06), where Phase 01's spike counted a hit if
+    the regex matched *either* the extracted text *or* the raw HTML body. Root-caused per-domain
+    (JS-rendered SPA shells with zero server-rendered price content, a genuine gap in the
+    price-token regex for percentage/cents-based pricing like Stripe's, and one vendor's pricing
+    page that has since become a redirect notice) — full breakdown in `docs/external_apis.md`.
+    **Not treated as a reason to loosen `favor_precision=True` or the price regex**: both are the
+    phase doc's own specified design, and gaming the extraction settings to hit a rounder number
+    would be measuring the wrong thing. Consequence quantified rather than left as a worry: at
+    75%, roughly 1 in 4 pricing lookups falls through to a real Exa query instead of a direct
+    fetch — still comfortably inside the ~179 runs/month ceiling from Phase 01's search bake-off.
+    Live regression guard added at `tests/live/test_pathguess_hitrate.py` (threshold 65%, with
+    slack below the measured 75% for day-to-day vendor content churn without being flaky).
+  - Full design/scope: [`docs/execution_phases/phase-03-fetch-source-cache.md`](execution_phases/phase-03-fetch-source-cache.md).
+
 ## Ongoing Work
 
 - [x] Phase 00 — Foundation, Contracts & CI (complete; `make check` green including all
@@ -171,7 +246,9 @@ Last Updated: 2026-08-06
       see Current Status)
 - [x] Phase 02 — Executor Core (complete; chaos suite green, flake-free at 30x local repeat,
       50x nightly in CI)
-- [ ] Phase 03 — Fetch, Text Extraction & Source Cache — **up next**
+- [x] Phase 03 — Fetch, Text Extraction & Source Cache (complete; path-guess hit rate measured
+      at 75%, real number carried into Phase 14's quota math — see Recent Activities)
+- [ ] Phase 04 — Search & Domain Retrievers — **up next**
 
 ## Completed Milestones
 
@@ -236,16 +313,22 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
 2. **Upgrade the GitHub PAT** before Phase 04/07 build on star-velocity — the current fine-grained
    PAT's default public-read scope returns 403 on the Starring endpoint (REST and GraphQL both).
    Either switch to a classic PAT or add an explicit Starring permission to the fine-grained one.
-3. Begin [Phase 03](execution_phases/phase-03-fetch-source-cache.md) — fetch, text extraction and
-   the source cache, now that both the executor (Phase 02) and every external dependency it will
-   eventually schedule work against (Phase 01) are de-risked.
-4. Phase 00's contracts (`src/api/models/`) remain frozen; Phase 02 did not touch them — it added
-   its own domain-agnostic types under `src/api/executor/` instead (see Recent Activities). It did
-   extend the *schema* with migration `0002_executor_core.py` (task dependency/budget columns,
-   `run_events`), logged there per the phase doc's rule that schema changes need a tracker note.
+3. Begin [Phase 04](execution_phases/phase-04-search-domain-retrievers.md) — search and domain
+   retrievers, now that both the source cache (`fetch_source`, Phase 03) and every external
+   dependency it schedules work against (Phase 01) are built and de-risked. Phase 04's unified
+   retriever interface should call `api.retrieval.fetch_source` directly for anything URL-shaped
+   rather than re-implementing fetch/cache/robots logic — that's the whole point of this layer.
+4. Phase 00's contracts (`src/api/models/`) remain frozen; Phase 02 and Phase 03 both added their
+   own new types instead of touching them (`api.executor.protocol`, `api.models.source.Source`) —
+   see Recent Activities. Both extended the *schema* via migration (`0002_executor_core`,
+   `0003_fetch_source_cache`), logged there per the phase doc's rule that schema changes need a
+   tracker note.
 5. When Phase 10 builds real task handlers, it must adapt `api.models.plan.Plan` into the
    executor's `ExecutionPlan`/`TaskSpec` at the boundary (kind values become `TaskKind.value`
    strings) — the two are deliberately not the same type; see Recent Activities.
+6. Phase 14's quota/cost math should use Phase 03's measured 75% path-guess hit rate (not Phase
+   01's 82%, which used a different, looser matching method — see Recent Activities) when
+   re-deriving expected search volume and the Exa allowance's real headroom.
 
 ## Open Items Carried From the Masterplan
 

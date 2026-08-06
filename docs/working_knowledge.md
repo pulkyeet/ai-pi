@@ -39,9 +39,23 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   chaos suite (`tests/integration/test_chaos.py`): worker-kill + sweep recovery, zombie-write
   rejection (both idempotency guards independently), retry-storm containment, runaway-fan-out
   budget halt, all-branches-fail clean termination, timeout enforcement.
+- **Fetch, text extraction & source cache** ([Phase 03](execution_phases/phase-03-fetch-source-cache.md),
+  **built** — see `src/api/retrieval/`): `fetch_source(pool, client, throttle, robots, url, *,
+  retrieval_reason) -> FetchOutcome` is the layer's single entry point — URL in, stored
+  deduplicated `Source` out. Owns URL canonicalisation (`canonical.py`, proven idempotent), robots
+  + hardcoded no-crawl compliance (`robots.py`), per-host politeness and conditional-request
+  retries reusing Phase 02's retry policy unmodified (`fetch.py`), the **one and only**
+  normalisation pass over extracted text (`extract_text.py` — span binding in Phase 06 depends on
+  this being done exactly once, at write time, nowhere else), and the 7d/24h TTL source +
+  path-guess caches (`cache.py`). Path-guessing (`pathguess.py`, `guess_path`) is the masterplan's
+  primary cost lever — fetch `/pricing` directly instead of searching for it — measured at a real
+  **75% hit rate** (`docs/external_apis.md`), below the masterplan's 80% assumption but quantified,
+  not a blocker (see Recent Activities in `tracker.md`).
 - **Claim extraction & span binding** ([Phase 06](execution_phases/phase-06-claim-extraction-span-binding.md),
   not yet built): the core guarantee. A claim's `quote` must be found verbatim in the page's stored
-  text or the claim is dropped, never repaired or fuzzy-matched.
+  text or the claim is dropped, never repaired or fuzzy-matched. Consumes `Source.extracted_text`
+  from Phase 03 as its byte-identical input — the reason that layer's single-normalisation-pass
+  rule exists.
 - **Typed contracts** ([Phase 00](execution_phases/phase-00-foundation-contracts-ci.md), **built** —
   see `src/api/models/`): closed `ClaimAttribute` vocabulary, `EntityKey`, `Plan`/`TaskKind`,
   `RunEvent` union, `Report` output contract. Everything downstream is built on these being frozen
@@ -91,9 +105,16 @@ src/api/
 │                                     # complete/fail/sweep), budget.py, retry.py, protocol.py
 │                                     # (own TaskSpec/ExecutionPlan/ExecutorEvent — no
 │                                     # api.models.* imports; see Key Components)
+├── retrieval/                       # Fetch, extraction & source cache (Phase 03 — built):
+│                                     # fetch.py (fetch_source, HostThrottle, retry+conditional
+│                                     # requests), canonical.py, extract_text.py (trafilatura +
+│                                     # the one normalise() pass), pathguess.py (guess_path,
+│                                     # PRICE_TOKEN_RE), robots.py (RobotsCache, no-crawl set),
+│                                     # cache.py (source + path-guess cache), errors.py
 └── prompts/                         # versioned prompt files (empty until Phase 05)
 migrations/versions/                 # hand-written, reviewed Alembic migrations
-spikes/                              # Phase 01 throwaway vendor smoke tests — kept as the
+spikes/                              # Phase 01 throwaway vendor smoke tests, plus Phase 03's
+                                      # pathguess_hitrate.py measurement script — kept as the
                                       # reproducible evidence behind docs/external_apis.md;
                                       # `import spikes` from src/api is banned by a ruff rule
 tests/
@@ -101,10 +122,15 @@ tests/
 ├── integration/    # real Postgres, replayed HTTP fixtures; also the Phase 01 fixture-corpus
 │                    # integrity tests (secret-scrub + offline-replay), which need no Postgres;
 │                    # _synthetic.py/_db.py/_worker_process.py (leading underscore, not
-│                    # collected as tests) back the Phase 02 executor/chaos suites
-├── live/           # real external APIs, @pytest.mark.live, excluded by default
+│                    # collected as tests) back the Phase 02 executor/chaos suites; _http.py
+│                    # backs Phase 03's fetch/cache/pathguess tests with a scripted
+│                    # httpx.MockTransport instead of VCR cassettes (see tracker.md)
+├── live/           # real external APIs, @pytest.mark.live, excluded by default; includes
+│                    # test_pathguess_hitrate.py, the nightly regression guard on Phase 03's
+│                    # measured 75% path-guess hit rate
 └── fixtures/{cassettes,pages}/      # VCR cassettes (7 vendors) + 40 real pricing pages,
-                                      # ~30MB total — the Phase 01 fixture corpus
+                                      # ~30MB total — the Phase 01 fixture corpus, reused as-is
+                                      # by Phase 03's extraction-quality tests
 docs/
 ├── tracker.md            # this file's sibling — living status log
 ├── working_knowledge.md  # this file — architecture/conventions reference
@@ -129,9 +155,10 @@ docs/
   schema is identical without a real Supabase project.
 - **Exa** (search) and **OpenRouter** (`deepseek/deepseek-v4-flash` for extraction) — both
   validated in Phase 01; see [`docs/external_apis.md`](external_apis.md) for measured cost/recall.
-- **vcrpy + trafilatura + playwright** — Phase 01 spike-only deps (`spikes` extra in
-  `pyproject.toml`). `httpx` and `vcrpy` also live in `dev` since the fixture-corpus integrity
-  tests need them permanently; `trafilatura`/`playwright` are not needed outside `spikes/`.
+- **httpx + trafilatura** — core `src/api` dependencies since Phase 03 (`api.retrieval` fetches
+  and extracts with them for real). `vcrpy` stays a `dev`-only dependency: the Phase 01
+  fixture-corpus integrity tests need it permanently, but nothing under `src/api` replays
+  cassettes. `playwright` stays `spikes`-only — still deferred behind a feature flag, unbuilt.
 - Full stack table and the reasoning behind each choice: masterplan §11 and §12 (decision log).
 
 ## Common Workflows
@@ -240,6 +267,27 @@ fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model se
   checks both meanings the same way: `lease_expires_at IS NULL OR lease_expires_at <= now()`).
   Deliberate, to avoid a second column for what is, in both cases, "don't touch this row before
   this timestamp" — see [Phase 02](execution_phases/phase-02-executor-core.md).
+
+- **Percent-decoding a URL component for canonicalisation must not decode *reserved* characters.**
+  `%2F` inside a path segment is an encoded literal slash — decoding it to a real `/` silently
+  turns one path segment (`foo%2Fbar`) into two (`foo/bar`), changing what the URL means, not just
+  how it's spelled. `api.retrieval.canonical._renormalise_percent_encoding` only decodes `%XX`
+  escapes that spell an RFC 3986 *unreserved* character (letters, digits, `-._~`); every other
+  escape (including `%2F`) keeps its `%XX` form, just uppercased. Caught by a hand-written
+  canonicalisation-table test before it reached the Hypothesis property test — see [Phase
+  03](execution_phases/phase-03-fetch-source-cache.md).
+- **A "does this page mention a price" check must specify whether it matches raw HTML or extracted
+  text — the two give different answers.** Phase 01's crawl-viability spike counted a hit if the
+  price regex matched *either* the trafilatura-extracted text *or* the raw HTML body, which catches
+  prices sitting in `<script>` JSON blobs that trafilatura correctly excludes as boilerplate.
+  `api.retrieval.pathguess.guess_path` matches only the extracted, normalised text — it has to,
+  since that's the same text stored in `sources.extracted_text` and the text Phase 06 will bind
+  spans against. Real consequence, not just a theoretical distinction: Phase 03's real path-guess
+  hit rate came out to 75%, below Phase 01's 82%, for exactly this reason on 4 of the 10 newly
+  visible misses (`vercel.com`, `zoom.us`, `stripe.com`, `sendgrid.com` — see
+  `docs/external_apis.md`'s "Fetch & path-guessing (Phase 03)" section for the per-domain
+  root-cause). When comparing "hit rate" numbers across phases or vendors, always check which text
+  the match ran against.
 
 ## Useful Resources & References
 
