@@ -36,6 +36,21 @@ query($query: String!, $first: Int!) {
 }
 """
 
+# Slug lookup, distinct from `_SEARCH_QUERY`'s relevance search: Phase 07's
+# `ph:` artifact verification (masterplan §4.5) needs "does this exact post
+# exist", not "what posts match this text".
+_POST_BY_SLUG_QUERY = """
+query($slug: String!) {
+  post(slug: $slug) {
+    name
+    tagline
+    votesCount
+    website
+    featuredAt
+  }
+}
+"""
+
 
 class ProductHuntPost(BaseModel):
     name: str
@@ -78,6 +93,30 @@ class ProductHuntRetriever:
             )
             for e in edges
         ]
+
+    async def post_by_slug(self, slug: str) -> ProductHuntPost | None:
+        if not self._token:
+            raise RetrieverUnavailableError(
+                self.name, "no developer token configured (registration pending)"
+            )
+        await self._limiter.acquire()
+        resp = await self._client.post(
+            GRAPHQL_URL,
+            headers={"Authorization": f"Bearer {self._token}", "Content-Type": "application/json"},
+            json={"query": _POST_BY_SLUG_QUERY, "variables": {"slug": slug}},
+        )
+        resp.raise_for_status()
+        body = resp.json()
+        node = body.get("data", {}).get("post")
+        if node is None:
+            return None
+        return ProductHuntPost(
+            name=node["name"],
+            tagline=node["tagline"],
+            votes_count=node["votesCount"],
+            website=node.get("website"),
+            featured_at=node.get("featuredAt"),
+        )
 
 
 __all__ = ["ProductHuntPost", "ProductHuntRetriever"]

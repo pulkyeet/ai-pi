@@ -4,26 +4,28 @@ Last Updated: 2026-08-07
 
 ## Current Status
 
-- **Phase**: Phase 06 complete — `src/api/extract/` (`extractor.extract_claims()` — one `Source`
-  per call, never batched — `span.bind_span()` the masterplan-spec'd verbatim-match/no-fuzzy/
-  ambiguous-drops span binder, `validate.py` the vocabulary→value-type→span gate pipeline with a
-  counted `DropReason` per gate, `cache.py` the permanent `content_hash+extractor_version`
-  extraction cache that re-binds on every read, `metrics.py` drop-rate accounting) plus the first
-  real prompt file in the repo (`src/api/prompts/extract_claims.md`) are built and green. `make
-  check`: 318 tests, 97.02% coverage overall, every `extract/` module at **100%**. New 10-fixture
-  offline corpus (`tests/fixtures/extraction/`: clean pricing, pricing table, no-price page,
-  changelog, GitHub README, multi-currency, struck-through discount, 3 adversarial-injection pages)
-  measured a 23.5% drop rate (4/17 claims from the corpus's own committed fake-LLM responses) — not
-  a real-model number (the corpus deliberately packs in fabrication/ambiguity/vocabulary-escape
-  cases to exercise every drop reason), but the two `quote_not_in_source` drops are both
-  intentionally-adversarial fixtures, not natural model paraphrase, so there's no signal here that
-  the masterplan's ~15% alarm threshold should worry about yet — that measurement is Phase 14's
-  job, on real pages.
-- **Focus**: Ready to begin Phase 07 — Entity Resolution
-- **Blockers**: None for Phase 07. Three open, non-blocking credential items carried forward:
-  Product Hunt developer token (still not started), Reddit API application (still not submitted),
-  and GitHub's fine-grained PAT still needs a Starring-permission upgrade before Phase 07 builds on
-  star-velocity as a real, non-degraded signal (see Recent Activities and Next Steps).
+- **Phase**: Phase 07 complete — `src/api/resolve/` (`entity_key.py` PSL-aware scheme-prefixed key
+  derivation with `include_psl_private_domains=True` set explicitly, `verify.py` per-scheme
+  artifact verification enforcing masterplan Rule 2 with a 24h-TTL `verification_cache`, `alias.py`
+  a pure order-independent union-find over the three evidence-based merge triggers, `maturity.py`
+  the explainable first-match decision list, `store.py` idempotent concurrency-safe
+  `entities`/`entity_aliases` persistence) plus `resolve_entity(ctx, evidence) -> Entity | None`,
+  the phase's concrete output, wiring all five together in `__init__.py`. Migration `0007` adds
+  `verification_cache` (`entities`/`entity_aliases` already existed from Phase 00's `0001_initial`).
+  `make check`: 437 tests, 97.27% coverage overall, every `resolve/` module at 96–100% (only
+  `entity_key.py` at 99%, one genuinely-unreachable defensive line). The `.fly.dev` signature
+  scenario (5 distinct Fly-hosted products → 5 entities, all tiered `hobby`) passes as a named
+  test, and the alias-merge order-independence property (Hypothesis, pure in-memory union-find —
+  no Postgres per example) holds across permutations.
+- **Focus**: Ready to begin Phase 08 — Grading, Confidence & Contradictions
+- **Blockers**: None for Phase 08. Two open, non-blocking credential items carried forward:
+  Product Hunt developer token (still not started) and Reddit API application (still not
+  submitted). GitHub's fine-grained PAT Starring-permission gap turned out not to block Phase 07
+  after all — `verify.py`'s `gh:` verification only calls `repo_metadata` (unaffected by the 403),
+  and maturity's `stars`/`star_velocity_90d` signals are caller-supplied (`MaturitySignals`), not
+  fetched by `api.resolve` itself — but the upgrade is still worth doing before Phase 10 wires a
+  real `star_velocity_90d` value into those signals, or every entity's maturity classification
+  silently runs on a permanently-`None` velocity signal.
 
 ## Recent Activities
 
@@ -505,6 +507,81 @@ Last Updated: 2026-08-07
     tests locally.
   - Full design/scope: [`docs/execution_phases/phase-06-claim-extraction-span-binding.md`](execution_phases/phase-06-claim-extraction-span-binding.md).
 
+- **Implemented Phase 07**: `src/api/resolve/` — `entity_key.py` (PSL-aware `web:` derivation via
+  two `tldextract.TLDExtract` instances, one with `include_psl_private_domains=True` and one
+  without, compared to derive `is_paas_host`; `gh:` derivation handles bare `owner/repo`, full
+  URLs, `git+https://`/`ssh://`/scp-style `git@github.com:` forms, and `.git`/trailing-slash
+  stripping; `pypi:` applies real PEP 503 normalisation), `verify.py` (per-scheme artifact
+  verification against `fetch_source` for `web:`, `GitHubRetriever.repo_metadata` for `gh:`, direct
+  registry calls for `npm:`/`pypi:`, `itunes.apple.com/lookup` for `ios:`, HF's models/spaces API
+  for `hf:`, `ProductHuntRetriever.post_by_slug` for `ph:`, and a best-effort Chrome Web Store
+  detail-page check with no documented API — all results cached in a new `verification_cache`
+  table, 24h TTL), `alias.py` (a pure, DB-free union-find over the three Design-section merge
+  triggers — `gh_homepage`, `web_backlink`, `package_repository` — order-independence proven by a
+  Hypothesis property test, not just a hand-picked permutation), `maturity.py` (the five-rule
+  first-match decision list, with a `known_low_scale` guard so an *unknown* stars/downloads signal
+  is never treated as a *known-low* one — that distinction is what keeps `insufficient_signal`
+  honest instead of defaulting everything with no data straight to `hobby`), and `store.py`
+  (`upsert_entity` — `ON CONFLICT (entity_key)` for the concurrent-same-key case, plus a
+  `find_entity_id` pre-check for the "arriving under an already-merged alias" case that a plain
+  `ON CONFLICT` can't catch; `merge_alias` — collapses a real duplicate entity into its canonical
+  when both sides already exist, or just adds an alias row when only the canonical does, locking
+  the two `entity_key`s in sorted order so concurrent merges of the same pair can't deadlock).
+  `__init__.py` wires all five into `resolve_entity(ctx, evidence) -> Entity | None`, the phase's
+  concrete output. `entities`/`entity_aliases` already existed from Phase 00's `0001_initial`;
+  migration `0007` adds only `verification_cache`.
+  - **Two small, deliberate extensions to earlier phases**, both additive and covered by this
+    phase's own tests: `GitHubRepo` (Phase 04, `api.sources.github`) gained a `homepage` field,
+    parsed from a call `verify.py`'s `gh:` check already makes — so the `gh_homepage` alias trigger
+    gets its linking fact for free, no extra API call. `ProductHuntRetriever` (Phase 04,
+    `api.sources.producthunt`) gained `post_by_slug`, a real GraphQL `post(slug:)` lookup distinct
+    from the existing `search_posts` relevance search — `ph:` verification needs "does this exact
+    post exist", which relevance search can't answer.
+  - **`homepage_url`/`repository_url` are opportunistically observed, not just caller-supplied.**
+    `EntityEvidence` carries them as optional caller-known facts (per the phase doc's own framing —
+    discovering the underlying facts, e.g. scraping a page's footer for a GitHub backlink, is
+    explicitly out of this phase's scope), but `verify_gh`/`verify_npm`/`verify_pypi` also return
+    them when the verification call already surfaced the answer, and `resolve_entity` prefers the
+    caller's value but falls back to the observed one. `backlink_repo_url` (the `web_backlink`
+    trigger) has no equivalent free source — extracting a footer link needs raw HTML, and Phase 03
+    only stores `extracted_text`, not raw HTML — so it stays purely caller-supplied; a future phase
+    wanting that trigger to fire without help would need to add HTML link-scraping to the fetch
+    layer first.
+  - **Merging is timing-dependent by design, not just tolerated.** `merge_alias` returns `None`
+    (a documented no-op, not an error) when the scheme-precedence-chosen canonical side hasn't been
+    independently resolved yet — e.g. a `gh:` candidate's `homepage` points at a domain nothing has
+    fetched as its own candidate yet. The merge isn't lost: whichever side arrives second is the one
+    that finds the other already resolved, and that direction's own trigger fires and collapses the
+    two entities then. Proven end-to-end in `tests/integration/test_resolve_store.py` by resolving
+    the same pair in both orders (gh-then-web and web-then-gh) across separate tests, not just
+    asserting the pure graph function is order-independent in isolation.
+  - **The parked-page minimum-content threshold must stay below `api.retrieval.fetch`'s own
+    `THIN_CONTENT_CHARS` (200), not above it.** First draft set `MIN_MEANINGFUL_CHARS = 300`
+    (stricter than fetch's own thin-content gate) reasoning it as an independent parked-domain
+    signal; that misclassified a genuinely real (if terse) test fixture page — one that legitimately
+    cleared fetch's own 200-char gate — as parked, because the *extracted* text landed between 200
+    and 300 characters. Lowered to 80, comfortably under fetch's own gate, so the check only ever
+    fires on content a caller managed to get past `fetch_source` some other way, not on ordinary
+    pages that already passed Phase 03's own thin-content filter. Caught by
+    `tests/integration/test_verify.py::test_web_200_is_verified` failing against the shared
+    `PLAIN_HTML` fixture used across the fetch-layer's own tests.
+  - **Test-isolation trap, real Postgres, no per-test rollback**: `verification_cache`,
+    `entities`, and `entity_aliases` are ordinary tables with no `TRUNCATE`/rollback between test
+    functions (matching this suite's established pattern — same reasoning as `unique_root()` in
+    `tests/integration/_http.py`). A first draft reused literal scheme values (`"acme/widget"`,
+    `"widget"`) across multiple tests in `test_verify.py`; once one test's *verified* result got
+    cached, a later test expecting a fresh dispatch (e.g. asserting `RetrieverUnavailableError` with
+    no retriever configured) silently short-circuited on the earlier test's cache hit instead of
+    ever reaching the code path under test. Fixed by uniquifying every scheme value (`_slug()`,
+    mirroring `unique_root()`) in both `test_verify.py` and `test_resolve_store.py` — worth
+    restating for any future phase writing Postgres-backed tests against a cached/keyed table.
+  - `make check`: 437 tests (up from Phase 06's 318), 97.27% coverage overall; `resolve/` module
+    coverage: `alias.py`/`maturity.py`/`store.py`/`types.py`/`__init__.py` 100%, `verify.py` 96%,
+    `entity_key.py` 99% (one defensive branch that the regexes it guards make genuinely
+    unreachable). `pyproject.toml`'s coverage config extended with `src/api/resolve`, per the
+    pattern every prior phase followed.
+  - Full design/scope: [`docs/execution_phases/phase-07-entity-resolution.md`](execution_phases/phase-07-entity-resolution.md).
+
 ## Ongoing Work
 
 - [x] Phase 00 — Foundation, Contracts & CI (complete; `make check` green including all
@@ -521,7 +598,11 @@ Last Updated: 2026-08-07
 - [x] Phase 05 — LLM Gateway (complete; `structured()` is the sole, lint-enforced entry point for
       every model call; live checks confirm 0/20 schema violations and prompt-cache hits landing
       2/10 — see Recent Activities)
-- [ ] Phase 06 — Claim Extraction & Span Binding — **up next**
+- [x] Phase 06 — Claim Extraction & Span Binding (complete; 100% span-verified, drop-rate metric
+      wired, extraction cache re-binds on every read — see Recent Activities)
+- [x] Phase 07 — Entity Resolution & Identity (complete; `.fly.dev` signature scenario passes,
+      alias-merge order-independence proven by Hypothesis property test — see Recent Activities)
+- [ ] Phase 08 — Grading, Confidence & Contradictions — **up next**
 
 ## Completed Milestones
 
@@ -585,27 +666,34 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    but non-blocking. Both now have real, tested `RetrieverUnavailableError` degradation paths in
    `api.sources.reddit`/`api.sources.producthunt`, so obtaining either credential is a config
    change, not a code change.
-2. **Upgrade the GitHub PAT** before Phase 07 builds on star-velocity as a real (non-degraded)
-   signal — the current fine-grained PAT's default public-read scope returns 403 on the Starring
-   endpoint (REST and GraphQL both). Either switch to a classic PAT or add an explicit Starring
-   permission to the fine-grained one. `api.sources.github.GitHubRetriever.star_velocity_90d`
-   already degrades cleanly in the meantime (Phase 04, see Recent Activities) — this item is about
-   unlocking a real signal, not fixing a crash.
-3. Begin [Phase 07](execution_phases/phase-07-entity-resolution.md) — entity resolution. It is the
-   actual consumer of Phase 06's `ExtractedClaim.candidate_entity_hint` and is responsible for
-   turning `ExtractedClaim` + a resolved `entity_id` into a real `api.models.claims.Claim` row
-   (still missing `grade`/`confidence`, which is Phase 08 on top of that) — see Phase 06's Recent
-   Activities entry for why `ExtractedClaim` is a new, deliberately smaller type rather than a
-   partially-filled `Claim`. Phase 07 also owns the PSL-aware `EntityKey` derivation
-   (`include_psl_private_domains=True`) that `api.models.entity.EntityKey` only fixed the shape of
-   in Phase 00.
-4. Phase 00's contracts (`src/api/models/`) remain frozen; Phase 02, 03, 04, and 05 all added their
+2. **Upgrade the GitHub PAT** before Phase 10 wires a real `star_velocity_90d` value into
+   `api.resolve.maturity.MaturitySignals` — the current fine-grained PAT's default public-read
+   scope returns 403 on the Starring endpoint (REST and GraphQL both). Either switch to a classic
+   PAT or add an explicit Starring permission to the fine-grained one.
+   `api.sources.github.GitHubRetriever.star_velocity_90d` already degrades cleanly in the meantime
+   (Phase 04, see Recent Activities), and Phase 07's own `gh:` verification never calls it (only
+   `repo_metadata`), so this didn't block Phase 07 the way it was expected to — it's still worth
+   doing before a real run's maturity classifications silently run on a permanently-`None`
+   velocity signal.
+3. ~~Begin Phase 07 — entity resolution.~~ **Done** — see Recent Activities. Turned out to be the
+   actual consumer of Phase 06's `ExtractedClaim.candidate_entity_hint` in name only: Phase 07
+   itself resolves an `EntityEvidence` into a persisted `Entity`, but wiring `candidate_entity_hint`
+   into a real `resolve_entity` call, and turning the result + `ExtractedClaim` into a graded,
+   confident `api.models.claims.Claim` row, is Phase 08 and Phase 10's job — Phase 07's own scope
+   note explicitly excludes "claim attribution to entities beyond the resolution step".
+4. Begin [Phase 08](execution_phases/phase-08-grading-confidence-contradictions.md) — grading,
+   confidence & contradictions. It consumes both Phase 06's `ExtractedClaim` and Phase 07's
+   resolved `Entity`/`EntityKey` to produce real `Claim` rows (`grade`, `confidence`) and is where
+   the "known trap case" contradiction detector the phase doc names must fire.
+5. Phase 00's contracts (`src/api/models/`) remain frozen; Phase 02, 03, 04, and 05 all added their
    own new types instead of touching them (`api.executor.protocol`, `api.models.source.Source`,
    `api.search.base.SearchResult`/`SearchResponse`, `api.llm.gateway.LLMResult`/`LLMContext`, plus
    every retriever's own record models) — see Recent Activities. All four extended the *schema* via
    migration (`0002_executor_core`, `0003_fetch_source_cache`, `0004_search_domain_retrievers`,
    `0005_llm_gateway`), logged there per the phase doc's rule that schema changes need a tracker note.
-5. When Phase 10 builds real task handlers, it must adapt `api.models.plan.Plan` into the
+   Phase 07 followed the same pattern with its own `EntityEvidence`/`VerificationContext`/`Entity`
+   types (`api.resolve.types`, `api.resolve.store`) and migration `0007`.
+6. When Phase 10 builds real task handlers, it must adapt `api.models.plan.Plan` into the
    executor's `ExecutionPlan`/`TaskSpec` at the boundary (kind values become `TaskKind.value`
    strings) — the two are deliberately not the same type; see Recent Activities. It also owns
    wiring `api.search.budget.RetrievalBudget.spend_fetch()` into real `fetch_source` calls — Phase
@@ -613,15 +701,20 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    phase doc's own scope split. Task handlers that call the LLM gateway should use
    `api.llm.gateway.build_context()` to construct their `LLMContext`, never import
    `api.llm.client` directly — the `TID251` rule enforces this (Phase 05, see Recent Activities).
-6. Phase 14's quota/cost math should use Phase 03's measured 75% path-guess hit rate (not Phase
+   It also owns calling `api.resolve.resolve_entity` for each discovered candidate and threading
+   `candidate_entity_hint` from Phase 06's `ExtractedClaim` into `EntityEvidence.raw_value`.
+7. Phase 14's quota/cost math should use Phase 03's measured 75% path-guess hit rate (not Phase
    01's 82%, which used a different, looser matching method — see Recent Activities) when
    re-deriving expected search volume and the Exa allowance's real headroom. It should also set
    `exa_daily_credit_cap_usd`/`exa_global_daily_credit_cap_usd` (both `None`/unenforced today) from
-   real measured credits-per-run, per Phase 04's Recent Activities entry.
-7. ~~Phase 06's `claims.extractor_version`...~~ **Done in Phase 06**: `extractor.extractor_version_for`
+   real measured credits-per-run, per Phase 04's Recent Activities entry. Phase 07's maturity
+   thresholds (`api.resolve.maturity`, all named module-level constants) are explicitly first-pass
+   guesses too, per that phase's own doc — same Phase 14 calibration pass should retune them
+   against the benchmark set's hand-labelled entities.
+8. ~~Phase 06's `claims.extractor_version`...~~ **Done in Phase 06**: `extractor.extractor_version_for`
    composes `f"{prompt_version}-{model}"` exactly as Phase 05 settled — see Phase 06's Recent
    Activities entry.
-8. Phase 06's two carried-forward open decisions still need real data before deciding, both
+9. Phase 06's two carried-forward open decisions still need real data before deciding, both
    explicitly deferred to [Phase 14](execution_phases/phase-14-benchmark-calibration.md) by that
    phase's own doc: **(a) minimum quote length** — no floor imposed yet; the phase doc's own risk is
    real short factual quotes (e.g. `"$5/user/month"`) getting excluded by an aggressive floor, so
@@ -632,6 +725,16 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    `Source.extracted_text` it's given and has no opinion on where that text came from, so this
    decision doesn't block it either way — it matters once Phase 10 decides whether to route SERP
    snippets through extraction at all.
+10. Phase 07's two open decisions (its own phase doc, "Open decisions"), both explicitly deferred:
+   **(a) cross-run entity persistence / maturity staleness** — entities are global
+   (`entity_key` unique table-wide), so a second run in the same category reuses them, but
+   `store.upsert_entity` always overwrites `maturity` with the freshest classification rather than
+   checking staleness; proposal (unconfirmed) is to refresh only when the newest signal is >30 days
+   old. **(b) whether `ph:` entities belong in reports at all** — a Product Hunt slug with no other
+   artifact is a pre-launch announcement, not a shippable competitor; current behaviour includes
+   them, tiered via the same maturity rules as everything else (no `ph:`-specific carve-out). Both
+   wait on [Phase 14](execution_phases/phase-14-benchmark-calibration.md) showing real category-
+   overlap/pre-launch-relevance data.
 
 ## Open Items Carried From the Masterplan
 

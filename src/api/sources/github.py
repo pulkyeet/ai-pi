@@ -47,6 +47,9 @@ class GitHubRepo(BaseModel):
     license: str | None = None
     last_commit_at: datetime | None = None
     contributors_count: int | None = None
+    # Phase 07's gh_homepage alias-merge trigger reads this off a call
+    # `repo_metadata` already makes for verification — no extra request.
+    homepage: str | None = None
 
 
 class GitHubIssue(BaseModel):
@@ -105,6 +108,7 @@ class GitHubRetriever:
             license=(body.get("license") or {}).get("spdx_id"),
             last_commit_at=body.get("pushed_at"),
             contributors_count=await self._contributors_count(owner, repo),
+            homepage=body.get("homepage") or None,
         )
 
     async def _contributors_count(self, owner: str, repo: str) -> int | None:
