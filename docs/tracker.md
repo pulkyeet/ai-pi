@@ -4,28 +4,30 @@ Last Updated: 2026-08-07
 
 ## Current Status
 
-- **Phase**: Phase 07 complete — `src/api/resolve/` (`entity_key.py` PSL-aware scheme-prefixed key
-  derivation with `include_psl_private_domains=True` set explicitly, `verify.py` per-scheme
-  artifact verification enforcing masterplan Rule 2 with a 24h-TTL `verification_cache`, `alias.py`
-  a pure order-independent union-find over the three evidence-based merge triggers, `maturity.py`
-  the explainable first-match decision list, `store.py` idempotent concurrency-safe
-  `entities`/`entity_aliases` persistence) plus `resolve_entity(ctx, evidence) -> Entity | None`,
-  the phase's concrete output, wiring all five together in `__init__.py`. Migration `0007` adds
-  `verification_cache` (`entities`/`entity_aliases` already existed from Phase 00's `0001_initial`).
-  `make check`: 437 tests, 97.27% coverage overall, every `resolve/` module at 96–100% (only
-  `entity_key.py` at 99%, one genuinely-unreachable defensive line). The `.fly.dev` signature
-  scenario (5 distinct Fly-hosted products → 5 entities, all tiered `hobby`) passes as a named
-  test, and the alias-merge order-independence property (Hypothesis, pure in-memory union-find —
-  no Postgres per example) holds across permutations.
-- **Focus**: Ready to begin Phase 08 — Grading, Confidence & Contradictions
-- **Blockers**: None for Phase 08. Two open, non-blocking credential items carried forward:
+- **Phase**: Phase 08 complete — `src/api/evidence/` (`grade.py` mechanical `SourceKind` -> `Grade`
+  assignment, including the Wayback inherit-and-cap-at-B rule; `confidence.py` the masterplan §4.6
+  formula verbatim plus `distinct_domain_count`/`age_days` helpers; `contradictions.py` GROUP-BY
+  detection with a per-attribute (numeric vs. normalised-text) comparison rule, deterministic
+  resolution, and the 0.6 penalty applied to the surfaced winner; `promotion.py` the two distinct
+  anecdote->finding thresholds; `coverage.py` cost-weighted coverage scoring with failed/
+  budget-skipped/other-skipped branches kept distinct). No orchestrating entry point — unlike
+  `api.resolve`, each module is independently called by a later phase (contradiction resolution
+  once per completed run; promotion/coverage by Phase 11's synthesis stage). Migration `0008` adds
+  one column, `claims.confidence_inputs jsonb`, storing `ConfidenceInputs` for auditability and
+  recomputation without re-running extraction. `make check`: 517 tests (up from 437), 97.37%
+  coverage overall, every `evidence/` module at 95–100% (`contradictions.py`'s one gap is
+  `_decode_confidence_inputs`'s defensive `TypeError` branch, unreachable via a real asyncpg
+  jsonb round-trip). Zero LLM calls, enforced by an AST import check
+  (`tests/unit/test_evidence_no_llm.py`), and the trap-case integration test — a live grade-A
+  pricing page at $5 vs. a stale grade-C aggregator at $18 — passes end to end: detected, A wins,
+  C retained with `superseded_by` set, A's confidence carries the penalty.
+- **Focus**: Ready to begin Phase 09 — Interpreter & Planner
+- **Blockers**: None for Phase 09. Two open, non-blocking credential items carried forward:
   Product Hunt developer token (still not started) and Reddit API application (still not
-  submitted). GitHub's fine-grained PAT Starring-permission gap turned out not to block Phase 07
-  after all — `verify.py`'s `gh:` verification only calls `repo_metadata` (unaffected by the 403),
-  and maturity's `stars`/`star_velocity_90d` signals are caller-supplied (`MaturitySignals`), not
-  fetched by `api.resolve` itself — but the upgrade is still worth doing before Phase 10 wires a
-  real `star_velocity_90d` value into those signals, or every entity's maturity classification
-  silently runs on a permanently-`None` velocity signal.
+  submitted). The GitHub PAT Starring-permission upgrade (open since Phase 01) remains
+  non-blocking for the same reason as Phase 07: Phase 08's grading never calls
+  `star_velocity_90d` either — worth doing before Phase 10 wires a real value into
+  `MaturitySignals`, not before.
 
 ## Recent Activities
 
@@ -582,6 +584,76 @@ Last Updated: 2026-08-07
     pattern every prior phase followed.
   - Full design/scope: [`docs/execution_phases/phase-07-entity-resolution.md`](execution_phases/phase-07-entity-resolution.md).
 
+- **Implemented Phase 08**: `src/api/evidence/` — `grade.py` (`SourceKind`, a closed vocabulary
+  over masterplan §4.6/§5's grading table for the two provenance decisions no retriever's own flat
+  `grade` attribute already covers: own-domain fetches graded by path
+  (`classify_own_domain_fetch` — structured A vs. prose/blog/changelog B, reusing Phase 03's
+  `CHANGELOG_PATHS` as the single source of truth), and Wayback snapshots, which inherit the
+  underlying artifact's grade capped at B), `confidence.py` (the masterplan §4.6 formula
+  implemented verbatim — `BASE`/`DOMAIN_BONUS_PER_STEP`/`DECAY_PER_30_DAYS`/
+  `CONTRADICTION_PENALTY`/`CONFIDENCE_CAP` all named, tunable constants — plus
+  `distinct_domain_count` reusing Phase 07's PSL-aware `derive_web_key` so `docs.foo.com`/
+  `www.foo.com` collapse to one domain, and `age_days` preferring a claim's own `as_of` over
+  `fetched_at`), `contradictions.py` (the masterplan §4.7 `GROUP BY` with grade D excluded,
+  resolution highest-grade-wins/tie-on-recency, losers retained via `superseded_by`, and the 0.6
+  penalty recomputed onto the surfaced winner from its stored `confidence_inputs`), `promotion.py`
+  (the two distinct anecdote thresholds — 5 comments/3 threads for Reddit/HN, reaction-weighted
+  for GitHub with no breadth requirement), `coverage.py` (cost-weight-weighted coverage, failed vs.
+  budget-skipped vs. other-skipped branches kept distinct, Phase 07's `insufficient_signal`
+  entities folded in as a second, multiplicative signal). No orchestrating entry point like
+  `resolve_entity` — the phase doc's own concrete output is "deterministic confidence on every
+  claim, and a contradiction detector proven to fire", not a single pipeline function; each module
+  is called independently by later phases (contradiction resolution once per completed run;
+  promotion/coverage from Phase 11's synthesis stage). Migration `0008` adds one column,
+  `claims.confidence_inputs jsonb` — the phase doc's own exit criterion that formula inputs be
+  "stored per claim for auditability and recomputation". `make check`: 517 tests (up from 437),
+  97.37% coverage overall, every `evidence/` module at 95–100%.
+  - **Zero LLM calls, enforced structurally, not just by convention** — a new AST import-check
+    test (`tests/unit/test_evidence_no_llm.py`, mirroring `api.sources.serp_snippets`'s own
+    "no `httpx` import at all" test) asserts no `.py` file under `src/api/evidence/` imports
+    `api.llm` or any of its submodules. Masterplan §4.6/§4.7's own framing — "a formula", "it is a
+    `GROUP BY`" — is what makes this phase's constants visibly arbitrary rather than a model's
+    opaque `0.82`, and this test is what keeps that true mechanically as the codebase grows.
+  - **One deliberate, tracker-worthy design decision, surfaced before writing code**: the masterplan's
+    literal contradiction-detection SQL only ever compares `value_num` with `DISTINCT`, but the
+    closed vocabulary has plenty of non-numeric attributes (`pricing.model`, `company.stage`,
+    `product.launch_date`, ...). `contradictions.py` extends the literal query with a per-attribute
+    comparison rule — numeric on `value_num` (Postgres `numeric` is exact decimal, so `$5.00`/`$5`
+    already compare equal with zero extra tolerance logic needed), everything else on normalised
+    (trimmed, lowercased) `value_text` — computed in Python after one `GROUP BY` fetch rather than
+    in the SQL itself, since the per-attribute branch isn't expressible in a single `DISTINCT`
+    clause. `attribute_spec` (Phase 00) is the single source of truth for which branch fires.
+  - **The contradiction penalty is applied to the winner, not the loser** — the phase doc's own
+    Open Decision #1, left unresolved on purpose until Phase 13 settles how contradictions render;
+    this phase implements the doc's stated current default (loser is superseded and not scored for
+    display) and stores enough (`confidence_inputs` on every claim, not just winners) that
+    switching later is a recomputation, not a re-extraction.
+  - **`GITHUB_REACTION_THRESHOLD` (promotion.py) is a first-pass guess, not a masterplan number** —
+    the masterplan gives only a worked example ("one issue with 47 thumbs-up clears the bar"), no
+    threshold. Set to 20, named exactly like `api.resolve.maturity`'s own threshold constants,
+    explicitly tunable in Phase 14 against real benchmark data rather than left as a hardcoded
+    magic number.
+  - **The trap-case integration test, the phase's signature test per the phase doc's own naming**:
+    a live pricing page (grade A, `as_of` 2026-07-30, $5) vs. a 2025 aggregator review (grade C,
+    `as_of` 2025-11-02, $18), seeded directly into Postgres — detected as one contradiction group,
+    A wins on grade alone (recency tiebreak never even needed), C is retained with `superseded_by`
+    pointing at A rather than deleted, and A's persisted `confidence` is verified byte-for-byte
+    against `confidence()` recomputed with `contradicted=True` from A's own stored
+    `confidence_inputs`. `tests/integration/test_contradictions.py`.
+  - **A real edge case caught while writing the resolution tests**: a claim written without
+    `confidence_inputs` populated (a caller that predates this phase, or simply forgot) must not
+    crash contradiction resolution — `_apply_contradiction_penalty` logs a warning and returns
+    without touching that claim's confidence, while loser retention and `superseded_by` still
+    happen normally for the rest of the group. Covered explicitly
+    (`test_missing_confidence_inputs_does_not_crash_resolution`) rather than left as an assumed-safe
+    path; the one line this can't reach without a malformed jsonb value from outside Postgres
+    (`_decode_confidence_inputs`'s `TypeError` branch) is `contradictions.py`'s only coverage gap
+    (95%, vs. 100% on the other four modules).
+  - `pyproject.toml`'s coverage config extended with `src/api/evidence`, per the pattern every
+    prior phase followed. Migration `0007`'s `entities`/`entity_aliases`/`verification_cache`
+    needed no changes — Phase 08 only ever reads `entity_id` off an already-resolved `Claim`.
+  - Full design/scope: [`docs/execution_phases/phase-08-grading-confidence-contradictions.md`](execution_phases/phase-08-grading-confidence-contradictions.md).
+
 ## Ongoing Work
 
 - [x] Phase 00 — Foundation, Contracts & CI (complete; `make check` green including all
@@ -602,7 +674,10 @@ Last Updated: 2026-08-07
       wired, extraction cache re-binds on every read — see Recent Activities)
 - [x] Phase 07 — Entity Resolution & Identity (complete; `.fly.dev` signature scenario passes,
       alias-merge order-independence proven by Hypothesis property test — see Recent Activities)
-- [ ] Phase 08 — Grading, Confidence & Contradictions — **up next**
+- [x] Phase 08 — Grading, Confidence & Contradictions (complete; the masterplan's named trap case —
+      live grade-A pricing vs. stale grade-C aggregator — passes end to end; zero LLM calls
+      enforced by an AST check — see Recent Activities)
+- [ ] Phase 09 — Interpreter & Planner — **up next**
 
 ## Completed Milestones
 
@@ -681,10 +756,13 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    into a real `resolve_entity` call, and turning the result + `ExtractedClaim` into a graded,
    confident `api.models.claims.Claim` row, is Phase 08 and Phase 10's job — Phase 07's own scope
    note explicitly excludes "claim attribution to entities beyond the resolution step".
-4. Begin [Phase 08](execution_phases/phase-08-grading-confidence-contradictions.md) — grading,
-   confidence & contradictions. It consumes both Phase 06's `ExtractedClaim` and Phase 07's
-   resolved `Entity`/`EntityKey` to produce real `Claim` rows (`grade`, `confidence`) and is where
-   the "known trap case" contradiction detector the phase doc names must fire.
+4. ~~Begin Phase 08 — grading, confidence & contradictions.~~ **Done** — see Recent Activities.
+   `api.evidence` is pure arithmetic/SQL over already-persisted claims, deliberately with no
+   orchestrating entry point of its own: it does not itself consume `ExtractedClaim`/`Entity` to
+   construct `Claim` rows. Wiring `grade_for`/`confidence` into claim construction, and calling
+   `resolve_contradictions` once per completed run, is Phase 10's job — Phase 08's deliverables
+   are the five independent modules that make grading/confidence/contradictions mechanical, not a
+   pipeline that calls them.
 5. Phase 00's contracts (`src/api/models/`) remain frozen; Phase 02, 03, 04, and 05 all added their
    own new types instead of touching them (`api.executor.protocol`, `api.models.source.Source`,
    `api.search.base.SearchResult`/`SearchResponse`, `api.llm.gateway.LLMResult`/`LLMContext`, plus
@@ -692,7 +770,12 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    migration (`0002_executor_core`, `0003_fetch_source_cache`, `0004_search_domain_retrievers`,
    `0005_llm_gateway`), logged there per the phase doc's rule that schema changes need a tracker note.
    Phase 07 followed the same pattern with its own `EntityEvidence`/`VerificationContext`/`Entity`
-   types (`api.resolve.types`, `api.resolve.store`) and migration `0007`.
+   types (`api.resolve.types`, `api.resolve.store`) and migration `0007`. Phase 08 followed the
+   same "extend, don't touch the frozen contract" pattern with its own `ConfidenceInputs`/
+   `ContradictionResolution`/`TaskOutcome`/`CoverageResult`/`PromotionResult` types
+   (`api.evidence.*`), and, like Phase 03's `sources.etag`/`last_modified` before it, migration
+   `0008` *alters* an existing Phase 00 table (`claims.confidence_inputs jsonb`) rather than only
+   adding new ones.
 6. When Phase 10 builds real task handlers, it must adapt `api.models.plan.Plan` into the
    executor's `ExecutionPlan`/`TaskSpec` at the boundary (kind values become `TaskKind.value`
    strings) — the two are deliberately not the same type; see Recent Activities. It also owns
@@ -735,6 +818,15 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    them, tiered via the same maturity rules as everything else (no `ph:`-specific carve-out). Both
    wait on [Phase 14](execution_phases/phase-14-benchmark-calibration.md) showing real category-
    overlap/pre-launch-relevance data.
+11. Phase 08's two open decisions (its own phase doc, "Open decisions"), both explicitly deferred:
+   **(a) should the contradiction penalty apply to the winner, the loser, or both?** — currently the
+   winner only (the loser is superseded and not scored for display); decide when
+   [Phase 13](execution_phases/phase-13-frontend.md) settles how contradictions render, since the
+   answer depends on what the UI actually shows. **(b) cross-run contradiction detection** — today's
+   query is scoped to one `run_id`; detecting that a run disagrees with a *previous* run on the same
+   (global) entity is out of scope for v1, noted but not built. Neither blocks
+   [Phase 11](execution_phases/phase-11-synthesis-report-assembly.md), which only needs the current,
+   per-run behaviour.
 
 ## Open Items Carried From the Masterplan
 

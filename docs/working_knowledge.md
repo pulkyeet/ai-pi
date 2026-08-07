@@ -126,9 +126,43 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   (Exa, OpenRouter/DeepSeek, GitHub, HN Algolia, Wayback CDX, npm/PyPI, Stack Exchange) smoke-tested
   against real traffic with measured cost/latency/rate limits, not assumed. Playwright's fate
   (masterplan §14 open item #3) is decided here: deferred behind a flag, not built.
-- **Evidence grading & confidence** ([Phase 08](execution_phases/phase-08-grading-confidence-contradictions.md),
-  not yet built): confidence is a deterministic formula over grade/domain-count/age/contradiction,
-  never model-generated. Contradiction detection is a single SQL `GROUP BY`.
+- **Entity resolution & identity** ([Phase 07](execution_phases/phase-07-entity-resolution.md),
+  **built** — see `src/api/resolve/`): `resolve_entity(ctx, evidence) -> Entity | None` is the
+  entry point — derives a scheme-prefixed `EntityKey` (`entity_key.py`, PSL-private-aware for
+  `web:` so `foo.fly.dev` and `bar.fly.dev` are two entities, not one collapsed `fly.dev`),
+  verifies a real public artifact exists (`verify.py`, masterplan Rule 2 — no artifact, no entity,
+  cached 24h in `verification_cache`), classifies maturity via an explainable first-match decision
+  list (`maturity.py`), and merges aliases across the three evidence-based triggers
+  (`gh_homepage`/`web_backlink`/`package_repository`) with an order-independent, DB-free union-find
+  (`alias.py`) before persisting idempotently (`store.py`, `ON CONFLICT (entity_key)` plus an
+  alias-arrival pre-check). Entities are global (`entity_key` unique table-wide, not per-run), so a
+  second run in the same category reuses them rather than re-resolving from scratch.
+- **Evidence grading, confidence & contradictions** ([Phase 08](execution_phases/phase-08-grading-confidence-contradictions.md),
+  **built** — see `src/api/evidence/`): no orchestrating entry point like `resolve_entity` — each
+  module is independently callable, matching the phase doc's own framing that this phase produces
+  "deterministic confidence on every claim, and a contradiction detector", not a pipeline.
+  `grade.py`'s `grade_for`/`classify_own_domain_fetch` cover the two provenance decisions a
+  retriever's own flat `grade` attribute (`api.sources.base.Retriever`) can't make alone — own-
+  domain path (pricing/docs vs. blog/changelog) and Wayback's inherit-and-cap-at-B rule.
+  `confidence.py` implements masterplan §4.6's formula verbatim (`BASE`/`DOMAIN_BONUS_PER_STEP`/
+  `DECAY_PER_30_DAYS`/`CONTRADICTION_PENALTY`/`CONFIDENCE_CAP`, all named and independently tunable
+  in Phase 14) plus `distinct_domain_count` (reuses Phase 07's PSL-aware `derive_web_key`, so
+  `docs.foo.com`/`www.foo.com` collapse to one domain — corroboration means independent sources,
+  never distinct pages on the same site) and `age_days` (a claim's own `as_of` wins over
+  `fetched_at`). `contradictions.py` is masterplan §4.7's `GROUP BY` (grade D excluded) extended
+  with a per-`ATTRIBUTE_SPEC` comparison rule (numeric on `value_num` — Postgres `numeric` is exact
+  decimal, so `$5.00`/`$5` already compare equal; everything else on normalised `value_text`);
+  resolution is highest-grade-wins/tie-on-recency, losers are **retained** via `superseded_by`
+  (never deleted), and the winner's confidence is recomputed with the 0.6 penalty from its own
+  stored `claims.confidence_inputs` (migration `0008`, the one schema change this phase needed —
+  formula inputs must survive alongside the result for auditability/recomputation, per the phase
+  doc's own exit criterion). `promotion.py` holds the two distinct anecdote-eligibility rules
+  (comment volume + breadth for Reddit/HN; reaction-weighted, no breadth, for GitHub) — statement
+  generation itself is Phase 11's job. `coverage.py` computes cost-weight-weighted coverage with
+  failed/budget-skipped/other-skipped branches kept distinct, folding in Phase 07's
+  `insufficient_signal` entities as a second signal. **Zero LLM calls anywhere in this package**,
+  enforced by an AST import-check test, not just convention — matching `api.sources.serp_snippets`'s
+  own "no `httpx` import at all" structural guarantee for the analogous G2/Capterra no-crawl rule.
 
 ## Important Patterns & Conventions
 
@@ -200,6 +234,25 @@ src/api/
 │                                     # vocabulary→value-type→span gate pipeline), cache.py
 │                                     # (content_hash+extractor_version, permanent, re-binds on
 │                                     # read), metrics.py (DropReason, DropCounts, ExtractionMetrics)
+├── resolve/                         # Entity resolution & identity (Phase 07 — built):
+│                                     # entity_key.py (derive_key, PSL-aware web: derivation),
+│                                     # verify.py (verify_entity, masterplan Rule 2), alias.py
+│                                     # (order-independent union-find over the 3 merge triggers),
+│                                     # maturity.py (derive_maturity, first-match decision list),
+│                                     # store.py (upsert_entity, merge_alias), types.py
+│                                     # (EntityEvidence, VerificationContext); __init__.py wires
+│                                     # all five into resolve_entity(ctx, evidence)
+├── evidence/                        # Grading, confidence & contradictions (Phase 08 — built):
+│                                     # grade.py (SourceKind, grade_for, classify_own_domain_fetch),
+│                                     # confidence.py (confidence, ConfidenceInputs,
+│                                     # distinct_domain_count, age_days — masterplan §4.6 verbatim),
+│                                     # contradictions.py (find_contradiction_groups,
+│                                     # resolve_contradictions — masterplan §4.7's GROUP BY +
+│                                     # per-attribute comparison + resolution), promotion.py
+│                                     # (evaluate_community_theme, evaluate_github_theme),
+│                                     # coverage.py (compute_coverage, cost-weight-weighted). No
+│                                     # single orchestrating entry point — each module is called
+│                                     # independently by Phase 10/11
 └── prompts/                         # versioned prompt files: extract_claims.md (Phase 06 — the
                                       # first real, non-synthetic prompt in the repo). Still empty
                                       # otherwise — Phase 09/11 own their own prompt content next
