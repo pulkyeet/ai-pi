@@ -60,6 +60,21 @@ class GitHubIssue(BaseModel):
     repo: str
 
 
+class GitHubRepoSearchHit(BaseModel):
+    full_name: str
+    html_url: str
+    description: str | None = None
+    stargazers_count: int
+
+
+_ISSUE_REPO_RE = re.compile(r"github\.com/([^/]+/[^/]+)/issues/\d+")
+
+
+def _repo_from_issue_url(html_url: str) -> str:
+    match = _ISSUE_REPO_RE.search(html_url)
+    return match.group(1) if match else ""
+
+
 def compute_star_velocity(
     starred_ats: list[str], *, now: datetime | None = None, window_days: int = 90
 ) -> float:
@@ -150,6 +165,62 @@ class GitHubRetriever:
                 html_url=item["html_url"],
                 reactions_total=item.get("reactions", {}).get("total_count", 0),
                 repo=f"{owner}/{repo}",
+            )
+            for item in body.get("items", [])
+        ]
+
+    async def search_issues(
+        self, query: str, *, label: str | None = None, limit: int = 10
+    ) -> list[GitHubIssue]:
+        """Repo-agnostic issue search across all of GitHub — for
+        `mine_community`'s `github` venue (Phase 10), distinct from
+        `issues_by_reactions` above, which is scoped to one already-known
+        repo (`oss_profile`'s use case). Masterplan §5's leaderboard query
+        (`is:issue label:enhancement sort:reactions-desc`) is illustrated
+        without a `repo:` qualifier, i.e. a category-wide search."""
+        await self._search_limiter.acquire()
+        q = f"{query} is:issue"
+        if label:
+            q += f" label:{label}"
+        resp = await self._client.get(
+            f"{BASE}/search/issues",
+            headers=self._headers(),
+            params={"q": q, "sort": "reactions", "order": "desc", "per_page": limit},
+        )
+        self._raise_for_rate_limit(resp)
+        resp.raise_for_status()
+        body = resp.json()
+        return [
+            GitHubIssue(
+                number=item["number"],
+                title=item["title"],
+                html_url=item["html_url"],
+                reactions_total=item.get("reactions", {}).get("total_count", 0),
+                repo=_repo_from_issue_url(item["html_url"]),
+            )
+            for item in body.get("items", [])
+        ]
+
+    async def search_repositories(
+        self, query: str, *, limit: int = 10
+    ) -> list[GitHubRepoSearchHit]:
+        """Repository search — masterplan §5's `awesome-<category>` curated-list
+        seeding, "very high precision seeds", for `discover_competitors`."""
+        await self._search_limiter.acquire()
+        resp = await self._client.get(
+            f"{BASE}/search/repositories",
+            headers=self._headers(),
+            params={"q": query, "sort": "stars", "order": "desc", "per_page": limit},
+        )
+        self._raise_for_rate_limit(resp)
+        resp.raise_for_status()
+        body = resp.json()
+        return [
+            GitHubRepoSearchHit(
+                full_name=item["full_name"],
+                html_url=item["html_url"],
+                description=item.get("description"),
+                stargazers_count=item.get("stargazers_count", 0),
             )
             for item in body.get("items", [])
         ]

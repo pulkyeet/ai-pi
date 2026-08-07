@@ -4,32 +4,27 @@ Last Updated: 2026-08-07
 
 ## Current Status
 
-- **Phase**: Phase 09 complete and DB-verified — `src/api/planner/` (`interpret.py` Stage 0:
-  input validation before any model call, `structured()`-backed interpretation, the disambiguation
-  decision; `plan.py` Stage 1: brief -> seed `Plan` via a typed `RawPlan` LLM schema, one
-  domain-level repair round, deterministic fallback; `registry.py` the masterplan §4.1 registry
-  plus which kinds are seed-plannable; `validate.py` the three DAG domain checks `Plan`'s own
-  invariants don't cover; `fallback.py` the safety net). No migration — reuses Phase 00's
-  `runs.brief` and Phase 02's `tasks` table. Docker became available mid-phase; ran `make db-up`,
-  confirmed `ai_pi_test` already existed and was already at head (`0008`) from a prior session, and
-  `make check` against real Postgres: **575 tests, 0 failures, 97.35% coverage overall**.
-  `src/api/planner/` itself: `interpret.py`/`registry.py`/`fallback.py`/`__init__.py` 100%,
-  `validate.py` 95%, `plan.py` 93% (the small residual gap is a couple of defensive branches in
-  the repair/fallback path not exercised by the specific scripted sequences written). All 13
-  integration tests passed for real — the repair round, the fallback-after-two-failures path, and
-  the category-sensitivity test all confirmed against actual Postgres, not just the throwaway
-  fake-pool script used mid-implementation. See the prior Recent Activities entry for the full
-  deviation list (keeping `keywords` off `ResearchBrief` to protect the frozen `Report` contract;
-  the seed-kind/advisory-args budget-fanout design; the `RawPlan` schema; the response-cache
-  collision bug found and fixed while writing the integration tests).
-- **Focus**: Begin Phase 10 — Task Handlers & End-to-End Run, which is the first phase that
-  actually wires `api.planner` together with the executor and produces the walking-skeleton
-  `api run "<idea>"` output.
-- **Blockers**: None for Phase 10. Three open, non-blocking credential items carried forward:
-  Product Hunt developer token (still not started), Reddit API application (still not submitted),
-  and the GitHub PAT Starring-permission upgrade (open since Phase 01, still non-blocking —
-  nothing through Phase 09 calls `star_velocity_90d`; worth doing before Phase 10 wires a real
-  value into `MaturitySignals`).
+- **Phase**: Phase 10 complete and both DB- and live-verified — `src/api/tasks/` (seven task
+  handlers wired into Phase 02's executor via `registry.build_registry`) and `src/api/cli.py`
+  (`python -m api.cli run/inspect/replay`). `make check`: **615 tests, 0 failures, 96.14% coverage
+  overall**; every `src/api/tasks/` module ≥82% (phase doc's own lower 80% bar for "thin adapter"
+  modules — see Recent Activities for the full per-module breakdown). The milestone claim — a real
+  query produces real, span-verified claims and artifact-verified entities in Postgres, end to end
+  — is proven twice: offline (`test_pipeline_e2e.py`, a real deterministic `fallback_plan` driven
+  through the real `Executor`) and for real (`python -m api.cli run` against live OpenRouter/Exa/
+  GitHub/vendor traffic: 21 entities verified, 3 correctly rejected, 166 claims bound, every
+  sampled span byte-for-byte correct against the real fetched page, $0.0139/run, 279s — see Recent
+  Activities for the full numbers and the two real integration bugs the live run itself caught).
+- **Focus**: Begin Phase 11 — Findings, Synthesis & Report Assembly, the second milestone gate: the
+  first report matching the masterplan §2 output contract, with 100% sentence-to-claim binding.
+- **Blockers**: None for Phase 11. Four open, non-blocking items carried forward: Product Hunt
+  developer token (still not started), Reddit API application (still not submitted), the GitHub PAT
+  Starring-permission upgrade (open since Phase 01 — **now directly observed degrading a live run**,
+  see Recent Activities; `oss.stars_90d_delta` is an approximation until it's fixed), and a genuine,
+  structural finding from the live run: `api.evidence.coverage.compute_coverage`'s entity-signal
+  term reads `0.00` for essentially any real run today, since no phase has ever built a domain-age/
+  install-count signal source for `web:`-scheme entities — non-blocking for Phase 11 (which consumes
+  `claims`/`entities` directly, not this score), but worth Phase 14's attention.
 
 ## Recent Activities
 
@@ -746,6 +741,194 @@ Last Updated: 2026-08-07
     `src/api/planner`, per the pattern every prior phase followed.
   - Full design/scope: [`docs/execution_phases/phase-09-interpreter-planner.md`](execution_phases/phase-09-interpreter-planner.md).
 
+- **Implemented Phase 10**: `src/api/tasks/` — `context.py` (`HandlerDeps` bundling every shared
+  client, `RunStats` run-level instrumentation counters), `claims.py` (`persist_extracted_claims`
+  the LLM/span-bound path, `persist_structured_claim` + `get_or_create_synthetic_source` the
+  structured-API path — both grade and confidence-score a claim before writing it, explicitly
+  Phase 09's own Next Steps note 6: "wiring `grade_for`/`confidence` into claim construction... is
+  Phase 10's job"), `discover.py` (`discover_competitors` — the fan-out root: search, optional
+  GitHub `awesome-<category>` repo search, candidate filtering, `resolve_entity` verification,
+  deterministic ranking, bounded `profile_product`/`extract_pricing`/`oss_profile`/`find_funding`
+  spawn), `profile.py` (`profile_product` plus the shared `fetch_and_extract`/`resolve_entity_id`/
+  `task_llm_cost` helpers `pricing.py` and `funding.py` reuse), `pricing.py` (`extract_pricing`),
+  `community.py` (`mine_community`), `oss.py` (`oss_profile`), `funding.py` (`find_funding`),
+  `trends.py` (`trend_signals`), `registry.py` (`build_registry` wiring all seven into Phase 02's
+  `HandlerRegistry`). `src/api/cli.py` — `python -m api.cli run/inspect/replay`, owning the `runs`
+  row lifecycle (no other module does yet — Phase 12 eventually puts an authenticated HTTP API in
+  front of it), `Plan` -> `ExecutionPlan` adaptation, driving `Executor.submit`, and the phase doc's
+  instrumentation printout. `api.sources.github.GitHubRetriever` gained two additive methods,
+  `search_issues` (repo-agnostic, for `mine_community`'s `github` venue — `issues_by_reactions` is
+  repo-scoped, built for `oss_profile`'s different use case) and `search_repositories` (the
+  `awesome-<category>` seeding masterplan §5 names). No migration — every table Phase 10 writes to
+  (`claims`, `entities`, `sources`, `tasks`) already exists; `claims.confidence_inputs` (Phase 08's
+  migration `0008`) is exactly what this phase needed and already had. `make check`: 615 tests
+  (up from 575), 96.14% overall coverage; `src/api/tasks/` per-module: `registry.py`
+  100%, `pricing.py` 100%, `oss.py` 99%, `context.py` 99%, `discover.py` 96%, `claims.py` 93%,
+  `profile.py` 88%, `funding.py` 84%, `trends.py` 84%, `community.py` 82% — every module clears the
+  phase doc's own lower 80% bar for this package ("these are thin adapters, and the real assurance
+  is the pipeline test").
+  - **The milestone claim, proven twice**: once offline (`tests/integration/test_pipeline_e2e.py` —
+    a real deterministic `fallback_plan`, zero LLM calls, driven through the *real* Phase 02
+    `Executor` and the *real* `build_registry`, asserting every persisted claim's span is exactly
+    its quote against its source's exact stored text, and that the hallucinated candidate never
+    reaches `entities` while the verified one does) and once for real: `python -m api.cli run`
+    against the live internet (OpenRouter, Exa, GitHub, and real vendor sites) — see the live-run
+    entry below.
+  - **A real, load-bearing budget-accounting bug, found by the pipeline e2e test, not guessed at.**
+    Phase 09's `discover_competitors` node stores an *inflated* `budget_weight` on purpose — its own
+    registry cost plus headroom for the `profile_product`/`extract_pricing` children it hasn't
+    spawned yet (`api.planner.fallback`'s own comment: "budget for the anticipated fan-out is
+    reserved on that same node's `budget_weight`... rather than invented as phantom nodes"). But
+    `api.executor.budget.BudgetTracker` deducts a task's *own* `TaskSpec.budget_weight` from the run
+    cap the instant that task is admitted — it has no concept of "this weight is a bucket my
+    children will draw from later". Passing the inflated value straight through double-counted:
+    `discover_competitors` alone consumed the entire run budget, and every spawned child was skipped
+    for `"budget"` even on a plan sized exactly as the planner intended (first symptom: the pipeline
+    test's `discover_competitors` completed but `finished.done` stayed at 1). Fixed at the Phase 10
+    boundary, not in `api.planner` or `api.executor`: `api.cli.plan_to_execution_plan` charges a
+    `discover_competitors` `TaskSpec` only its own registry cost
+    (`TASK_COST_WEIGHT[DISCOVER_COMPETITORS]`); `Plan.total_budget_weight` (the inflated figure) is
+    still what's passed as the *run's* overall cap to `Executor.submit`, so the headroom the planner
+    reserved is exactly what's left for the real children to draw against. Every other seed kind's
+    stored `budget_weight` already equals its own registry cost (nothing else spawns further
+    children in v1), so the fix is a no-op for them.
+  - **An operational gap, not a code bug, that the first live run attempt caught anyway**: this
+    session's local `ai_pi` (the non-test dev database `Settings.database_url` actually points at)
+    was still at migration `0007` — Phase 08's `0008` (`claims.confidence_inputs`) had only ever
+    been applied to `ai_pi_test`. Every handler that persists a claim failed with `UndefinedColumnError`
+    until `uv run alembic upgrade head` was run against the real dev DB — the exact trip Phase 06's
+    tracker entry already named ("`alembic upgrade head` targets `ai_pi` by default, not
+    `ai_pi_test`") happening again, one migration later, because nothing had exercised the dev DB
+    against real code since Phase 08 shipped. `inspect` still rendered a fully correct, readable
+    failure report for the crashed run — useful confirmation of its own value as a debugging surface
+    even when the run itself failed.
+  - **A second real bug, found only by the live run, not by any offline test**: raw transport
+    failures (a DNS `NameResolutionError`/`httpx.ConnectError` for a search result naming a domain
+    that no longer resolves) propagate uncaught out of `api.retrieval.fetch_source` — Phase 03 only
+    wraps *timeouts* in a typed `FetchError`, not connection failures — all the way through
+    `resolve_entity`, crashing `discover_competitors` entirely instead of dropping the one bad
+    candidate. Reproduced with a scripted `httpx.ConnectError` step
+    (`test_transport_failure_on_one_candidate_does_not_crash_discovery`) and fixed with a
+    per-candidate `try/except (httpx.HTTPError, OSError)` around `resolve_entity` in `discover.py` —
+    a deliberately Phase-10-local fix (masterplan Rule 4 / phase doc: "partial failure is normal";
+    one candidate breaking is exactly that case, not a reason to touch Phase 03's frozen contract).
+  - **A third live-run-only finding**: `mine_community`'s original 90s `timeout_s` was too tight for
+    real sequential per-`(venue, keyword)` HTTP calls plus one LLM extraction call each (handlers
+    don't parallelise their own calls — concurrency is the executor's per-service semaphores' job,
+    not a handler's) — raised to 180s after observing a real timeout against live vendors.
+  - **The same test-isolation trap every prior phase has hit, hit again while writing these tests**:
+    `api.search.cache` has no `run_id` in its key by design (masterplan §9 — a repeat query should
+    be nearly free, even across runs), so a literal query string or `ResearchBrief.category` reused
+    across two tests (or two runs of the same test) silently replays a stale cached search response
+    from an earlier invocation instead of hitting the freshly-scripted mock transport. Same fix as
+    every phase before it: a `unique_query()` helper appending a `uuid4` suffix, used everywhere a
+    query or category string feeds `SearchRouter.search`. Every new integration test file re-run
+    twice in direct succession before trusting it, per the established discipline.
+  - **`mine_community`'s claims need an `entity_id`, but the masterplan's own output contract
+    doesn't attribute them to one** — a real schema/vocabulary tension, resolved rather than
+    ignored. `claims.entity_id` is `NOT NULL` (Phase 00, frozen), but the Report contract's
+    `pain_points`/`feature_gaps` (§2) carry no `entity_key` at all — community complaints are
+    category-wide signal. Rather than force a real competitor onto every mined comment (wrong when
+    it isn't actually about one) or extend `EntityScheme` unilaterally (a frozen contract this phase
+    has no mandate to change), every `complaint.*`/`request.*` claim is attached to one synthetic
+    per-run bookkeeping entity, `category:<run_id>`, built directly via `store.upsert_entity` —
+    never routed through `resolve_entity`, and never intended to appear in a report's `competitors`
+    list. Phase 11's theme clustering groups by `attribute`, not `entity_id`, so this is
+    load-bearing only as bookkeeping. v1 does not attempt to detect whether a mined comment is
+    actually about an already-discovered competitor (would let a complaint attach to a real entity
+    when detectable) — left as an open item, partly because the phase doc's own Open Decision #2
+    ("should `mine_community` run before profiling?") means there's no ordering guarantee a
+    competitor even exists yet when this handler runs.
+  - **`trend_signals` persists no claims at all — a real, undecided gap, surfaced rather than
+    papered over.** The masterplan §4.4 closed claim vocabulary has no attribute for trend/volume
+    data (nothing like `trend.<keyword>.volume`), and extending `ClaimAttribute` is a frozen Phase
+    00 contract this phase has no mandate to touch. So `trend_signals` reports HN post volume and
+    Wikipedia monthly pageviews via `HandlerResult.artifacts` only — which the executor does not
+    persist anywhere durable (nothing in `core.py` reads `result.artifacts` beyond `result.spawned`)
+    — meaning this handler's real signal does not currently survive past the run that collected it.
+    Left as an explicit open item for Phase 11, which would need somewhere in the report to put it.
+  - **`oss_profile`'s two honest gaps, both named rather than faked.** `oss.contributors_90d` is
+    never populated: `GitHubRetriever.repo_metadata` only exposes a *total* contributor count (via
+    the `contributors` endpoint's Link-header trick), not one scoped to the trailing 90 days, and no
+    endpoint Phase 04 wired up provides that distinction — persisting the total under a `_90d`
+    attribute name would misrepresent it. `oss.stars_90d_delta` is an approximation
+    (`compute_star_velocity`'s stars-per-day rate × 90), because the Starring endpoint — the only
+    source of exact per-star timestamps — still 403s under the current fine-grained PAT, open since
+    Phase 01/04 and **now directly observed live** (see below), not just proven against a recorded
+    cassette. This handler degrades that one field to "unknown" (no claim written) rather than
+    failing the whole task, and separately refreshes the entity's `maturity` classification with the
+    real signal it just fetched (`store.upsert_entity` always takes the freshest classification,
+    Phase 07's Next Steps note 10(a)).
+  - **Structured API values reuse the LLM extraction plumbing's own contract, not a shortcut around
+    it.** `oss_profile` never calls the LLM — `oss.stars`/`oss.license`/`oss.last_commit_at` are
+    exact numbers off GitHub's API — but `claims` still requires `quote`/`char_start`/`char_end`/
+    `source_id` on every row (masterplan Rule 1 applies uniformly, not just to prose). `api.tasks.
+    claims.persist_structured_claim` builds a short synthetic "page" summarising the API response,
+    stores it as an ordinary `sources` row via `get_or_create_synthetic_source`, and binds a quote
+    it wrote itself against that same text with the real, unmodified `bind_span` — deterministic,
+    can never hit `quote_ambiguous`/`quote_not_in_source` by construction, since the caller controls
+    both text and quote.
+  - **Discovery's seed strategies are narrower than the phase doc's own list, logged as a scope
+    note rather than silently implied otherwise.** `discover_competitors` seeds candidates from
+    general search (`SearchRouter`) and, when `consider_oss`, GitHub `awesome-<category>` repo
+    search (`GitHubRetriever.search_repositories`, new this phase). The phase doc also names the
+    AlternativeTo competitor graph and package-registry search as seed strategies; neither is
+    implemented — AlternativeTo has no retriever (Phase 04 built G2/Capterra as SERP-snippet-only,
+    never AlternativeTo), and `PackagesRetriever` only checks a *named* package's download count, it
+    has no search capability to discover unknown package names from a category. General search plus
+    `awesome-` repos is the dominant channel per the masterplan's own framing ("search... reserved
+    for discovery only"); recall impact, if any, is exactly what the phase doc's Open Decision #1
+    defers to Phase 14's measurement rather than guessing at here.
+  - **`Entity` candidates from a bad search hit are filtered *before* ever reaching verification**,
+    not relied on to fail Rule 2 gracefully every time — `NON_CANDIDATE_DOMAINS` (aggregators,
+    social platforms, `github.com` itself as a bare host) keeps obviously-non-competitor URLs (G2,
+    Reddit, Twitter, ...) out of the ~24-candidate verification budget (`MAX_CANDIDATES_VERIFIED`)
+    entirely, so a noisy result set can't crowd out real candidates by burning verification calls on
+    domains that could never legitimately be a competitor anyway.
+  - **Real runs against the live internet** (`python -m api.cli run`, real OpenRouter/Exa/GitHub/
+    vendor traffic; local dev DB and Docker Postgres both happened to be available this session).
+    Three attempts, kept as evidence rather than only the last clean one: run 1 (`"AI expense
+    tracker for freelancers"`) surfaced the missing-migration issue below and confirmed `inspect`
+    renders a correct DAG/claims view even for a run that never finished; run 2 (`"...v2"`) is what
+    surfaced the raw-`ConnectError` crash fixed above; run 3 (`"...v3"`, post-fix) completed clean
+    end to end: `run.finished: done=12 failed=0 skipped=5`, **21 entities verified, 3 rejected**
+    (`ramp.com` `UnsupportedContentTypeError`, `expensebot.ai` `ThinContentError`,
+    `papayaglobal.com` `http_403` — masterplan Rule 2 firing for real, not a fixture), **166 claims
+    bound** (dropped: `quote_not_in_source=12, quote_ambiguous=4, invalid_attribute=1,
+    value_type_mismatch=9`), **cost $0.0139/run** (`$0.0069` LLM + `$0.0070` search) — comfortably
+    under the masterplan's ~$0.04 model — and **duration 279s (~4m39s)**, over the masterplan's
+    3-minute promise at this session's default concurrency (`search=4, crawl=8, llm=6`) and
+    `DEFAULT_MAX_COMPETITORS_PROFILED=8`; a real number for Phase 14 to tune against (the phase
+    doc's own prescribed levers, in order: raise concurrency, cut `MAX_COMPETITORS_PROFILED`, cut
+    `MAX_PAGES_PER_ENTITY`). Spot-checked a live claim byte-for-byte against Postgres directly
+    (`substring(extracted_text from char_start+1 for char_end-char_start) = quote`) — true for every
+    row checked, the core guarantee holding on real, not synthetic, page text
+    (`pricing.entry_usd_month` bound to a real `"at a flat $19 / seat / month"` quote on a real
+    vendor's real pricing page, among others). Fetches were **26 attempted, 26 cache hits** — not a
+    bug: `resolve_entity`'s own `web:` artifact check already fetches the candidate's homepage to
+    confirm it 200s, at the exact same canonical URL `profile_product`'s own homepage step needs, so
+    within one run the homepage fetch is free by construction — a real, measured confirmation of the
+    source-cache design, not assumed.
+  - **A genuine, structural coverage-formula finding, visible only with real data**:
+    `api.evidence.coverage.compute_coverage`'s `entity_score` term
+    (`1 - insufficient_signal_entities / total_entities`) is **multiplicative** with task-weighted
+    coverage — and every one of the run's 21 verified entities came back `insufficient_signal=true`
+    (confirmed directly in `entities.meta`), driving the printed `coverage.score` to **0.00** even
+    though 12/17 tasks (71%, matching the executor's own simpler count-based `RunFinished.coverage`)
+    completed cleanly. Root cause, not a bug in the counting: `discover_competitors` resolves every
+    candidate with an empty `MaturitySignals()` (nothing is known yet), and **no phase from 00
+    through 10 has ever built a domain-age/install-count/download-count signal source for `web:`
+    entities** — `oss_profile` is the only handler that ever refreshes maturity with real signals,
+    and only for `gh:`-scheme entities. The practical consequence: `compute_coverage`'s entity term
+    will structurally read `0.00` for essentially any real run today that discovers ordinary websites
+    (the overwhelming majority of runs), which silently swallows the task-level partial-failure
+    signal the phase doc's own Rule 4 ("a run whose funding branch died says so, out loud") depends
+    on being informative. Not fixed here — building a domain-age source is new retriever surface
+    (Phase 04-shaped work) this phase has no mandate for, and the formula itself is Phase 08's frozen
+    contract — logged as a carried-forward, non-blocking-for-Phase-11 finding instead (Phase 11 only
+    consumes `claims`/`entities` directly, not this score).
+  - Full design/scope: [`docs/execution_phases/phase-10-task-handlers-e2e.md`](execution_phases/phase-10-task-handlers-e2e.md).
+
 ## Ongoing Work
 
 - [x] Phase 00 — Foundation, Contracts & CI (complete; `make check` green including all
@@ -771,6 +954,8 @@ Last Updated: 2026-08-07
       enforced by an AST check — see Recent Activities)
 - [x] Phase 09 — Interpreter & Planner (complete; DB-backed — 575 tests green against real Postgres,
       97.35% coverage overall — see Recent Activities)
+- [x] Phase 10 — Task Handlers & End-to-End Run (⭐ walking skeleton, complete; proven both offline
+      via the real Executor and for real against the live internet — see Recent Activities)
 
 ## Completed Milestones
 
@@ -869,16 +1054,19 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    (`api.evidence.*`), and, like Phase 03's `sources.etag`/`last_modified` before it, migration
    `0008` *alters* an existing Phase 00 table (`claims.confidence_inputs jsonb`) rather than only
    adding new ones.
-6. When Phase 10 builds real task handlers, it must adapt `api.models.plan.Plan` into the
-   executor's `ExecutionPlan`/`TaskSpec` at the boundary (kind values become `TaskKind.value`
-   strings) — the two are deliberately not the same type; see Recent Activities. It also owns
-   wiring `api.search.budget.RetrievalBudget.spend_fetch()` into real `fetch_source` calls — Phase
-   04 built and unit-tested the primitive but deliberately left that wiring for Phase 10, per the
-   phase doc's own scope split. Task handlers that call the LLM gateway should use
-   `api.llm.gateway.build_context()` to construct their `LLMContext`, never import
-   `api.llm.client` directly — the `TID251` rule enforces this (Phase 05, see Recent Activities).
-   It also owns calling `api.resolve.resolve_entity` for each discovered candidate and threading
-   `candidate_entity_hint` from Phase 06's `ExtractedClaim` into `EntityEvidence.raw_value`.
+6. ~~When Phase 10 builds real task handlers, it must adapt `api.models.plan.Plan` into the
+   executor's `ExecutionPlan`/`TaskSpec` at the boundary...~~ **Done** — see Recent Activities.
+   `api.cli.plan_to_execution_plan` does the adaptation, and found a real budget-double-counting
+   bug doing it (`discover_competitors`'s inflated `budget_weight` vs. the executor's per-task
+   deduction) — fixed there, not in `api.planner` or `api.executor`. `RetrievalBudget.spend_fetch()`
+   is wired into every real `fetch_source`/`guess_path` call in `api.tasks.profile.fetch_and_extract`
+   and `api.tasks.funding`. Every LLM call in `api.tasks` goes through `api.llm.gateway.
+   build_context()`, never `api.llm.client` directly. `resolve_entity` is called from `discover.py`
+   for every candidate — `candidate_entity_hint` threading from `ExtractedClaim` was **not** used:
+   discovery resolves entities from search-result URLs before any extraction happens, not from
+   hints inside already-extracted claims, so that particular wiring never had a caller in v1 (noted,
+   not a regression — nothing currently produces an `ExtractedClaim` with a hint that needs a
+   *second*, later entity-resolution pass).
 7. Phase 14's quota/cost math should use Phase 03's measured 75% path-guess hit rate (not Phase
    01's 82%, which used a different, looser matching method — see Recent Activities) when
    re-deriving expected search volume and the Exa allowance's real headroom. It should also set
@@ -932,6 +1120,32 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    the phase doc's alternative — planner expresses intent, handler maps intent to whatever
    venues are actually available — is deferred until Phase 10 shows whether Reddit credentials
    have landed by then.
+
+14. ~~Phase 10 needs DB-backed and live verification before it can be called closed~~ **Done**:
+   `make check` green (see Recent Activities), pipeline e2e test proven against real Postgres, and
+   `python -m api.cli run` proven against the real internet.
+15. Phase 10's own two open decisions (its own phase doc, "Open decisions"), both explicitly
+   deferred: **(a) competitor ranking signals** — currently simple and deterministic
+   (`api.tasks.discover._RankedEntity.score`: frequency across result sets, search rank, non-hobby
+   maturity); if Phase 14 shows recall limited by ranking the wrong candidates into the profile
+   budget, add signals but keep it deterministic (a model ranking competitors reintroduces exactly
+   the hallucination surface artifact verification exists to close). **(b) should `mine_community`
+   run before profiling?** — not built; the fallback/planner-emitted DAG has no dependency edge
+   between `discover_competitors` and `mine_community`, so in practice they run concurrently with no
+   ordering guarantee either way. Measuring whether community-sourced discovery would add unique
+   entities (and is therefore worth a serialisation point) is left to Phase 14.
+16. Phase 10 also surfaced its own new open items, none blocking Phase 11: **(a)** `trend_signals`
+   persists no claims (no `ClaimAttribute` slot exists for trend/volume data) — Phase 11 needs
+   somewhere in the report to put this, or it stays collected-but-unused; **(b)** `mine_community`
+   does not attempt to attach a complaint/request claim to an already-discovered competitor entity
+   when the mined text is actually about one — every such claim currently lands on the synthetic
+   `category:<run_id>` bookkeeping entity regardless; **(c)** discovery's seed strategies are
+   narrower than the phase doc's own list (general search + GitHub `awesome-` repos only; no
+   AlternativeTo, no package-registry search) — see Recent Activities for why neither had a retriever
+   to call; **(d)** the GitHub PAT Starring-permission gap (open since Phase 01) was directly
+   observed degrading a real run's `oss.stars_90d_delta` to an approximation rather than an exact
+   figure — the fix is still a config change (classic PAT or an explicit fine-grained Starring
+   scope), not code.
 
 ## Open Items Carried From the Masterplan
 
