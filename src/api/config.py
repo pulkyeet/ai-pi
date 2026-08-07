@@ -57,3 +57,15 @@ class Settings(BaseSettings):
     crawl_concurrency: int = 8
     llm_concurrency: int = 6
     task_lease_duration_s: float = 120.0
+
+    # LLM gateway (masterplan §6, Phase 05). Single model, per masterplan
+    # §12.2 — "measure, only route upward if the benchmark shows a real gap".
+    # Validated against real traffic in Phase 01 (docs/external_apis.md).
+    llm_model: str = "deepseek/deepseek-v4-flash"
+
+    # Langfuse tracing (Phase 05). Unset by default — api.llm.tracing falls
+    # back to a no-op tracer so a missing/invalid key never blocks a run,
+    # same "None means unconfigured, never a crash" pattern as producthunt_token.
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: SecretStr | None = None
+    langfuse_host: str = "https://cloud.langfuse.com"

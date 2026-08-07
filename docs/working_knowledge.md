@@ -66,6 +66,31 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   `serp_snippets` (G2/Capterra — structurally cannot fetch; no `httpx` import in the module at
   all), and `reddit` (behind `ENABLE_REDDIT`, default off). All seven degrade via the shared
   `api.sources.base.RetrieverUnavailableError` rather than crashing a run.
+- **LLM gateway** ([Phase 05](execution_phases/phase-05-llm-gateway.md), **built** — see
+  `src/api/llm/`): `gateway.structured(schema, prompt_id, variables, *, untrusted=None, ctx) ->
+  LLMResult[T]` is the only way any module calls a model — enforced by a `TID251` ruff rule banning
+  direct `api.llm.client` imports outside `api.llm` itself (`gateway.py`'s own `build_context()` is
+  the one place a real caller needs to construct an `LLMContext`, so nothing outside `api.llm` ever
+  needs to import `LLMClient` at all). `client.py` wraps OpenRouter with Phase 02's retry policy
+  reused unmodified, `provider.require_parameters: true`, and `temperature: 0` always — Phase 01's
+  own measured findings made real. `prompts.py` loads versioned `*.md` files (YAML frontmatter +
+  `## section` bodies) into a cache-optimal static prefix (system message, byte-identical regardless
+  of variables) plus a per-call user template; `prompt_version = f"{id}@{sha256[:8]}"` flows into
+  `claims.extractor_version` as `f"{prompt_version}-{model}"` (this phase's resolution of Phase 00's
+  open decision #2 — a model swap must invalidate cached extractions, so both go in). Untrusted page
+  content is a distinct parameter, never templated: it is appended as its own `<untrusted
+  name="...">...</untrusted>` block with `&`/`<`/`>` always entity-escaped first, so no payload —
+  including one that literally contains the closing tag — can break out of its region. Exactly one
+  repair retry on a schema/parse failure; a second failure raises `LLMValidationError` carrying only
+  a scrubbed validation summary (`ValidationError.errors(include_input=False)`), never the raw
+  payload. `cost.py` holds the one per-model rate table (Phase 01's measured
+  deepseek/deepseek-v4-flash numbers) and the `llm_calls` ledger (cost, cache-hit, and repair rate
+  all real SQL aggregates, attributed to `run_id`/`task_id`). `cache.py` is a permanent,
+  content-addressed Postgres response cache (`hash(prompt_version + model + rendered_messages)`) —
+  a transport-level cache, deliberately distinct from Phase 06's future `content_hash +
+  extractor_version` extraction cache. `tracing.py` wraps Langfuse behind a `Tracer` protocol whose
+  `NoopTracer`/`LangfuseTracer.record()` both guarantee never raising, so a Langfuse outage can never
+  fail a run.
 - **Claim extraction & span binding** ([Phase 06](execution_phases/phase-06-claim-extraction-span-binding.md),
   not yet built): the core guarantee. A claim's `quote` must be found verbatim in the page's stored
   text or the claim is dropped, never repaired or fuzzy-matched. Consumes `Source.extracted_text`
@@ -139,7 +164,16 @@ src/api/
 │                                     # import at all), reddit.py (ENABLE_REDDIT-gated); base.py
 │                                     # (Retriever marker protocol, RetrieverUnavailableError),
 │                                     # ratelimit.py (TokenBucket, one per retriever/endpoint)
-└── prompts/                         # versioned prompt files (empty until Phase 05)
+├── llm/                              # LLM gateway (Phase 05 — built): gateway.py
+│                                     # (structured() — the only entry point, LLMContext,
+│                                     # build_context()), client.py (OpenRouter transport — import
+│                                     # banned outside api.llm by TID251), prompts.py (PromptRegistry,
+│                                     # render_messages), cost.py (MODEL_RATES, llm_calls ledger),
+│                                     # cache.py (transport-level response cache), tracing.py
+│                                     # (Langfuse, Tracer protocol)
+└── prompts/                         # versioned prompt files (still empty — real prompt content is
+                                      # Phase 06/09/11's own scope, not Phase 05's; Phase 05's tests
+                                      # use synthetic fixtures under tests/fixtures/prompts/ instead)
 migrations/versions/                 # hand-written, reviewed Alembic migrations
 spikes/                              # Phase 01 throwaway vendor smoke tests, plus Phase 03's
                                       # pathguess_hitrate.py measurement script — kept as the
@@ -158,13 +192,22 @@ tests/
 │                    # a separate module from spikes/_common.py's, not an import of it (see
 │                    # tracker.md)
 ├── live/           # real external APIs, @pytest.mark.live, excluded by default; includes
-│                    # test_pathguess_hitrate.py (Phase 03's 75% path-guess hit-rate guard) and
+│                    # test_pathguess_hitrate.py (Phase 03's 75% path-guess hit-rate guard),
 │                    # test_domain_retrievers_live.py (Phase 04 — exercises api.search/
-│                    # api.sources directly, not just raw HTTP like test_vendors.py does)
-└── fixtures/{cassettes,pages}/      # VCR cassettes (7 vendors, reused by Phase 04's retriever
-                                      # tests) + 40 real pricing pages, ~30MB total — the Phase 01
-                                      # fixture corpus, reused as-is by Phase 03's extraction-
-                                      # quality tests
+│                    # api.sources directly, not just raw HTTP like test_vendors.py does), and
+│                    # test_llm_gateway_live.py (Phase 05 — the phase doc's two nightly checks:
+│                    # schema-violation rate and OpenRouter prompt-cache hit — see tracker.md)
+├── _llm_fixtures.py  # Phase 05: a synthetic prompt schema (EchoResult, PlanExtraction) shared by
+│                      # every llm unit/integration/live test — importable from any tests/
+│                      # subdirectory because tests/conftest.py's own directory (tests/) is always
+│                      # on sys.path, unlike tests/integration/_http.py-style sibling helpers
+└── fixtures/{cassettes,pages,prompts}/  # VCR cassettes (7 vendors + llm_openrouter.yaml, reused by
+                                      # Phase 04/05's tests) + 40 real pricing pages, ~30MB total —
+                                      # the Phase 01 fixture corpus, reused as-is by Phase 03's
+                                      # extraction-quality tests and Phase 05's live schema-violation
+                                      # check; prompts/ holds Phase 05's own synthetic *.md fixtures
+                                      # (echo.md, extract_plan.md, cache_probe.md) — never real
+                                      # domain prompt content, which is Phase 06/09/11's scope
 docs/
 ├── tracker.md            # this file's sibling — living status log
 ├── working_knowledge.md  # this file — architecture/conventions reference
@@ -342,6 +385,34 @@ fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model se
   `tests/fixtures/cassettes/github_api.yaml`. Star velocity is a genuine coverage gap in every run
   until the PAT is upgraded (classic PAT, or an explicit Starring permission on the fine-grained
   one) — see `docs/tracker.md` Next Steps, carried forward unchanged since Phase 01.
+- **Never run a schema-modifying test (anything that does `alembic downgrade`/`upgrade`, e.g.
+  `tests/integration/test_migrations.py`) concurrently with a long-running test against the same
+  shared Postgres database.** Discovered while verifying Phase 05's live gateway checks: a
+  `make check` invoked while a ~3.5-minute live test (20+10 real OpenRouter calls) was still
+  running against the same `ai_pi_test` database caused `test_migrations.py`'s
+  `downgrade base` / `upgrade head` cycle to drop and recreate `runs` mid-flight, deleting a row
+  the live test had already inserted and was still holding a reference to — surfacing as a
+  spurious `ForeignKeyViolationError` on `llm_calls.run_id` many seconds later, with a stack trace
+  that looked exactly like a real application bug. Not a gateway defect: re-running the live test
+  alone (no concurrent schema-touching command) passed clean. Treat any long-running Postgres-backed
+  test the same as a destructive operation for scheduling purposes — never fire a second
+  Postgres-writing command at the same database while one is still in flight.
+- **Response-cache commit policy resolved** (Phase 05 phase doc's own open decision #2):
+  `llm_response_cache` rows live in Postgres, mirroring `api.search.cache`, not committed to the
+  repo as fixture files. Committing raw LLM responses would duplicate a replay mechanism this
+  codebase already has one layer down — Phase 01/04's committed VCR cassettes
+  (`tests/fixtures/cassettes/`, including `llm_openrouter.yaml`) already make OpenRouter traffic
+  itself replayable with zero network and zero variance; a second, overlapping cache of *parsed*
+  JSON would need its own freshness/commit story for no real benefit. See
+  `api.llm.cache`'s module docstring.
+- **`extractor_version` composition resolved** (Phase 05 phase doc's own open decision #1, deferred
+  from [Phase 00](execution_phases/phase-00-foundation-contracts-ci.md)): `{prompt_version}-{model}`,
+  i.e. `api.llm.prompts`' own `f"{id}@{sha256[:8]}"` plus the model id, e.g.
+  `extract_claims@a1b2c3d4-deepseek/deepseek-v4-flash`. A model swap must invalidate cached
+  extractions the same way an edited prompt does — the same page extracted by a different model is
+  not the same claim provenance — so both components are load-bearing, not just the prompt hash.
+  [Phase 06](execution_phases/phase-06-claim-extraction-span-binding.md) is the actual consumer;
+  confirmed here since the phase doc explicitly asked this phase to settle the format.
 
 ## Useful Resources & References
 

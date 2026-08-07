@@ -17,6 +17,8 @@ dependencies = [
     "sqlalchemy>=2.0",
     "httpx>=0.27",
     "trafilatura>=1.12",
+    "pyyaml>=6.0",
+    "langfuse>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -63,6 +65,16 @@ select = ["E", "F", "I", "UP", "B", "SIM", "N", "TID251"]
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "spikes".msg = "spikes/ is throwaway Phase 01 code and must never be imported from src/api."
+"api.llm.client".msg = "Only api.llm.gateway.structured() may call the OpenRouter client directly — see phase-05-llm-gateway.md's exit criteria."
+
+[tool.ruff.lint.per-file-ignores]
+# gateway.py is the one legitimate caller of api.llm.client — see the
+# banned-api rule above and phase-05-llm-gateway.md's exit criteria. Its own
+# unit tests need the same exemption to test client.py's parsing helpers
+# directly.
+"src/api/llm/gateway.py" = ["TID251"]
+"tests/unit/test_llm_client_parsing.py" = ["TID251"]
+"tests/integration/test_llm_client.py" = ["TID251"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -81,15 +93,22 @@ ignore_missing_imports = true
 module = "trafilatura.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "yaml.*"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
     "live: hits real external services; excluded from the default run",
 ]
 addopts = """-m 'not live' --cov=src/api/models --cov=src/api/executor --cov=src/api/retrieval \
---cov=src/api/search --cov=src/api/sources \
+--cov=src/api/search --cov=src/api/sources --cov=src/api/llm \
 --cov-report=term-missing --cov-fail-under=85"""
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["src/api/models", "src/api/executor", "src/api/retrieval", "src/api/search", "src/api/sources"]
+source = [
+    "src/api/models", "src/api/executor", "src/api/retrieval",
+    "src/api/search", "src/api/sources", "src/api/llm",
+]
