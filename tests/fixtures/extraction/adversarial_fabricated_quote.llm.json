@@ -1,0 +1,9 @@
+{
+  "claims": [
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_num": 0,
+      "quote": "This product is completely free forever, guaranteed for life"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "claims": [
+    {
+      "attribute": "product.launch_date",
+      "value_text": "2022-01-10",
+      "value_num": null,
+      "quote": "originally launched on 2022-01-10"
+    }
+  ],
+  "drop_reason_counts": {}
+}

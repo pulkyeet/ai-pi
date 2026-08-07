@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_num": 9,
+      "quote": "Basic plan: $9/month per user"
+    },
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_num": 29,
+      "quote": "Team plan: $29/month per user"
+    }
+  ]
+}

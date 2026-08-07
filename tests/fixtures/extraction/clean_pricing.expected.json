@@ -1,0 +1,23 @@
+{
+  "claims": [
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_text": null,
+      "value_num": 49,
+      "quote": "$49 per month per seat"
+    },
+    {
+      "attribute": "pricing.model",
+      "value_text": "seat",
+      "value_num": null,
+      "quote": "$49 per month per seat"
+    },
+    {
+      "attribute": "pricing.trial_days",
+      "value_text": null,
+      "value_num": 14,
+      "quote": "14-day free trial"
+    }
+  ],
+  "drop_reason_counts": {}
+}

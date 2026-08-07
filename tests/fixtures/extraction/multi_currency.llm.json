@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_num": 20,
+      "quote": "$20/month"
+    },
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_num": 18,
+      "quote": "approximately $18/month equivalent"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_num": 59,
+      "quote": "now $59/month"
+    },
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_num": 99,
+      "quote": "/month"
+    }
+  ]
+}

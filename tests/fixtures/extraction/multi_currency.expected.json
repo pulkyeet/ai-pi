@@ -1,0 +1,13 @@
+{
+  "claims": [
+    {
+      "attribute": "pricing.entry_usd_month",
+      "value_text": null,
+      "value_num": 20,
+      "quote": "$20/month"
+    }
+  ],
+  "drop_reason_counts": {
+    "quote_not_in_source": 1
+  }
+}

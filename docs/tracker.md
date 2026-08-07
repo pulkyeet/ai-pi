@@ -4,16 +4,23 @@ Last Updated: 2026-08-07
 
 ## Current Status
 
-- **Phase**: Phase 05 complete — `src/api/llm/` (`gateway.structured()` — the one interface every
-  model call must go through — `client.py` OpenRouter transport, `prompts.py` versioned-file
-  registry with structural untrusted-content containment, `cost.py` per-model rate table +
-  ledger, `cache.py` transport-level response cache, `tracing.py` Langfuse, fire-and-forget) is
-  built and green. `make check`: 256 tests, 96.66% coverage overall, every `llm/` module at
-  98–100% (`client.py`'s one uncovered line is a defensive branch already proven by the shared
-  `api.executor.retry` code path — see Recent Activities). Both live checks (real OpenRouter
-  traffic through the real gateway) ran clean — see Recent Activities for the measured numbers.
-- **Focus**: Ready to begin Phase 06 — Claim Extraction & Span Binding
-- **Blockers**: None for Phase 06. Three open, non-blocking credential items carried forward:
+- **Phase**: Phase 06 complete — `src/api/extract/` (`extractor.extract_claims()` — one `Source`
+  per call, never batched — `span.bind_span()` the masterplan-spec'd verbatim-match/no-fuzzy/
+  ambiguous-drops span binder, `validate.py` the vocabulary→value-type→span gate pipeline with a
+  counted `DropReason` per gate, `cache.py` the permanent `content_hash+extractor_version`
+  extraction cache that re-binds on every read, `metrics.py` drop-rate accounting) plus the first
+  real prompt file in the repo (`src/api/prompts/extract_claims.md`) are built and green. `make
+  check`: 318 tests, 97.02% coverage overall, every `extract/` module at **100%**. New 10-fixture
+  offline corpus (`tests/fixtures/extraction/`: clean pricing, pricing table, no-price page,
+  changelog, GitHub README, multi-currency, struck-through discount, 3 adversarial-injection pages)
+  measured a 23.5% drop rate (4/17 claims from the corpus's own committed fake-LLM responses) — not
+  a real-model number (the corpus deliberately packs in fabrication/ambiguity/vocabulary-escape
+  cases to exercise every drop reason), but the two `quote_not_in_source` drops are both
+  intentionally-adversarial fixtures, not natural model paraphrase, so there's no signal here that
+  the masterplan's ~15% alarm threshold should worry about yet — that measurement is Phase 14's
+  job, on real pages.
+- **Focus**: Ready to begin Phase 07 — Entity Resolution
+- **Blockers**: None for Phase 07. Three open, non-blocking credential items carried forward:
   Product Hunt developer token (still not started), Reddit API application (still not submitted),
   and GitHub's fine-grained PAT still needs a Starring-permission upgrade before Phase 07 builds on
   star-velocity as a real, non-degraded signal (see Recent Activities and Next Steps).
@@ -410,6 +417,93 @@ Last Updated: 2026-08-07
       + 466 output + 3,072 cached tokens. Both comfortably inside the essentially-free LLM budget
       from Phase 01's cost model.
   - Full design/scope: [`docs/execution_phases/phase-05-llm-gateway.md`](execution_phases/phase-05-llm-gateway.md).
+- **Implemented Phase 06**: `src/api/extract/` — `span.py` (`bind_span` — the masterplan §4.8
+  function verbatim: `str.find`, no fuzzy matching anywhere in the module, an ambiguous quote drops
+  rather than resolving to the first occurrence; `quote_context_window` — ±2000 chars, clamped,
+  offset-tracked), `metrics.py` (`DropReason` — `quote_not_in_source`/`quote_ambiguous`/
+  `invalid_attribute`/`value_type_mismatch` — `DropCounts`, `ExtractionMetrics.drop_rate`),
+  `validate.py` (`RawExtractedClaim`/`ExtractionResponse` — the schema `structured()` validates the
+  model's JSON against; `ExtractedClaim` — the post-gate type, deliberately missing `entity_id`/
+  `run_id`/`grade`/`confidence`, carrying `candidate_entity_hint` instead, since resolution/grading
+  are Phase 07/08's scope; `validate_and_bind` — vocabulary → value-type → span, in order, each
+  gate its own drop reason), `cache.py` (`content_hash + extractor_version`, permanent, re-binds
+  cached claims against the *current* source text on every read rather than trusting stored
+  offsets), `extractor.py` (`extract_claims(source, *, ctx) -> ExtractionResult` — one `Source` per
+  call, never batched; `extractor_version_for` — `f"{prompt_version}-{model}"`, the format Phase 05
+  settled). `src/api/prompts/extract_claims.md` is the first real (non-synthetic) prompt file in
+  the repo. Migration `0006_claim_extraction` adds `extraction_cache`. `make check`: 318 tests (up
+  from 256), 97.02% coverage overall, every `extract/` module at **100%** (raised bar per the phase
+  doc — this is the core guarantee).
+  - **`bind_span` reused as-is for the property tests that matter.** Two hypothesis properties, both
+    over an unbounded input space rather than hand-picked cases: for random `prefix`/`suffix` built
+    from digits and a random `needle` built from disjoint-alphabet letters (guaranteeing exactly one
+    occurrence by construction, not by luck), `text[bind(text,needle).start:...end] == needle`
+    round-trips; for `needle` drawn from an alphabet that never appears in `text`, `bind_span` always
+    returns `None`. `tests/unit/test_span.py` also carries every table-driven case the phase doc
+    lists by name (differ-by-one-char, whitespace-only difference, NFC-vs-decomposed Unicode, empty
+    quote, quote longer than source, emoji/CJK offset consistency) — all resolve to `None` or a
+    correct `Span` as specified, with zero fuzzy-matching code path anywhere to have gotten them
+    wrong.
+  - **The four drop reasons stay distinguishable without threading a reason through `bind_span`
+    itself.** `bind_span` stays exactly the phase doc's spec'd two-branch function (both branches
+    return bare `None`); `validate.py`'s private `_span_drop_reason` re-derives which branch fired,
+    purely for `DropReason` accounting, only ever called after `bind_span` has already returned
+    `None`. Keeps the most-tested function in the module free of a metrics-accounting concern it
+    doesn't need to carry.
+  - **The extraction cache stores raw, pre-gate claims, not the final `ExtractedClaim`s — the fail-
+    safe property this buys is proven, not just asserted.** A test inserts a raw cache row directly
+    via `cache.put`, then calls `extract_claims` twice against two different `Source`s sharing that
+    same `content_hash` (a stand-in for a Phase 03 normalisation change altering `extracted_text`
+    without changing the hash the cache actually keys on, since a real hash change would just be an
+    ordinary cache miss): the first call's quote is present in its source and binds; the second
+    call's identical raw claim, replayed from cache, misses against the second source's different
+    text and surfaces as a fresh `quote_not_in_source` drop rather than a silently-wrong span.
+  - **`ExtractedClaim` is a new type, not a partially-filled `api.models.claims.Claim`.** The phase
+    doc's own scope list rules out entity resolution and grading here, but `claims.Claim.entity_id`/
+    `grade`/`confidence` are all non-optional on the frozen Phase 00 contract — constructing one
+    without them isn't possible, nor should it be (the DB row genuinely doesn't exist yet at this
+    stage of the pipeline). `ExtractedClaim` (in `api.extract.validate`) mirrors `Claim`'s span/value
+    fields exactly but stops there, plus `candidate_entity_hint: str | None`, matching the phase
+    doc's "claims carry a candidate entity hint; resolution happens later" line. Phase 07 is
+    responsible for turning `ExtractedClaim` + `candidate_entity_hint` into a real `entity_id` and
+    constructing the actual `Claim` row (grading is Phase 08 on top of that).
+  - **10-fixture adversarial-inclusive corpus** (`tests/fixtures/extraction/`, offline — each fixture
+    is `<name>.txt` already-extracted text + `<name>.llm.json` a committed fake model response +
+    `<name>.expected.json` the claims/drop-reason-counts that must survive) instead of the phase
+    doc's literal `*.html` suggestion: Phase 03 already owns an HTML→text fixture corpus
+    (`tests/fixtures/pages/`) for extraction-quality; re-deriving text from HTML here would make
+    Phase 06's own corpus depend on trafilatura's output for no benefit, since this phase's contract
+    starts one step later, at `Source.extracted_text`. Covers clean pricing, a pricing table, a
+    no-extractable-price page, a changelog, a GitHub README, multi-currency (one real $ claim binds,
+    one fabricated-conversion claim doesn't), a struck-through discount (real price binds, an
+    accidentally-ambiguous `"/month"` quote doesn't), and three adversarial-injection pages. The
+    `adversarial_ignore_instructions` fixture reproduces masterplan §8.3's own worked example
+    exactly: the injected instruction's best-case outcome is a second, ordinary, correctly-cited
+    `pricing.entry_usd_month` claim (value `0`, quote genuinely present because the page's injected
+    text contains it) that just contradicts the real one — proven, not just argued, by a dedicated
+    test asserting both claims' attributes stay inside the closed vocabulary and neither quote
+    contains the injected imperative sentence itself.
+  - **A real test-isolation bug found and fixed while writing the integration suite — the third
+    phase in a row to hit this exact shape** (Phase 04, then Phase 05, now Phase 06; see those
+    entries and `docs/working_knowledge.md`'s Known Issues). `extraction_cache` is keyed on
+    `content_hash` alone with no `run_id`, by design (masterplan §9: the same page costs nothing
+    forever). The first draft of `tests/integration/test_extractor.py` built `Source.extracted_text`
+    from literal strings, so re-running the suite twice against the same long-lived `ai_pi_test`
+    container turned the *first* call of the cache-hit and untrusted-content tests into a silent
+    cache hit from the *previous run*, making `transport.calls[CHAT_PATH]` read `0` instead of `1`
+    and leaving the scripted handler's `captured["body"]` never populated. Fixed the same way as
+    Phase 05: `_source()` appends a `uuid4` marker to `extracted_text` (and therefore to
+    `content_hash`) unless the caller explicitly wants a shared hash (the re-bind-on-read test wants
+    exactly that collision, on purpose). Verified by running the full file twice in direct
+    succession before moving on.
+  - **Running `alembic upgrade head` locally targets `ai_pi` (from `.env`'s `DATABASE_URL`) by
+    default, not the `ai_pi_test` database the test suite actually reads** — not a new discovery
+    (`docs/working_knowledge.md` already documents overriding `DATABASE_URL` for a local test-DB
+    migration, and CI's `make migrate` step already sets it explicitly), but worth restating here
+    since it's an easy first-run trip: `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ai_pi_test
+    uv run alembic upgrade head` before running `tests/integration/test_extractor.py`'s Postgres-backed
+    tests locally.
+  - Full design/scope: [`docs/execution_phases/phase-06-claim-extraction-span-binding.md`](execution_phases/phase-06-claim-extraction-span-binding.md).
 
 ## Ongoing Work
 
@@ -497,11 +591,14 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    permission to the fine-grained one. `api.sources.github.GitHubRetriever.star_velocity_90d`
    already degrades cleanly in the meantime (Phase 04, see Recent Activities) — this item is about
    unlocking a real signal, not fixing a crash.
-3. Begin [Phase 06](execution_phases/phase-06-claim-extraction-span-binding.md) — claim extraction
-   & span binding, now that fetch/extraction (Phase 03) and the LLM gateway (Phase 05) are both
-   built. Phase 06 owns real prompt content for extraction (`src/api/prompts/extract_claims.md`)
-   for the first time — `src/api/llm/prompts.py` and `src/api/prompts/` were deliberately left
-   generic/empty in Phase 05, see that phase's Recent Activities entry.
+3. Begin [Phase 07](execution_phases/phase-07-entity-resolution.md) — entity resolution. It is the
+   actual consumer of Phase 06's `ExtractedClaim.candidate_entity_hint` and is responsible for
+   turning `ExtractedClaim` + a resolved `entity_id` into a real `api.models.claims.Claim` row
+   (still missing `grade`/`confidence`, which is Phase 08 on top of that) — see Phase 06's Recent
+   Activities entry for why `ExtractedClaim` is a new, deliberately smaller type rather than a
+   partially-filled `Claim`. Phase 07 also owns the PSL-aware `EntityKey` derivation
+   (`include_psl_private_domains=True`) that `api.models.entity.EntityKey` only fixed the shape of
+   in Phase 00.
 4. Phase 00's contracts (`src/api/models/`) remain frozen; Phase 02, 03, 04, and 05 all added their
    own new types instead of touching them (`api.executor.protocol`, `api.models.source.Source`,
    `api.search.base.SearchResult`/`SearchResponse`, `api.llm.gateway.LLMResult`/`LLMContext`, plus
@@ -521,9 +618,20 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    re-deriving expected search volume and the Exa allowance's real headroom. It should also set
    `exa_daily_credit_cap_usd`/`exa_global_daily_credit_cap_usd` (both `None`/unenforced today) from
    real measured credits-per-run, per Phase 04's Recent Activities entry.
-7. Phase 06's `claims.extractor_version` should use the `{prompt_version}-{model}` composition
-   Phase 05 settled (see that phase's Recent Activities and `docs/working_knowledge.md`'s Known
-   Issues) rather than re-deriving the format.
+7. ~~Phase 06's `claims.extractor_version`...~~ **Done in Phase 06**: `extractor.extractor_version_for`
+   composes `f"{prompt_version}-{model}"` exactly as Phase 05 settled — see Phase 06's Recent
+   Activities entry.
+8. Phase 06's two carried-forward open decisions still need real data before deciding, both
+   explicitly deferred to [Phase 14](execution_phases/phase-14-benchmark-calibration.md) by that
+   phase's own doc: **(a) minimum quote length** — no floor imposed yet; the phase doc's own risk is
+   real short factual quotes (e.g. `"$5/user/month"`) getting excluded by an aggressive floor, so
+   this needs the real-page ambiguity-drop rate, not the synthetic corpus's 1-in-17 (see Phase 06's
+   Recent Activities); **(b) SERP-snippet claims** (carried from Phase 04) — whether a search-result
+   snippet is valid source text for span binding at all (proposal: yes, `retrieval_reason=
+   "serp_snippet"`, grade C) is still unresolved; Phase 06's `extract_claims` takes whatever
+   `Source.extracted_text` it's given and has no opinion on where that text came from, so this
+   decision doesn't block it either way — it matters once Phase 10 decides whether to route SERP
+   snippets through extraction at all.
 
 ## Open Items Carried From the Masterplan
 

@@ -1,0 +1,23 @@
+{
+  "claims": [
+    {
+      "attribute": "oss.repo",
+      "value_text": "acme/acme-cli",
+      "value_num": null,
+      "quote": "Repository: acme/acme-cli"
+    },
+    {
+      "attribute": "oss.license",
+      "value_text": "MIT",
+      "value_num": null,
+      "quote": "License: MIT"
+    },
+    {
+      "attribute": "feature.sso.present",
+      "value_text": "true",
+      "value_num": null,
+      "quote": "Single sign-on (SSO) support"
+    }
+  ],
+  "drop_reason_counts": {}
+}

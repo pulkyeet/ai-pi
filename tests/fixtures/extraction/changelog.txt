@@ -1,0 +1,4 @@
+Changelog
+
+v2.0 shipped on 2024-03-15 with a redesigned dashboard and faster search.
+v1.0 originally launched on 2022-01-10.
