@@ -4,30 +4,32 @@ Last Updated: 2026-08-07
 
 ## Current Status
 
-- **Phase**: Phase 08 complete — `src/api/evidence/` (`grade.py` mechanical `SourceKind` -> `Grade`
-  assignment, including the Wayback inherit-and-cap-at-B rule; `confidence.py` the masterplan §4.6
-  formula verbatim plus `distinct_domain_count`/`age_days` helpers; `contradictions.py` GROUP-BY
-  detection with a per-attribute (numeric vs. normalised-text) comparison rule, deterministic
-  resolution, and the 0.6 penalty applied to the surfaced winner; `promotion.py` the two distinct
-  anecdote->finding thresholds; `coverage.py` cost-weighted coverage scoring with failed/
-  budget-skipped/other-skipped branches kept distinct). No orchestrating entry point — unlike
-  `api.resolve`, each module is independently called by a later phase (contradiction resolution
-  once per completed run; promotion/coverage by Phase 11's synthesis stage). Migration `0008` adds
-  one column, `claims.confidence_inputs jsonb`, storing `ConfidenceInputs` for auditability and
-  recomputation without re-running extraction. `make check`: 517 tests (up from 437), 97.37%
-  coverage overall, every `evidence/` module at 95–100% (`contradictions.py`'s one gap is
-  `_decode_confidence_inputs`'s defensive `TypeError` branch, unreachable via a real asyncpg
-  jsonb round-trip). Zero LLM calls, enforced by an AST import check
-  (`tests/unit/test_evidence_no_llm.py`), and the trap-case integration test — a live grade-A
-  pricing page at $5 vs. a stale grade-C aggregator at $18 — passes end to end: detected, A wins,
-  C retained with `superseded_by` set, A's confidence carries the penalty.
-- **Focus**: Ready to begin Phase 09 — Interpreter & Planner
-- **Blockers**: None for Phase 09. Two open, non-blocking credential items carried forward:
-  Product Hunt developer token (still not started) and Reddit API application (still not
-  submitted). The GitHub PAT Starring-permission upgrade (open since Phase 01) remains
-  non-blocking for the same reason as Phase 07: Phase 08's grading never calls
-  `star_velocity_90d` either — worth doing before Phase 10 wires a real value into
-  `MaturitySignals`, not before.
+- **Phase**: Phase 09 complete and DB-verified — `src/api/planner/` (`interpret.py` Stage 0:
+  input validation before any model call, `structured()`-backed interpretation, the disambiguation
+  decision; `plan.py` Stage 1: brief -> seed `Plan` via a typed `RawPlan` LLM schema, one
+  domain-level repair round, deterministic fallback; `registry.py` the masterplan §4.1 registry
+  plus which kinds are seed-plannable; `validate.py` the three DAG domain checks `Plan`'s own
+  invariants don't cover; `fallback.py` the safety net). No migration — reuses Phase 00's
+  `runs.brief` and Phase 02's `tasks` table. Docker became available mid-phase; ran `make db-up`,
+  confirmed `ai_pi_test` already existed and was already at head (`0008`) from a prior session, and
+  `make check` against real Postgres: **575 tests, 0 failures, 97.35% coverage overall**.
+  `src/api/planner/` itself: `interpret.py`/`registry.py`/`fallback.py`/`__init__.py` 100%,
+  `validate.py` 95%, `plan.py` 93% (the small residual gap is a couple of defensive branches in
+  the repair/fallback path not exercised by the specific scripted sequences written). All 13
+  integration tests passed for real — the repair round, the fallback-after-two-failures path, and
+  the category-sensitivity test all confirmed against actual Postgres, not just the throwaway
+  fake-pool script used mid-implementation. See the prior Recent Activities entry for the full
+  deviation list (keeping `keywords` off `ResearchBrief` to protect the frozen `Report` contract;
+  the seed-kind/advisory-args budget-fanout design; the `RawPlan` schema; the response-cache
+  collision bug found and fixed while writing the integration tests).
+- **Focus**: Begin Phase 10 — Task Handlers & End-to-End Run, which is the first phase that
+  actually wires `api.planner` together with the executor and produces the walking-skeleton
+  `api run "<idea>"` output.
+- **Blockers**: None for Phase 10. Three open, non-blocking credential items carried forward:
+  Product Hunt developer token (still not started), Reddit API application (still not submitted),
+  and the GitHub PAT Starring-permission upgrade (open since Phase 01, still non-blocking —
+  nothing through Phase 09 calls `star_velocity_90d`; worth doing before Phase 10 wires a real
+  value into `MaturitySignals`).
 
 ## Recent Activities
 
@@ -654,6 +656,96 @@ Last Updated: 2026-08-07
     needed no changes — Phase 08 only ever reads `entity_id` off an already-resolved `Claim`.
   - Full design/scope: [`docs/execution_phases/phase-08-grading-confidence-contradictions.md`](execution_phases/phase-08-grading-confidence-contradictions.md).
 
+- **Implemented Phase 09**: `src/api/planner/` — `interpret.py` (Stage 0: input validation — 300-char
+  cap, injection-pattern/blocklist/non-product rejection, all before any model call — then a
+  `structured()` call, the disambiguation decision), `plan.py` (Stage 1: brief -> seed `Plan`, one
+  domain-level repair round, deterministic fallback), `registry.py` (the masterplan §4.1 `TASKS`
+  registry plus which of the seven kinds a planner may actually seed), `validate.py` (the three DAG
+  domain checks `api.models.plan.Plan`'s own pydantic invariants don't cover), `fallback.py` (the
+  deterministic default plan). Two new prompts, `interpret_brief.md`/`plan_dag.md`. No migration —
+  `runs.brief jsonb` (Phase 00) and the `tasks` table (Phase 02) already hold everything a plan
+  needs to persist or replay; this phase is pure computation over the LLM gateway. `make check`:
+  575 tests (up from 517; 58 of them `api.planner`'s own — 45 unit, 13 integration), ruff/mypy
+  clean. Coverage on `src/api/planner/` could not be measured end-to-end in this session — see the
+  Docker note below — but per-module: `registry.py`/`fallback.py`/`__init__.py` 100%,
+  `validate.py` 92%, `interpret.py` 91%, `plan.py` 59% (`plan_stage1`'s async body is exercised
+  only by the Postgres-gated integration tests, which skipped here); the unit suite alone already
+  covers all pure logic (input validation, disambiguation ranking, domain validation, fallback,
+  the `RawPlan`->`Plan` conversion boundary) with real assertions, not just import checks.
+  - **`keywords` deliberately never became a field of `api.models.brief.ResearchBrief`,
+    diverging from the phase doc's own Stage 0 design sketch.** The phase doc's `ResearchBrief`
+    includes `keywords: list[str]`, but that model is reused verbatim as `Report.brief`
+    (`api.models.report`), and `test_contracts.py::test_report_parses_masterplan_section_2_literal_unmodified`
+    asserts `Report.model_dump()` matches the masterplan §2 JSON literal byte-for-byte — a literal
+    with no `keywords` key, matching the masterplan's own output contract. Adding the field (even
+    with a default) would have silently started emitting it on every report and broken that frozen
+    Phase 00 regression fixture. Resolved by keeping `RawBrief` (the LLM-facing schema, in
+    `api.planner.interpret`) as the superset and returning `keywords` as a sibling value on
+    `InterpretResult` instead — the same "raw schema is a superset of the stored contract" split
+    Phase 06 already established for `RawExtractedClaim` vs. `ExtractedClaim`. `keywords` is used
+    only to seed Stage 1's `query_variants`/`mine_community` args, never persisted onto the brief.
+  - **A real, non-obvious design gap in the phase doc, resolved and worth recording**: the doc
+    says "the DAG is a seed... `discover_competitors` does not know entity keys yet, so it emits
+    `profile_product` children dynamically at runtime", but doesn't say which other of the seven
+    registry kinds share that problem. Working it through: `profile_product`, `extract_pricing`,
+    `oss_profile`, and `find_funding` **all** require an `entity_key`/`repo` that cannot exist at
+    planning time — no entity has been discovered yet — so **none** of the four can ever
+    legitimately appear in a seed plan, not just `profile_product`. Only `discover_competitors`,
+    `mine_community`, and `trend_signals` have every required arg knowable from the brief alone
+    (`api.planner.registry.SEED_KINDS`). The planner's "how many competitors to profile" /
+    "is GitHub relevant" / "does funding matter" judgements — real decisions the phase doc insists
+    the planner still makes — are carried as three advisory fields on the `discover_competitors`
+    node (`max_profile_count`, `consider_oss`, `consider_funding`) for Phase 10's handler to read,
+    since there's no node to attach them to otherwise. Budget for the anticipated fan-out is
+    reserved on that same node's `budget_weight` (base cost plus `max_profile_count` times the
+    combined profile+pricing cost) rather than invented as phantom nodes, so `total_budget_weight`
+    stays an honest sum the executor's real `BudgetTracker` (Phase 02) can still cap independently.
+  - **Why Stage 1 targets a new `RawPlan`/`RawPlanNode` schema instead of `Plan` itself.**
+    `PlanNode.args` is `dict[str, Any]` — fine in Python, but `Any` has no clean strict-mode JSON
+    Schema representation, and `api.llm.gateway.structured()` always sends
+    `response_format.json_schema.strict: true`. `RawPlanNode` gives every registry arg its own
+    concretely-typed optional field (`query_variants: list[str] | None`, etc.) — verified by hand
+    against `RawPlanNode.model_json_schema()` to produce the same `anyOf [..., {"type": "null"}]`
+    shape already proven at 0/50 schema-violation rate for `RawExtractedClaim` in Phase 01's spike.
+    `plan.py._to_plan` then builds a real `Plan`, which is where `Plan`'s own invariants (cycle,
+    dangling edge, budget mismatch, missing declared args) get enforced as an ordinary
+    `ValidationError` — folded into the *same* one repair round as the domain checks
+    (`validate_plan_domain`), matching the phase doc's "schema parse -> DAG validation -> one
+    repair -> fallback" pipeline as one linear flow rather than two independent repair layers.
+  - **Plan-changing classification (`is_plan_changing`) is a static per-field table, not literal
+    re-planning.** The phase doc's own rationale ("hypothetically re-plan with the alternative
+    value and diff the DAG") is captured once as a constant (`PLAN_CHANGING_FIELDS` /
+    `PLAN_DELTA_MAGNITUDE`), not executed per brief — actually calling Stage 1 twice per candidate
+    field just to decide whether to ask a question would burn real LLM calls on every run and make
+    a routing decision non-deterministic, which conflicts with the phase doc's own test spec
+    exercising this as a pure function. `monetisation_guess` is absent from the table by
+    construction, so it structurally cannot trigger a chip.
+  - **A real bug found while writing the integration tests, not a hypothetical one**: the first
+    draft of both `test_planner_stage0_gateway.py` and `test_planner_stage1_gateway.py` reused a
+    literal query / literal keyword list across several tests. `api.llm.cache`'s response cache is
+    deliberately permanent in the long-lived test Postgres container, so the second test to run
+    against identical rendered prompt text silently got the *first* test's cached response instead
+    of its own scripted one — reproduced locally with a throwaway fake-pool script before any real
+    Postgres was involved (fallback resolved to `used_fallback=False` when it should have been
+    `True`). Fixed with `uuid4`-suffixed uniqueness helpers (`unique_query`/`unique_keywords`),
+    the same lesson `docs/working_knowledge.md` already records from Phase 04/05.
+  - **Docker/Postgres were not available at the start of this execution session** (no `docker`
+    binary, no passwordless `sudo` to install a local server) — same starting condition Phase 00
+    hit before its own Docker Desktop WSL integration was enabled. All 13 new integration tests
+    are written against real Postgres per convention (`ScriptedTransport` + `build_context`, no
+    mocked Postgres); before Docker came up they skipped gracefully rather than failed, and were
+    exercised once, out-of-suite, against a throwaway fake `asyncpg.Pool`-shaped object to catch
+    real runtime bugs (it caught the cache-collision bug above) — that scratch script was
+    discarded once real verification became possible. **Docker was enabled mid-phase and full
+    verification followed**: `make db-up` (the `ai_pi_test` database and its migrations, up to
+    `0008`, already existed from a prior session), then `make check` — **575 tests, 0 failures,
+    97.35% coverage overall**, all 13 planner integration tests genuinely green against Postgres.
+    `src/api/planner/` per-module coverage: `interpret.py`/`registry.py`/`fallback.py`/
+    `__init__.py` 100%, `validate.py` 95%, `plan.py` 93%.
+  - `pyproject.toml`'s coverage config (`addopts` and `[tool.coverage.run] source`) extended with
+    `src/api/planner`, per the pattern every prior phase followed.
+  - Full design/scope: [`docs/execution_phases/phase-09-interpreter-planner.md`](execution_phases/phase-09-interpreter-planner.md).
+
 ## Ongoing Work
 
 - [x] Phase 00 — Foundation, Contracts & CI (complete; `make check` green including all
@@ -677,7 +769,8 @@ Last Updated: 2026-08-07
 - [x] Phase 08 — Grading, Confidence & Contradictions (complete; the masterplan's named trap case —
       live grade-A pricing vs. stale grade-C aggregator — passes end to end; zero LLM calls
       enforced by an AST check — see Recent Activities)
-- [ ] Phase 09 — Interpreter & Planner — **up next**
+- [x] Phase 09 — Interpreter & Planner (complete; DB-backed — 575 tests green against real Postgres,
+      97.35% coverage overall — see Recent Activities)
 
 ## Completed Milestones
 
@@ -827,6 +920,18 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    (global) entity is out of scope for v1, noted but not built. Neither blocks
    [Phase 11](execution_phases/phase-11-synthesis-report-assembly.md), which only needs the current,
    per-run behaviour.
+12. ~~Phase 09 needs DB-backed verification before it can be called closed~~ **Done**: Docker came
+   up mid-phase; `make check` against real Postgres passed 575/575 with 97.35% coverage overall
+   (`src/api/planner/` 93–100% per module) — see Recent Activities.
+13. Phase 09's own two open decisions (its own phase doc, "Open decisions"), both explicitly
+   deferred: **(a) should the planner see Phase 04's remaining search-budget state?** — not
+   wired; `plan_stage1` takes `run_budget_weight` as a plain parameter with no visibility into
+   Exa's remaining daily/monthly allowance. Proposal (per the phase doc): pass remaining budget
+   as a plan input in a v1.1 pass, not v1. **(b) venue selection for `mine_community`** — the
+   planner currently selects venues directly (`hn`/`github`/`stackexchange`, per D5's backbone);
+   the phase doc's alternative — planner expresses intent, handler maps intent to whatever
+   venues are actually available — is deferred until Phase 10 shows whether Reddit credentials
+   have landed by then.
 
 ## Open Items Carried From the Masterplan
 

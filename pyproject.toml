@@ -104,12 +104,13 @@ markers = [
 ]
 addopts = """-m 'not live' --cov=src/api/models --cov=src/api/executor --cov=src/api/retrieval \
 --cov=src/api/search --cov=src/api/sources --cov=src/api/llm --cov=src/api/extract \
---cov=src/api/resolve --cov=src/api/evidence --cov-report=term-missing --cov-fail-under=85"""
+--cov=src/api/resolve --cov=src/api/evidence --cov=src/api/planner \
+--cov-report=term-missing --cov-fail-under=85"""
 asyncio_mode = "auto"
 
 [tool.coverage.run]
 source = [
     "src/api/models", "src/api/executor", "src/api/retrieval",
     "src/api/search", "src/api/sources", "src/api/llm", "src/api/extract",
-    "src/api/resolve", "src/api/evidence",
+    "src/api/resolve", "src/api/evidence", "src/api/planner",
 ]
