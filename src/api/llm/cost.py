@@ -31,6 +31,15 @@ MODEL_RATES: dict[str, ModelRate] = {
     "deepseek/deepseek-v4-flash": ModelRate(
         input_usd_per_m=0.09, output_usd_per_m=0.18, cached_input_usd_per_m=0.02
     ),
+    # Phase 11: complaint/request theme embeddings (api.llm.embed), via
+    # OpenRouter. Embeddings bill input tokens only — output_usd_per_m and
+    # cached_input_usd_per_m are never charged (embed calls are never
+    # cached-token calls) but are set equal to the input rate rather than 0
+    # so a future caller that mis-passes output/cached tokens overcharges
+    # rather than silently undercharges.
+    "openai/text-embedding-3-small": ModelRate(
+        input_usd_per_m=0.02, output_usd_per_m=0.02, cached_input_usd_per_m=0.02
+    ),
 }
 
 

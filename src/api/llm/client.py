@@ -15,6 +15,11 @@ becomes enforced behaviour rather than a documented recommendation.
 Retry reuses Phase 02's policy (`api.executor.retry`) unmodified, exactly
 like `api.search.exa.ExaProvider`: 429/5xx/timeout only, full-jitter
 backoff, `LLMProviderError` after retries are exhausted.
+
+Phase 11 adds `embed()` — OpenRouter's `/embeddings` endpoint, same vendor
+and credential as every chat call, OpenAI-compatible request/response shape.
+`api.llm.embed` is its only real caller, for complaint/request theme
+near-duplicate clustering (masterplan §11's one pgvector use).
 """
 
 from __future__ import annotations
@@ -28,6 +33,7 @@ from pydantic import BaseModel
 from api.executor.retry import MAX_ATTEMPTS, RETRYABLE_STATUS_CODES, backoff_delay
 
 CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
+EMBEDDINGS_URL = "https://openrouter.ai/api/v1/embeddings"
 TOTAL_TIMEOUT_S = 60.0
 
 
@@ -36,6 +42,11 @@ class RawCompletion(BaseModel):
     input_tokens: int
     output_tokens: int
     cached_tokens: int
+
+
+class RawEmbedding(BaseModel):
+    vectors: list[list[float]]
+    input_tokens: int
 
 
 class LLMProviderError(Exception):
@@ -69,6 +80,12 @@ def _parse_completion(body: dict[str, Any]) -> RawCompletion:
     )
 
 
+def _parse_embeddings(body: dict[str, Any]) -> RawEmbedding:
+    vectors = [item["embedding"] for item in body["data"]]
+    usage = body.get("usage", {}) or {}
+    return RawEmbedding(vectors=vectors, input_tokens=usage.get("prompt_tokens", 0))
+
+
 class LLMClient:
     provider = "openrouter"
 
@@ -88,10 +105,21 @@ class LLMClient:
             "temperature": 0,
             "usage": {"include": True},
         }
-        response_body = await self._post_with_retries(body)
+        response_body = await self._post_with_retries(body, url=CHAT_URL)
         return _parse_completion(response_body)
 
-    async def _post_with_retries(self, body: dict[str, Any]) -> dict[str, Any]:
+    async def embed(self, texts: list[str]) -> RawEmbedding:
+        """`self.model` is expected to name an embedding model (e.g.
+        `openai/text-embedding-3-small`) when a caller constructs an
+        `LLMClient` for this purpose — this class is a thin wrapper around
+        "some OpenRouter model", not chat-specific; `api.llm.embed` is the
+        only real caller (see the `TID251` ban on importing this module
+        from anywhere outside `api.llm`)."""
+        body: dict[str, Any] = {"model": self.model, "input": texts, "encoding_format": "float"}
+        response_body = await self._post_with_retries(body, url=EMBEDDINGS_URL)
+        return _parse_embeddings(response_body)
+
+    async def _post_with_retries(self, body: dict[str, Any], *, url: str) -> dict[str, Any]:
         headers = {
             "Authorization": f"Bearer {self._api_key}",
             "content-type": "application/json",
@@ -101,7 +129,7 @@ class LLMClient:
         for attempt in range(MAX_ATTEMPTS):
             try:
                 resp = await asyncio.wait_for(
-                    self._client.post(CHAT_URL, headers=headers, json=body),
+                    self._client.post(url, headers=headers, json=body),
                     timeout=TOTAL_TIMEOUT_S,
                 )
             except (httpx.TimeoutException, TimeoutError) as exc:
@@ -123,4 +151,12 @@ class LLMClient:
         raise LLMProviderError("retries exhausted") from last_error
 
 
-__all__ = ["CHAT_URL", "LLMClient", "LLMProviderError", "RawCompletion", "combine_usage"]
+__all__ = [
+    "CHAT_URL",
+    "EMBEDDINGS_URL",
+    "LLMClient",
+    "LLMProviderError",
+    "RawCompletion",
+    "RawEmbedding",
+    "combine_usage",
+]

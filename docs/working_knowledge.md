@@ -503,6 +503,35 @@ fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model se
   [Phase 06](execution_phases/phase-06-claim-extraction-span-binding.md) is the actual consumer;
   confirmed here since the phase doc explicitly asked this phase to settle the format.
 
+- **A prompt-file placeholder meant to vary per call must live in the `## user` section, never in
+  a section before `cache_prefix_ends_after`.** `api.llm.prompts.render_messages`'s system message
+  (`messages[0]`) is built from `template.static_prefix` alone — a pure function of the template
+  file, never substituted against `variables` (that's what makes the prefix byte-identical across
+  calls and therefore cacheable, per its own docstring). Phase 11's three `synthesise_*.md` prompts
+  first placed `{{repair_note}}` at the end of their `## instructions` section — inside the static
+  prefix — so it was never actually substituted; the literal string `"{{repair_note}}"` sat
+  unrendered in the system message on every call, identical whether or not a repair was in
+  progress. Combined with `llm_response_cache`'s deterministic keying, this meant a "repair" call
+  whose *user* message (findings block) was unchanged from the first attempt hashed to the same
+  cache key as the original rejected response and silently replayed it — `api.synth.generate`'s
+  one-repair-round logic looked correct in isolation but never actually got a second, different
+  answer. Caught by `tests/integration/test_synth_generate_boundary.py`'s repair-round test, not by
+  inspection. Fixed by moving `{{repair_note}}` into each prompt's `## user` section. Any future
+  prompt with a "this varies on retry" placeholder needs the same check: is it after
+  `cache_prefix_ends_after`, or does it just look like it will be substituted?
+- **Deduplicating a batch input for cost purposes must happen before building the request to the
+  vendor, not just at the cache-lookup step.** The first draft of `api.llm.embed.embed_texts`
+  de-duplicated cache *lookups* (`for key in dict.fromkeys(keys): ...`) but then built the fallback
+  request from `[texts[i] for i in missing_indices]`, where `missing_indices` was computed
+  per-*position* in the original (non-deduplicated) input — so two identical, both-cache-miss texts
+  in one call were both sent to, and billed by, the vendor, contradicting the function's own "billed
+  once" docstring claim. Caught by
+  `tests/integration/test_llm_embed.py::test_embed_texts_sends_only_unique_texts_to_the_vendor`,
+  which inspects the literal request body — a call-count assertion alone (`transport.calls[...] ==
+  1`) would have passed either way, since the bug was about *what* was sent in that one call, not
+  how many calls were made. Fixed by building one `(key, representative text)` pair per still-missing
+  key before ever calling the vendor.
+
 ## Useful Resources & References
 
 - [`ai-product-investigator-masterplan.md`](../ai-product-investigator-masterplan.md) — the full

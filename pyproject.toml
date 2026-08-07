@@ -19,6 +19,10 @@ dependencies = [
     "trafilatura>=1.12",
     "pyyaml>=6.0",
     "langfuse>=2.0",
+    # Phase 11: proper sentence segmentation for citation binding
+    # (api.synth.bind) — a regex on periods mis-splits "$5.00/mo", "e.g.",
+    # abbreviations. Pure Python, no heavy dependency.
+    "pysbd>=0.3",
 ]
 
 [project.optional-dependencies]
@@ -71,8 +75,10 @@ select = ["E", "F", "I", "UP", "B", "SIM", "N", "TID251"]
 # gateway.py is the one legitimate caller of api.llm.client — see the
 # banned-api rule above and phase-05-llm-gateway.md's exit criteria. Its own
 # unit tests need the same exemption to test client.py's parsing helpers
-# directly.
+# directly. embed.py (Phase 11) is the same shape one layer over: the one
+# legitimate caller of LLMClient.embed().
 "src/api/llm/gateway.py" = ["TID251"]
+"src/api/llm/embed.py" = ["TID251"]
 "tests/unit/test_llm_client_parsing.py" = ["TID251"]
 "tests/integration/test_llm_client.py" = ["TID251"]
 
@@ -97,6 +103,10 @@ ignore_missing_imports = true
 module = "yaml.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "pysbd.*"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
@@ -105,6 +115,7 @@ markers = [
 addopts = """-m 'not live' --cov=src/api/models --cov=src/api/executor --cov=src/api/retrieval \
 --cov=src/api/search --cov=src/api/sources --cov=src/api/llm --cov=src/api/extract \
 --cov=src/api/resolve --cov=src/api/evidence --cov=src/api/planner --cov=src/api/tasks \
+--cov=src/api/synth \
 --cov-report=term-missing --cov-fail-under=85"""
 asyncio_mode = "auto"
 
@@ -113,4 +124,5 @@ source = [
     "src/api/models", "src/api/executor", "src/api/retrieval",
     "src/api/search", "src/api/sources", "src/api/llm", "src/api/extract",
     "src/api/resolve", "src/api/evidence", "src/api/planner", "src/api/tasks",
+    "src/api/synth",
 ]

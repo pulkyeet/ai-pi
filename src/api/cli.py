@@ -51,6 +51,7 @@ from api.executor.protocol import (
     TaskSpec,
     TaskStarted,
 )
+from api.llm.embed import build_embed_context
 from api.llm.gateway import LLMContext
 from api.models.plan import TASK_COST_WEIGHT, Plan, TaskKind
 from api.planner.interpret import interpret
@@ -67,6 +68,7 @@ from api.sources.producthunt import ProductHuntRetriever
 from api.sources.reddit import RedditRetriever
 from api.sources.stackexchange import StackExchangeRetriever
 from api.sources.wayback import WaybackRetriever
+from api.synth.assemble import RunMeta, assemble_report
 from api.tasks.context import (
     DEFAULT_MAX_COMMUNITY_THREADS,
     DEFAULT_MAX_FETCHES_PER_RUN,
@@ -387,11 +389,50 @@ async def cmd_run(query: str, *, budget: int | None, no_cache: bool) -> None:
                 run_id,
             )
         )
+        duration_s = time.monotonic() - start
+        cache_hit_rate = (
+            deps.stats.fetch_cache_hits / deps.stats.fetches_attempted
+            if deps.stats.fetches_attempted
+            else 0.0
+        )
+        # `llm_cost` above is measured before this point, so it does not
+        # include the (typically sub-cent) embedding spend
+        # `assemble_report` itself incurs for complaint/request theme
+        # clustering — a known, negligible omission from `meta.cost_usd`
+        # rather than a two-pass reconciliation for a fraction of a cent.
+        embed_ctx = build_embed_context(
+            pool=pool,
+            http_client=http,
+            api_key=settings.openrouter_api_key.get_secret_value(),
+            run_id=run_id,
+        )
+        report = await assemble_report(
+            pool,
+            run_id=run_id,
+            query=query,
+            brief=interpretation.brief,
+            llm_ctx=llm_ctx,
+            embed_ctx=embed_ctx,
+            coverage=coverage,
+            meta=RunMeta(
+                cost_usd=llm_cost + search_cost,
+                duration_s=duration_s,
+                sources_fetched=deps.stats.fetches_attempted,
+                cache_hit_rate=cache_hit_rate,
+            ),
+        )
+        mvp_present = "yes" if report.mvp.statement else "no"
+        print(
+            f"report: {len(report.competitors)} competitors, {len(report.pain_points)} pain "
+            f"points, {len(report.feature_gaps)} feature gaps, {len(report.risks)} risks, "
+            f"{len(report.contradictions)} contradictions, mvp={mvp_present}"
+        )
+
         await finish_run(pool, run_id, cost_usd=llm_cost + search_cost, coverage=coverage.score)
 
         print_summary(
             deps.stats,
-            duration_s=time.monotonic() - start,
+            duration_s=duration_s,
             llm_cost=llm_cost,
             search_cost=search_cost,
             coverage=coverage,

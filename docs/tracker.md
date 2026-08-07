@@ -4,27 +4,31 @@ Last Updated: 2026-08-07
 
 ## Current Status
 
-- **Phase**: Phase 10 complete and both DB- and live-verified — `src/api/tasks/` (seven task
-  handlers wired into Phase 02's executor via `registry.build_registry`) and `src/api/cli.py`
-  (`python -m api.cli run/inspect/replay`). `make check`: **615 tests, 0 failures, 96.14% coverage
-  overall**; every `src/api/tasks/` module ≥82% (phase doc's own lower 80% bar for "thin adapter"
-  modules — see Recent Activities for the full per-module breakdown). The milestone claim — a real
-  query produces real, span-verified claims and artifact-verified entities in Postgres, end to end
-  — is proven twice: offline (`test_pipeline_e2e.py`, a real deterministic `fallback_plan` driven
-  through the real `Executor`) and for real (`python -m api.cli run` against live OpenRouter/Exa/
-  GitHub/vendor traffic: 21 entities verified, 3 correctly rejected, 166 claims bound, every
-  sampled span byte-for-byte correct against the real fetched page, $0.0139/run, 279s — see Recent
-  Activities for the full numbers and the two real integration bugs the live run itself caught).
-- **Focus**: Begin Phase 11 — Findings, Synthesis & Report Assembly, the second milestone gate: the
-  first report matching the masterplan §2 output contract, with 100% sentence-to-claim binding.
-- **Blockers**: None for Phase 11. Four open, non-blocking items carried forward: Product Hunt
-  developer token (still not started), Reddit API application (still not submitted), the GitHub PAT
-  Starring-permission upgrade (open since Phase 01 — **now directly observed degrading a live run**,
-  see Recent Activities; `oss.stars_90d_delta` is an approximation until it's fixed), and a genuine,
-  structural finding from the live run: `api.evidence.coverage.compute_coverage`'s entity-signal
-  term reads `0.00` for essentially any real run today, since no phase has ever built a domain-age/
-  install-count signal source for `web:`-scheme entities — non-blocking for Phase 11 (which consumes
-  `claims`/`entities` directly, not this score), but worth Phase 14's attention.
+- **Phase**: Phase 11 complete — ⭐ **product complete**, the second milestone gate. `src/api/synth/`
+  (`findings.py`/`cluster.py`/`generate.py`/`bind.py`/`assemble.py`) turns graded claims into a
+  `Report` matching the masterplan §2 contract exactly, with 100% sentence-to-claim binding verified
+  both by assertion at assembly (`assemble.assert_binding` — actual name `_assert_binding`) and by a
+  dedicated integration test that walks every claim id the report cites back to a real span in real
+  source text. `make check`: **690 tests, 0 failures, 96.51% coverage overall**; every `src/api/synth/`
+  module 98–100%. New in this phase: `src/api/llm/embed.py` (OpenRouter `/embeddings`, the first
+  embedding provider this codebase has ever needed), migration `0009` (`embedding_cache`, pgvector),
+  three new prompts (`synthesise_mvp.md`/`synthesise_gaps.md`/`synthesise_risks.md`), and `api.cli`
+  wired to call `assemble_report` and persist the report at the end of every `run`. Proven both
+  DB-backed (a large seeded-claims integration suite, real Postgres, real prompt files, scripted
+  transports) and live (`python -m api.cli run` against real OpenRouter chat + the real new
+  embeddings endpoint — see Recent Activities for the numbers and the two real bugs a first live
+  attempt would have shipped silently: a prompt-caching/repair-round bug and an embedding
+  cost-deduplication bug, both caught by tests before the live run, not by it).
+- **Focus**: Begin Phase 12 — API, Auth, Quotas & Guardrails: an authenticated HTTP API with SSE in
+  front of what `api.cli`/`api.synth` already do end to end.
+- **Blockers**: None for Phase 12. Carried forward, all non-blocking: Product Hunt developer token
+  (still not started), Reddit API application (still not submitted), the GitHub PAT
+  Starring-permission upgrade (open since Phase 01), `api.evidence.coverage.compute_coverage`'s
+  entity-signal term reading `0.00` for essentially any real run (Phase 10, worth Phase 14's
+  attention), and three new Phase 11 items — see Next Steps: (a) the community thread-breadth
+  approximation (`api.synth.findings`'s own module docstring), (b) `evaluate_github_theme`
+  (reaction-weighted promotion) has no real caller in v1, (c) two frozen Phase 00 `Report` leaf
+  fields were widened (`CompetitorEntry.maturity`, `ContradictionValue.v`) — logged, not hidden.
 
 ## Recent Activities
 
@@ -928,6 +932,123 @@ Last Updated: 2026-08-07
     contract — logged as a carried-forward, non-blocking-for-Phase-11 finding instead (Phase 11 only
     consumes `claims`/`entities` directly, not this score).
   - Full design/scope: [`docs/execution_phases/phase-10-task-handlers-e2e.md`](execution_phases/phase-10-task-handlers-e2e.md).
+- **Implemented Phase 11**: `src/api/synth/` — `findings.py` (`build_all_findings`: four kinds per
+  the phase doc's table — `pain_point` from clustered `complaint.<theme>` claims, `feature_gap`
+  from clustered `request.<theme>` claims minus themes with a matching shipped
+  `feature.<slug>.present` claim, `pricing_observation` across ≥2 entities, `competitor` from
+  resolved non-synthetic entities; statements **templated, never generated** —
+  `"{n} users across {t} threads report {theme}"`, real N only), `cluster.py` (the masterplan §11
+  pgvector use: embed each theme slug + quote via `api.llm.embed`, union-find over pairwise cosine
+  similarity ≥ `DEFAULT_SIMILARITY_THRESHOLD = 0.86`, most-frequent-slug label, support summed
+  **after** clustering — the ordering the phase doc requires), `generate.py` (constrained
+  synthesis, findings-only input — **never page text**: the prompt receives `[id] kind= support=
+  confidence= statement` rows and nothing else; the first cheap gate is the model-self-reported
+  `addresses_finding_ids` aggregate, rejected if it cites <3 distinct findings or zero
+  `pain_point` findings — both masterplan §4.9 conditions; one repair attempt naming the specific
+  violation, then the section is omitted; **no LLM call made at all when the finding set can't
+  possibly satisfy the rule**, so a complaints-free run never pays for a doomed synthesis call),
+  `bind.py` (the final gate: `pysbd` sentence segmentation — `$5.00/mo`/`e.g.`/`Inc.` covered by
+  the proper segmenter, not a regex — parse each sentence's trailing `[3, 7]` citation marker,
+  resolve `finding_id -> claim_ids` against the real finding set, **drop** unbindable sentences,
+  omit emptied sections, strip markers from surviving prose), `assemble.py` (builds the §2
+  `Report`: `build_competitors` requires the full pricing triple or excludes the entity — no
+  fabricated field; `build_pricing_landscape` takes *every* `pricing.entry_usd_month` claim,
+  independent of the ≥2-entity finding threshold; `build_contradictions` regroups Phase 08's
+  winners/losers back into per-(entity, attribute) entries; `build_freshness` prefers `as_of` over
+  `fetched_at`; `_assert_binding` **refuses to return or persist a report** whose prose lacks
+  reachable `claim_ids` — the phase doc's "verified programmatically at assembly, not a test";
+  `persist_report` upserts `reports.payload`). Plus `api.llm.embed.py` (the codebase's first
+  embedding provider — OpenRouter `/embeddings`, `openai/text-embedding-3-small`, $0.02/M, the
+  same vendor+credential as every chat call so no new vendor line item; cached permanently in new
+  pgvector `embedding_cache` (migration `0009`, `vector(1536)`), costed through the existing
+  `llm_calls` ledger as `prompt_id="embed_theme"` so `meta.cost_usd` picks it up for free),
+  `LLMClient.embed()`/`RawEmbedding`/`_post_with_retries(url=...)` and `MODEL_RATES` entry in
+  `api.llm.cost`, three new prompts (`synthesise_mvp.md`/`synthesise_gaps.md`/`synthesise_risks.md`,
+  versioned with `schema:`/`cache_prefix_ends_after:` frontmatter, per-sentence citation-format
+  instructions, repair via `{{repair_note}}` in the `## user` section), and `api.cli` wired to call
+  `assemble_report` and persist the report at the end of every `run` (prints a one-line summary:
+  competitors/pain points/gaps/risks/contradictions/mvp, and `coverage.failed_branches` on the
+  report includes `assemble`'s own `synthesis.omitted_sections`). `make check`: **690 tests (up
+  from 615), 0 failures, 96.51% coverage overall**; every `src/api/synth/` module 98–100%
+  (`__init__` 100, `cluster` 100, `findings` 99, `assemble` 99, `bind` 98, `generate` 98) — the
+  phase doc's 85% bar cleared with room to spare. The phase's signature test
+  (`tests/integration/test_synth_pipeline.py`) walks every claim id the assembled report cites
+  back to the real seeded source text and asserts the quote appears at the recorded span — the
+  masterplan §1 interview sentence, in executable form.
+  - **Two frozen Phase 00 `Report` leaf fields, widened and logged, not worked around** (the phase
+    doc's own rule that contract breaks need a tracker note; full reasoning in the code):
+    `CompetitorEntry.maturity` is now `Maturity | None` — `entities.maturity` is itself nullable
+    and Phase 07's classifier returns `insufficient_signal` (no verdict) for essentially every
+    real `web:` entity (Phase 10's finding), and `Maturity` has no "unknown" member, so an honest
+    `None` replaces what would otherwise be a fabricated tier; `ContradictionValue.v` is now
+    `float | str` — Phase 08 detects contradictions on non-numeric attributes (`pricing.model`,
+    `company.stage`) via `value_text`, and a `float`-only field would silently drop half of what
+    that module already finds. Both carried in the Current Status "logged, not hidden" line.
+  - **The two required singular sections (`mvp`, `pricing_landscape`) get an honest degenerate
+    value rather than a fabricated one.** The phase doc's "omit the section" works naturally for
+    the list sections (`[]`), but `MVP` and `PricingLandscape` are singular and required by the
+    frozen contract — so a run with no compliant synthesis gets
+    `MVP(statement="", addresses_finding_ids=[])` and a zeroed `PricingLandscape`, and the
+    omission is still visible on the report via `coverage.failed_branches`
+    (`"mvp_synthesis"`/`"feature_gaps_synthesis"`/`"risks_synthesis"`), not silent.
+  - **A real, silent bug the first drafts would have shipped: `{{repair_note}}` in the static
+    prefix.** The `synthesise_*.md` prompts first placed the per-call-varying `{{repair_note}}` at
+    the end of their `## instructions` section — inside `messages[0]`, which
+    `api.llm.prompts.render_messages` builds from `template.static_prefix` alone, **never
+    substituted against `variables`**. So the literal string `"{{repair_note}}"` sat unrendered in
+    the system message on every call, identical whether or not a repair was in progress — and
+    because `llm_response_cache` keys deterministically, a "repair" call whose *user* message
+    (findings block) was unchanged from the first attempt hashed to the same cache key as the
+    rejected response and **silently replayed it**: `generate`'s one-repair-round logic looked
+    correct but never actually got a second, different answer. Caught by
+    `tests/integration/test_synth_generate_boundary.py`'s repair-round test, not by inspection.
+    Fixed by moving `{{repair_note}}` into each prompt's `## user` section (after
+    `cache_prefix_ends_after`). Full write-up in `working_knowledge.md`'s Known Issues — this is
+    now the documented rule: a per-call-varying placeholder must live in `## user` after
+    `cache_prefix_ends_after`, or it is never substituted.
+  - **A second real bug, in `api.llm.embed.embed_texts`: dedup at cache-lookup, not at
+    request-build.** The first draft de-duplicated cache *lookups* but then built the vendor
+    request from `texts[i]` per *position* still missing — two identical, both-cache-miss texts in
+    one call were both sent to, and billed by, the vendor, contradicting the function's own
+    "billed once" docstring. Caught by
+    `tests/integration/test_llm_embed.py::test_embed_texts_sends_only_unique_texts_to_the_vendor`,
+    which inspects the **literal request body** — a call-count assertion alone
+    (`transport.calls[...] == 1`) would have passed, since the bug was about *what* was sent in
+    that one call, not how many calls were made. Fixed by building one `(key, representative
+    text)` pair per still-missing key before ever calling the vendor.
+  - **A real, structural gap in the promotion-signal chain, named in code rather than silently
+    approximated as if it weren't one.** Masterplan §4.6's promotion rules assume per-claim thread
+    identity (and per-issue reaction counts for GitHub) survive to the claim. They don't:
+    `api.tasks.community` bundles up to `max_community_threads` real threads/issues from one
+    `(venue, keyword)` pair into a *single* synthetic source, so a `complaint.*`/`request.*` claim
+    has no surviving link to which real thread it came from. `api.synth.findings` therefore treats
+    **distinct `source_id` among a cluster's claims** as the thread-breadth proxy for
+    `api.evidence.promotion.evaluate_community_theme`, uniformly for every venue — and
+    `evaluate_github_theme` (reaction-weighted, no breadth requirement) has **no real caller in
+    v1**, because no per-issue reaction count survives to a claim for it to consume. Both are
+    *undercounts* of true breadth (many real threads collapse into one synthetic source), never
+    overcounts, so promotion stays conservative in the direction the phase doc's own risk table
+    prefers. Fixing properly needs `api.tasks.community` to persist real per-claim thread/issue
+    identity — out of this phase's scope, carried in Next Steps.
+  - **The generic-advice guard fired for real on the live run, exactly as designed.** `python -m
+    api.cli run "WhatsApp first CRM for Indian SMBs"` (real OpenRouter chat + the real new
+    `/embeddings` endpoint, real Exa/GitHub/vendor traffic): **49 claims bound** (span-checked as
+    before), **8 findings** — 7 `competitor`, 1 `pricing_observation` (`$1254.50/mo` median across
+    2 entities), **zero `pain_point` findings** (no complaints survived promotion), so `generate`
+    correctly made **no synthesis calls at all** (`_can_possibly_satisfy` short-circuit) and the
+    report's `mvp`/`feature_gaps`/`risks` came out empty, recorded in `coverage.failed_branches`
+    as the three `*_synthesis` branches — a report with no MVP is honest, the phase doc's exact
+    words. The rest of the report was real and correct: 2 competitors with complete pricing
+    triples (`hellogrowthcrm.com` seat@$10, `connectribe.com` flat@$2499), 3 contradictions
+    surfaced (including a `pricing.entry_usd_month` 12-vs-10 and a `pricing.model` `usage`-vs-
+    `seat` — the `v: str` widening earning its keep on a real, non-numeric contradiction),
+    `freshness.median_source_age_days: 0` (all fresh), `meta.cost_usd: $0.0399` (LLM $0.0049 of
+    it — 27 calls incl. 1 `embed_theme` call billed $0.000001; the rest Exa/search), `duration_s:
+    201.7`. Two earlier phase-11 attempts had already been silently protected by the test suite:
+    the `{{repair_note}}` bug and the embed-dedup bug above were both caught by tests *before*
+    this live run, not by it — the same pattern as Phase 10's live run catching things the
+    previous live run taught us to check.
+  - Full design/scope: [`docs/execution_phases/phase-11-synthesis-report-assembly.md`](execution_phases/phase-11-synthesis-report-assembly.md).
 
 ## Ongoing Work
 
@@ -956,6 +1077,11 @@ Last Updated: 2026-08-07
       97.35% coverage overall — see Recent Activities)
 - [x] Phase 10 — Task Handlers & End-to-End Run (⭐ walking skeleton, complete; proven both offline
       via the real Executor and for real against the live internet — see Recent Activities)
+- [x] Phase 11 — Findings, Constrained Synthesis & Report Assembly (⭐ product complete, complete;
+      `Report` matches the masterplan §2 contract, 100% sentence-to-claim binding asserted at
+      assembly and verified by the pipeline test walking every cited claim back to a real span in
+      real source text; live-verified against real OpenRouter chat + the new `/embeddings` endpoint
+      — see Recent Activities)
 
 ## Completed Milestones
 
@@ -1144,8 +1270,29 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    AlternativeTo, no package-registry search) — see Recent Activities for why neither had a retriever
    to call; **(d)** the GitHub PAT Starring-permission gap (open since Phase 01) was directly
    observed degrading a real run's `oss.stars_90d_delta` to an approximation rather than an exact
-   figure — the fix is still a config change (classic PAT or an explicit fine-grained Starring
-   scope), not code.
+    figure — the fix is still a config change (classic PAT or an explicit fine-grained Starring
+    scope), not code.
+17. Phase 11's own new open items, none blocking Phase 12 (all carried from its Recent Activities
+    entry or phase doc's "Open decisions"): **(a)** `api.tasks.community`'s thread-breadth
+    approximation — a `complaint.*`/`request.*` claim has no surviving link to which real thread/
+    issue it came from (Phase 10 bundles up to `max_community_threads` into one synthetic source),
+    so `api.synth.findings` uses distinct `source_id` as the proxy and
+    `api.evidence.promotion.evaluate_github_theme` (reaction-weighted) has **no real caller in
+    v1**; fixing properly means persisting real per-claim thread/issue identity in Phase 10's
+    handler, before Phase 14's promotion calibration can trust breadth figures. **(b)** two frozen
+    Phase 00 `Report` leaf fields were widened this phase (`CompetitorEntry.maturity` →
+    `Maturity | None`, `ContradictionValue.v` → `float | str`) — logged, not hidden; Phase 13's
+    frontend should expect and render both the nullable maturity and the string contradiction
+    values. **(c)** the phase doc's own Open Decision #1 — should low-confidence findings be shown
+    at all? — still open, proposal unchanged: show with visual de-emphasis in Phase 13, don't
+    filter server-side. **(d)** the phase doc's Open Decision #2 — `feature_gap` findings are
+    inferred from *absence* of a `feature.<slug>.present` claim — partially settled in this
+    phase's own prompts, which phrase gaps as "not found among {n} reviewed competitors" (the
+    findings template) and "not found in the reviewed sources" (the gaps prompt), but the
+    decision about whether that's sound enough to show as a finding is Phase 13/14's.
+    **(e)** Phase 10's own `trend_signals` open item (item 16a) is now confirmed collected-but-
+    unused: the frozen §2 `Report` contract has no section for trend/volume data and Phase 11
+    added none — stays a v1 gap unless Phase 14 argues for a contract change.
 
 ## Open Items Carried From the Masterplan
 

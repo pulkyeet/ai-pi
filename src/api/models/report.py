@@ -18,7 +18,13 @@ class CompetitorPricing(BaseModel):
 class CompetitorEntry(BaseModel):
     entity_key: str
     display_name: str
-    maturity: Maturity
+    # Nullable (Phase 11): `entities.maturity` is itself nullable — Phase 07's
+    # own maturity classifier returns `insufficient_signal` (no verdict) when
+    # a `web:` entity has no domain-age/install-count signal source, which a
+    # real run today hits for essentially every entity (see docs/tracker.md's
+    # Phase 10 entry). `Maturity` has no "unknown" member, so representing
+    # that honestly means widening this field rather than fabricating a tier.
+    maturity: Maturity | None
     positioning: str
     pricing: CompetitorPricing
     claim_ids: list[int]
@@ -45,7 +51,14 @@ class FeatureGap(BaseModel):
 
 
 class ContradictionValue(BaseModel):
-    v: float
+    # `float | str` (Phase 11): the masterplan §2 sample only shows a numeric
+    # contradiction, but `api.evidence.contradictions` (Phase 08) also
+    # detects contradictions on non-numeric attributes (`pricing.model`,
+    # `company.stage`, ...) via normalised `value_text`. A `float`-only field
+    # would silently drop half of what that module already finds — widened
+    # rather than built around, since `Report` is the acceptance target for
+    # what this system actually produces.
+    v: float | str
     src: int
     grade: Grade
     as_of: date
