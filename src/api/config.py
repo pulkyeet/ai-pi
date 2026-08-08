@@ -1,4 +1,4 @@
-from pydantic import PostgresDsn, SecretStr
+from pydantic import Field, PostgresDsn, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -69,3 +69,22 @@ class Settings(BaseSettings):
     langfuse_public_key: str | None = None
     langfuse_secret_key: SecretStr | None = None
     langfuse_host: str = "https://cloud.langfuse.com"
+
+    # API, Auth, Quotas & Guardrails (Phase 12). Supabase does OAuth in the
+    # browser (masterplan §8.1 minus Authlib — see docs/execution_phases/
+    # phase-12-api-auth-quotas.md's "What Supabase changes"); the API only
+    # verifies the resulting JWT against Supabase's JWKS. `supabase_url` unset
+    # means auth cannot be configured — every real deployment needs it, but
+    # local dev without it can still run `make unit`.
+    supabase_url: str | None = None
+    supabase_jwt_audience: str = "authenticated"
+
+    # Cloudflare Turnstile (masterplan §8.3's bot filter, ahead of any spend).
+    # Unset means unconfigured -> no-op, same "None never crashes" pattern as
+    # every other optional credential in this file (producthunt_token, etc.);
+    # documented explicitly in api.web.turnstile rather than left implicit.
+    turnstile_secret_key: SecretStr | None = None
+
+    # Phase 13's frontend origin(s) for CORS. Empty by default (no browser
+    # cross-origin caller yet); Phase 13 sets this to its deployed Vercel URL.
+    cors_allow_origins: list[str] = Field(default_factory=list)

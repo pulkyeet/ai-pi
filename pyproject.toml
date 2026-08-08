@@ -23,6 +23,11 @@ dependencies = [
     # (api.synth.bind) — a regex on periods mis-splits "$5.00/mo", "e.g.",
     # abbreviations. Pure Python, no heavy dependency.
     "pysbd>=0.3",
+    # Phase 12: Supabase JWT verification (JWKS-based, RS256/ES256) and
+    # SSE responses.
+    "pyjwt[crypto]>=2.9",
+    "sse-starlette>=2.1",
+    "uvicorn[standard]>=0.30",
 ]
 
 [project.optional-dependencies]
@@ -81,6 +86,10 @@ select = ["E", "F", "I", "UP", "B", "SIM", "N", "TID251"]
 "src/api/llm/embed.py" = ["TID251"]
 "tests/unit/test_llm_client_parsing.py" = ["TID251"]
 "tests/integration/test_llm_client.py" = ["TID251"]
+# FastAPI's `Depends(...)` in an argument default is the framework's own
+# idiom, not the mutable-default-argument bug B008 exists to catch.
+"src/api/web/auth.py" = ["B008"]
+"src/api/web/routes/*.py" = ["B008"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -115,7 +124,7 @@ markers = [
 addopts = """-m 'not live' --cov=src/api/models --cov=src/api/executor --cov=src/api/retrieval \
 --cov=src/api/search --cov=src/api/sources --cov=src/api/llm --cov=src/api/extract \
 --cov=src/api/resolve --cov=src/api/evidence --cov=src/api/planner --cov=src/api/tasks \
---cov=src/api/synth \
+--cov=src/api/synth --cov=src/api/web \
 --cov-report=term-missing --cov-fail-under=85"""
 asyncio_mode = "auto"
 
@@ -124,5 +133,11 @@ source = [
     "src/api/models", "src/api/executor", "src/api/retrieval",
     "src/api/search", "src/api/sources", "src/api/llm", "src/api/extract",
     "src/api/resolve", "src/api/evidence", "src/api/planner", "src/api/tasks",
-    "src/api/synth",
+    "src/api/synth", "src/api/web",
 ]
+# Production entrypoint only — builds real resources and calls
+# `uvicorn.Server.serve()`, the `api.web` analogue of `api.cli`'s own
+# `main()`/`if __name__ == "__main__"` block. `api.cli`/`api.config`/`api.db`
+# aren't in `source` above for the same reason: pure wiring with nothing to
+# unit-test, exercised for real by `make db-up` + a live run instead.
+omit = ["src/api/web/main.py"]

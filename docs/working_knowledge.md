@@ -164,6 +164,29 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   `insufficient_signal` entities as a second signal. **Zero LLM calls anywhere in this package**,
   enforced by an AST import-check test, not just convention — matching `api.sources.serp_snippets`'s
   own "no `httpx` import at all" structural guarantee for the analogous G2/Capterra no-crawl rule.
+- **API, Auth, Quotas & Guardrails** ([Phase 12](execution_phases/phase-12-api-auth-quotas.md),
+  **built** — see `src/api/web/`): `app.create_app(settings, pool, http) -> FastAPI` — pool/http are
+  always caller-built (no FastAPI `lifespan=`), so `api.web.main` (the `uvicorn.serve()` production
+  entrypoint) and every test own their own resources' teardown explicitly, the same pattern `api.cli`
+  already uses. `auth.py`'s `JWKSCache` verifies Supabase JWTs locally against a cached JWKS
+  (refetched only on a `kid` miss), with five independently-coded rejection reasons
+  (`token_expired`/`wrong_issuer`/`wrong_audience`/`bad_signature`/`malformed_token`); `provision_user`
+  is idempotent in one round trip. `quota.py`'s `try_create_run` is the masterplan §8.3 atomic quota
+  check, made *actually* atomic with a `pg_advisory_xact_lock` (see Known Issues — the naive
+  conditional `INSERT` alone admitted 8/8 under real concurrency, not 7/8); `ConcurrencyQueue` is an
+  in-memory, per-process FIFO admission gate with a queryable position, the same accepted
+  single-worker limitation as Phase 02's `BudgetTracker`. `killswitch.py` is a `system_state`
+  singleton row, tripped automatically by the route layer on a global-quota miss, reset only by an
+  operator (no HTTP endpoint — none is in the phase doc's own Endpoints table). `sse.py` owns the
+  masterplan §4.10 six-event public vocabulary (`plan.created`/`task.started`/`task.completed`/
+  `task.failed`/`finding.added`/`report.ready`) — deliberately smaller than and different from
+  `api.executor.protocol.ExecutorEvent`, sharing Phase 02's `run_events` table; `stream_events` closes
+  on `report.ready` or a `failed` run status. `runner.run_pipeline` is `api.cli.cmd_run`'s pipeline
+  adapted to run as a background task, reusing `api.cli.build_deps`/`plan_to_execution_plan`/
+  `run_coverage` rather than re-deriving them, with one real behavioural difference: it genuinely
+  pauses on disambiguation (`runs.status = 'needs_input'`) until `PATCH /runs/{id}` resumes it — an
+  ordinary HTTP round trip, not an in-graph interrupt. `errors.py` gives every response a stable
+  `code` and a correlation id, never a stack trace or vendor message.
 
 ## Important Patterns & Conventions
 
@@ -254,9 +277,17 @@ src/api/
 │                                     # coverage.py (compute_coverage, cost-weight-weighted). No
 │                                     # single orchestrating entry point — each module is called
 │                                     # independently by Phase 10/11
-└── prompts/                         # versioned prompt files: extract_claims.md (Phase 06 — the
-                                      # first real, non-synthetic prompt in the repo). Still empty
-                                      # otherwise — Phase 09/11 own their own prompt content next
+├── prompts/                         # versioned prompt files: extract_claims.md (Phase 06 — the
+│                                     # first real, non-synthetic prompt in the repo), Phase 09/11's
+│                                     # own interpret/plan/synthesise prompts
+└── web/                             # API, Auth, Quotas & Guardrails (Phase 12 — built):
+                                      # app.py (create_app), auth.py (JWKSCache, verify_token,
+                                      # current_user/optional_user), quota.py (try_create_run,
+                                      # ConcurrencyQueue), killswitch.py, turnstile.py, sse.py
+                                      # (masterplan §4.10's 6-event public vocabulary), runner.py
+                                      # (run_pipeline — the background POST /runs pipeline),
+                                      # errors.py (typed APIError hierarchy), main.py (uvicorn
+                                      # production entrypoint), routes/{runs,reports,health}.py
 migrations/versions/                 # hand-written, reviewed Alembic migrations
 spikes/                              # Phase 01 throwaway vendor smoke tests, plus Phase 03's
                                       # pathguess_hitrate.py measurement script — kept as the
@@ -273,7 +304,11 @@ tests/
 │                    # instead of VCR cassettes; _vcr.py (Phase 04) is a from-scratch,
 │                    # secret-scrubbing VCR factory for replaying Phase 01's real cassettes —
 │                    # a separate module from spikes/_common.py's, not an import of it (see
-│                    # tracker.md)
+│                    # tracker.md); _auth.py (Phase 12) is a throwaway EC keypair + Supabase-shaped
+│                    # JWT signer/JWKS response, and _webapp.py (Phase 12) builds a real
+│                    # api.web.app.create_app() against a real pg_pool plus a scripted
+│                    # httpx.AsyncClient standing in for Supabase JWKS + Cloudflare Turnstile —
+│                    # backing test_api.py/test_quota.py/test_sse.py/test_runner.py
 ├── live/           # real external APIs, @pytest.mark.live, excluded by default; includes
 │                    # test_pathguess_hitrate.py (Phase 03's 75% path-guess hit-rate guard),
 │                    # test_domain_retrievers_live.py (Phase 04 — exercises api.search/
@@ -307,7 +342,10 @@ docs/
 
 ## Key Technologies & Dependencies
 
-- **FastAPI + Python 3.12 + asyncio** — API layer (not yet built past Phase 00 scaffolding).
+- **FastAPI + Python 3.12 + asyncio** — API layer (Phase 12 — built, see `src/api/web/`).
+- **PyJWT + `cryptography`** — Supabase JWT verification (`api.web.auth`), JWKS-based (RS256/ES256),
+  local, no per-request network call. **`sse-starlette`** — the `GET /runs/{id}/events` stream.
+  **`uvicorn`** — the ASGI server, `api.web.main`'s production entrypoint only.
 - **Postgres 16 + pgvector** — sole datastore; pgvector reserved for complaint near-dup detection
   (Phase 11), unused today but the extension is enabled from migration `0001`.
 - **asyncpg** — app runtime DB access. **psycopg + SQLAlchemy** — Alembic migration runner only.
@@ -536,6 +574,39 @@ fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model se
   1`) would have passed either way, since the bug was about *what* was sent in that one call, not
   how many calls were made. Fixed by building one `(key, representative text)` pair per still-missing
   key before ever calling the vendor.
+
+- **A conditional `INSERT ... SELECT ... WHERE count(*) < quota` is not atomic under Postgres's
+  default `READ COMMITTED`, even as one SQL statement.** `N` concurrent connections each evaluate the
+  count subquery against the same pre-insert snapshot, so a quota of `N-1` first-draft-admitted `N`
+  out of `N` (reproduced deterministically with real `asyncio.gather`-ed concurrent calls against real
+  Postgres, not simulated). Fixed in `api.web.quota.try_create_run` with two transaction-scoped
+  `pg_advisory_xact_lock`s — a fixed key for the global cap, then `hashtext(user_id)` for the per-user
+  cap, always acquired in that order so no caller can deadlock — serializing the check ahead of the
+  conditional insert. Any future "check then insert" quota/cap needs the same treatment; the SQL
+  reading right is not evidence it's race-free — see [Phase 12](execution_phases/phase-12-api-auth-quotas.md).
+- **`httpx.ASGITransport`'s default `raise_app_exceptions=True` re-raises an exception into the test
+  caller even when the app's own error middleware already sent a valid response.** Starlette's
+  `ServerErrorMiddleware` sends the registered 500 response *and* re-raises (intentional, for the ASGI
+  server to log) — `ASGITransport` propagates that re-raise unless constructed with
+  `raise_app_exceptions=False`. Needed by any test exercising a FastAPI/Starlette 500 handler through
+  `ASGITransport` — see `tests/integration/test_api.py`'s `_asgi_client` helper.
+- **`httpx.ASGITransport` buffers a response's entire body before returning it — it cannot observe an
+  in-progress, never-ending stream.** A first-draft SSE heartbeat test read `client.stream(...)`
+  against a genuinely infinite generator and hung forever, since the transport was waiting for
+  `more_body: False` that would never come. Fixed by driving the ASGI callable
+  (`response(scope, receive, send)`) directly with a collecting `send`, bypassing `httpx` entirely —
+  the only way to test an in-progress SSE/streaming response's *contents* mid-stream in this stack.
+  See `tests/integration/test_sse.py::test_heartbeat_frames_keep_a_quiet_stream_alive`.
+- **A migration-added enum/status value is a "shared persistent table" hazard for
+  `test_migrations.py`'s downgrade cycle, not just for cache/ledger tests.** Phase 12's `needs_input`
+  `runs.status` value is invisible to a pre-Phase-12 downgrade's narrower `CHECK` constraint; a test
+  that correctly created a `needs_input` row and left it in the shared, long-lived `ai_pi_test`
+  database silently broke `test_migrations.py`'s full downgrade-to-`0001`-and-back-up cycle for every
+  test that ran afterward, in an unrelated file, on a later invocation of the suite — not caught by a
+  single green run, since the polluting test and the victim test never appear together. Any future
+  phase adding a new status/enum value must either keep every value valid across every historical
+  `CHECK`, or have its own tests clean up rows in the new value before they can outlive the test that
+  created them — see [Phase 12](execution_phases/phase-12-api-auth-quotas.md).
 
 ## Useful Resources & References
 

@@ -1,35 +1,51 @@
 # Execution Tracker
 
-Last Updated: 2026-08-07
+Last Updated: 2026-08-08
 
 ## Current Status
 
-- **Phase**: Phase 11 complete — ⭐ **product complete**, the second milestone gate. `src/api/synth/`
-  (`findings.py`/`cluster.py`/`generate.py`/`bind.py`/`assemble.py`) turns graded claims into a
-  `Report` matching the masterplan §2 contract exactly, with 100% sentence-to-claim binding verified
-  both by assertion at assembly (`assemble.assert_binding` — actual name `_assert_binding`) and by a
-  dedicated integration test that walks every claim id the report cites back to a real span in real
-  source text. `make check`: **690 tests, 0 failures, 96.51% coverage overall**; every `src/api/synth/`
-  module 98–100%. New in this phase: `src/api/llm/embed.py` (OpenRouter `/embeddings`, the first
-  embedding provider this codebase has ever needed), migration `0009` (`embedding_cache`, pgvector),
-  three new prompts (`synthesise_mvp.md`/`synthesise_gaps.md`/`synthesise_risks.md`), and `api.cli`
-  wired to call `assemble_report` and persist the report at the end of every `run`. Proven both
-  DB-backed (a large seeded-claims integration suite, real Postgres, real prompt files, scripted
-  transports) and live (`python -m api.cli run` against real OpenRouter chat + the real new
-  embeddings endpoint — see Recent Activities for the numbers and the two real bugs a first live
-  attempt would have shipped silently: a prompt-caching/repair-round bug and an embedding
-  cost-deduplication bug, both caught by tests before the live run, not by it).
-- **Focus**: Begin Phase 12 — API, Auth, Quotas & Guardrails: an authenticated HTTP API with SSE in
-  front of what `api.cli`/`api.synth` already do end to end.
-- **Blockers**: None for Phase 12. Carried forward, all non-blocking: Reddit API application (still
+- **Phase**: Phase 12 complete — API, Auth, Quotas & Guardrails. `src/api/web/` puts an authenticated
+  FastAPI HTTP layer in front of everything `api.cli`/`api.synth` already do end to end: Supabase JWT
+  verification (local, JWKS-cached), atomic per-user/global daily quotas, an in-process concurrency
+  queue with visible position, a database-flag kill switch, Cloudflare Turnstile, SSE streaming with
+  lossless `Last-Event-ID` reconnect, public benchmark reports, and drill-down claims. `make check`:
+  **729 tests, 0 failures, 96.28% coverage overall**; every `src/api/web/` module 91–100% (`main.py`,
+  the `uvicorn.serve()` production entrypoint, is intentionally out of the coverage scope — see
+  `pyproject.toml`'s `[tool.coverage.run]` comment — the same treatment `api.cli`/`api.config`/`api.db`
+  already get). New: migration `0010` (`system_state` kill-switch singleton, `runs.keywords`/
+  `runs.disambiguation_fields`, a `needs_input` status value, quota indexes), `src/api/web/{app,auth,
+  quota,killswitch,turnstile,sse,errors,runner}.py`, `src/api/web/routes/{runs,reports,health}.py`,
+  `src/api/web/main.py` (production entrypoint). Endpoints: `POST /runs`, `GET /runs/{id}`,
+  `GET /runs/{id}/events` (SSE), `GET /runs/{id}/report.json`, `GET /runs/{id}/claims/{claim_id}`,
+  `PATCH /runs/{id}` (disambiguation resolution), `GET /reports/benchmark`, `GET /health`.
+- **A real bug found and fixed while writing the quota atomicity test.** The masterplan §8.3 SQL
+  sketch (`INSERT ... SELECT ... WHERE count(*) < quota`) reads atomic but isn't, under Postgres's
+  default `READ COMMITTED`: `N` concurrent requests at a quota of `N-1` all admitted (8/8, not 7/8) —
+  each simultaneous statement saw the same pre-insert count. Fixed with a `pg_advisory_xact_lock`
+  (a fixed key for the global cap, then `hashtext(user_id)` for the per-user cap, always acquired in
+  that order so no caller can deadlock) serializing the check before the conditional insert. See
+  `api.web.quota.try_create_run`'s own docstring and `tests/integration/test_quota.py::
+  test_quota_atomicity_admits_exactly_n_minus_one`.
+- **A design decision surfaced before writing code, per this project's own convention**: concurrency
+  admission (`ConcurrencyQueue.acquire`) happens inside the background pipeline task, not synchronously
+  in `POST /runs`'s response path — `GET /runs/{id}` reports `queue_position` for a caller to poll,
+  matching the phase doc's own Open Decision #2 ("Lean polling until the run starts"). Concurrency
+  tracking is in-memory, per-process — the same accepted single-worker limitation Phase 02's
+  `BudgetTracker` already established, logged the same way rather than silently assumed.
+- **Focus**: Begin Phase 13 — Frontend & Drill-Down UI (depends on Phase 12), or Phase 14 — Benchmark
+  Harness & Calibration (depends on Phase 11, independent of 12/13) — either can start next; see
+  Next Steps.
+- **Blockers**: None for Phase 13/14. Carried forward, all non-blocking: Reddit API application (still
   not submitted), the GitHub Starring endpoint's permanent restriction (resolved 2026-08-07 as a
   **vendor lockdown**, not a credential gap — a fine-grained PAT Starring permission cannot unblock
   it; see Next Steps item 2), `api.evidence.coverage.compute_coverage`'s entity-signal term reading
-  `0.00` for essentially any real run (Phase 10, worth Phase 14's attention), and three new Phase 11
-  items — see Next Steps: (a) the community thread-breadth approximation (`api.synth.findings`'s
-  own module docstring), (b) `evaluate_github_theme` (reaction-weighted promotion) has no real
-  caller in v1, (c) two frozen Phase 00 `Report` leaf
-  fields were widened (`CompetitorEntry.maturity`, `ContradictionValue.v`) — logged, not hidden.
+  `0.00` for essentially any real run (Phase 10, worth Phase 14's attention), three Phase 11 items —
+  see Next Steps: (a) the community thread-breadth approximation (`api.synth.findings`'s own module
+  docstring), (b) `evaluate_github_theme` (reaction-weighted promotion) has no real caller in v1,
+  (c) two frozen Phase 00 `Report` leaf fields were widened (`CompetitorEntry.maturity`,
+  `ContradictionValue.v`), and one new Phase 12 item: the phase doc's Open Decision #1 (anonymous
+  trial runs) is still **unresolved**, deliberately deferred to Phase 14's real per-run cost number —
+  no BYO-key path exists anywhere, per masterplan §12.8.
 
 ## Recent Activities
 
@@ -1086,6 +1102,99 @@ Last Updated: 2026-08-07
   - **Reddit remains the one open credential** — application not yet submitted (2–4 week manual
     approval); no change. `make check` green after the Product Hunt changes.
 
+### 2026-08-08
+
+- **Implemented Phase 12**: `src/api/web/` — `auth.py` (`JWKSCache` — caches Supabase's JWKS keyed by
+  `kid`, refetches the whole set only on a `kid` miss, never per-request; `verify_token` maps each of
+  PyJWT's rejection exceptions to its own stable `code` — `token_expired`/`wrong_issuer`/
+  `wrong_audience`/`bad_signature`/`malformed_token`/`unknown_kid` — each independently tested;
+  `provision_user` is one round trip either way via `INSERT ... ON CONFLICT DO NOTHING` unioned with a
+  fallback read, so first-login-creates / later-logins-reuse needs no separate exists-check),
+  `quota.py` (`try_create_run` — see the atomicity bug below; `ConcurrencyQueue` — a FIFO in-memory
+  admission gate with a queryable 1-based `position()`), `killswitch.py` (`system_state` singleton
+  read/trip/reset — no admin HTTP endpoint, since the phase doc's own Endpoints table names none;
+  an operator action against the table directly, "a database flag, not a deploy"), `turnstile.py`
+  (Cloudflare siteverify; unset `turnstile_secret_key` is a no-op pass, the same "`None` means
+  unconfigured" convention as every other optional credential in `api.config.Settings`), `sse.py`
+  (`persist_event`/`read_new_public_events`/`stream_events` — the masterplan §4.10 six-event public
+  vocabulary, a deliberately different, smaller set than `api.executor.protocol.ExecutorEvent`, both
+  sharing the same Phase 02 `run_events` table; `stream_events` closes after `report.ready` or once
+  `runs.status` turns `failed`), `runner.py` (`run_pipeline` — the same interpret → plan → execute →
+  synth pipeline `api.cli.cmd_run` drives, reusing its `build_deps`/`plan_to_execution_plan`/
+  `run_coverage` rather than re-deriving them, adapted to run as a background task and to genuinely
+  pause on disambiguation — `status='needs_input'` until `PATCH /runs/{id}` supplies the resolved
+  brief, the "ordinary HTTP round trip" the phase doc's Design section describes, not an in-graph
+  interrupt), `errors.py` (typed `APIError` hierarchy, one JSON envelope shape, a correlation id on
+  every response, never a stack trace or vendor message), `app.py` (`create_app(settings, pool, http)`
+  — pool/http always caller-built, no FastAPI `lifespan=`, so exactly one place ever owns closing
+  them), `main.py` (production `uvicorn.serve()` entrypoint), `routes/{runs,reports,health}.py`.
+  Migration `0010` adds `system_state` (the kill-switch singleton), `runs.keywords`/
+  `runs.disambiguation_fields`, widens `runs.status`'s CHECK to add `needs_input`, and indexes
+  `runs (user_id, started_at)` / `runs (started_at)` for the quota-window counts. `make check`:
+  **729 tests** (up from 690), **96.28% coverage overall**; every `src/api/web/` module 91–100%
+  except the intentionally-excluded `main.py` (see Current Status).
+  - **A real concurrency bug found and fixed by the atomicity test itself, not by inspection** —
+    matching this project's own repeated lesson (Phase 02's dead-branch race, Phase 04/05/06's
+    shared-cache contamination): the masterplan §8.3 SQL sketch for the quota check
+    (`INSERT ... SELECT ... WHERE (SELECT count(*) ...) < quota`) is a single SQL statement and
+    *looks* atomic, but under Postgres's default `READ COMMITTED` isolation it is not — `N`
+    simultaneous connections each evaluate the subquery against the same pre-insert snapshot, so a
+    quota of `N-1` first-draft-admitted all `N` (`8 == 8`, not `8 == 7`), reproduced deterministically
+    by `asyncio.gather`-ing `N` real concurrent calls against real Postgres, not simulated. Fixed with
+    two `pg_advisory_xact_lock`s (transaction-scoped, auto-released on commit/rollback) serializing
+    the check: a fixed key for the global cap, then `hashtext(user_id)` for the per-user cap, always
+    acquired in that order — so no two callers can ever deadlock against each other — and each
+    skipped entirely when its corresponding cap is `None` (unenforced), so an unconfigured quota
+    costs nothing. **Actionable finding for future phases: a conditional `INSERT...SELECT` that reads
+    right is not proof of atomicity under concurrency — same spirit as Phase 02's "a single green run
+    is weak evidence," but for isolation levels instead of timing.**
+  - **A second real, repeatable bug, in `httpx.ASGITransport`-based test setup, not application
+    code**: the first draft of the "errors never leak internals" test raised inside a route handler
+    and expected the response to come back as a normal 500 — instead httpx re-raised the exception
+    into the test itself. Root cause: Starlette's `ServerErrorMiddleware` sends the registered 500
+    response *and* re-raises (intentional, so the ASGI server logs it), and `httpx.ASGITransport`'s
+    default `raise_app_exceptions=True` propagates that re-raise into the caller rather than treating
+    the already-sent response as the result. Fixed by passing `raise_app_exceptions=False` in the
+    shared test client helper — worth restating for any future phase testing a FastAPI 500 handler
+    through `ASGITransport`.
+  - **A third real, repeatable bug, in the heartbeat test's own transport choice**: `httpx.
+    ASGITransport` buffers a response's *entire* body before returning it to the caller, so a test
+    reading `client.stream(...)` against a genuinely never-ending SSE generator hung forever rather
+    than observing the ping frames as they arrived. Fixed by driving the ASGI callable
+    (`EventSourceResponse.__call__(scope, receive, send)`) directly with a collecting `send`, no
+    `httpx`/`ASGITransport` involved — the only way to observe an in-progress infinite stream inside
+    this test framework.
+  - **A fourth real, repeatable bug — the fifth phase in a row to hit the "shared, persistent table"
+    trap this project's own `docs/working_knowledge.md` already documents** (Phase 04, 05, 06, and
+    now 12): `needs_input` is a status value this migration adds that a *pre-Phase-12* downgrade's
+    narrower `CHECK` constraint cannot accept. The disambiguation-pause tests correctly created rows
+    in that status — and then, being real rows in the shared, long-lived `ai_pi_test` database, they
+    silently broke `test_migrations.py`'s full downgrade-to-`0001`-and-back-up cycle for **every test
+    that ran afterward**, in a completely different file, on a completely unrelated run of the suite.
+    Not caught by a single green run (the polluting test and the victim test never appear in the same
+    failure) — caught by this project's own "re-run twice" convention and by directly querying
+    `system_state`/`runs` for rows outside the historical vocabulary. Fixed by having every test that
+    creates a `needs_input` row clean it up (`DELETE`/transition it) in a `finally` block.
+    **Actionable finding: any new enum/status value a migration adds is itself a "shared persistent
+    state" hazard for `test_migrations.py`'s downgrade cycle, not just for cache/ledger tests — audit
+    for it the same way.**
+  - **One scope decision, made explicitly rather than silently dropped**: the phase doc's Endpoints
+    table names no route for flipping the kill switch manually ("it can also be flipped manually" —
+    no HTTP surface specified), so none was built; `api.web.killswitch.trip`/`reset` are directly
+    callable functions an operator (or a future Phase 15 ops script) can drive against `system_state`.
+    Similarly, `PATCH /runs/{id}` (the disambiguation-resolution endpoint) is real and tested but gets
+    lighter-weight coverage than the rest of the surface — three tests (resolve-and-resume, conflict
+    on a non-paused run, cross-user rejection) rather than the phase doc's own exhaustive per-field
+    disambiguation matrix, a deliberate scope call given the walking-skeleton pattern this project
+    already uses elsewhere for secondary paths (e.g. Phase 04's coverage-floor modules).
+  - **`run_pipeline`'s own tests mock only the three points that would otherwise need real
+    OpenRouter/Exa traffic** (`interpret`, `plan_stage1`, `assemble_report`) — `build_deps`, the real
+    `Executor` (driven with an intentionally empty `Plan`, so it drains in milliseconds with zero task
+    handlers), `resolve_contradictions`, and `run_coverage` all run for real, since every one of them
+    is pure construction or a plain Postgres query with no external I/O. Same fixture-corpus spirit as
+    Phase 01/05: keep real traffic out of the default tier without faking more than necessary.
+  - Full design/scope: [`docs/execution_phases/phase-12-api-auth-quotas.md`](execution_phases/phase-12-api-auth-quotas.md).
+
 ## Ongoing Work
 
 - [x] Phase 00 — Foundation, Contracts & CI (complete; `make check` green including all
@@ -1118,6 +1227,9 @@ Last Updated: 2026-08-07
       assembly and verified by the pipeline test walking every cited claim back to a real span in
       real source text; live-verified against real OpenRouter chat + the new `/embeddings` endpoint
       — see Recent Activities)
+- [x] Phase 12 — API, Auth, Quotas & Guardrails (complete; authenticated FastAPI HTTP layer with SSE,
+      atomic quotas proven under real concurrency, a database-flag kill switch, and Cloudflare
+      Turnstile in front of the existing pipeline — see Recent Activities)
 
 ## Completed Milestones
 
@@ -1332,6 +1444,20 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
     **(e)** Phase 10's own `trend_signals` open item (item 16a) is now confirmed collected-but-
     unused: the frozen §2 `Report` contract has no section for trend/volume data and Phase 11
     added none — stays a v1 gap unless Phase 14 argues for a contract change.
+18. **Begin Phase 13 (Frontend & Drill-Down UI) or Phase 14 (Benchmark Harness & Calibration) —
+    either can start next.** Phase 13 depends on Phase 12 (now done); Phase 14 depends only on
+    Phase 11 and is independent of 12/13, so it does not need to wait. Phase 12's own open items,
+    none blocking either: **(a)** the phase doc's Open Decision #1 (anonymous trial runs) is
+    **unresolved, deliberately** — masterplan §12.8 rejects it because search credits can't be
+    quota'd per-anonymous-caller; revisit once Phase 14 has a real per-run cost figure (if a run is
+    genuinely ~$0.04, one free anonymous run is a cheap acquisition cost). **(b)** no kill-switch
+    admin HTTP endpoint exists (the phase doc's Endpoints table names none) — `api.web.killswitch.
+    trip`/`reset` are directly callable; Phase 15 may want a thin ops script or an admin-gated route
+    around them. **(c)** `PATCH /runs/{id}` (disambiguation resolution) has three tests, not an
+    exhaustive per-field matrix — a deliberate scope call, same spirit as other phases' accepted
+    coverage floors. **(d)** all quota knobs (`runs_per_user_per_day`, `global_runs_per_day`,
+    `max_concurrent_runs`) are still `TBD`/`None` (unenforced) — Phase 14's job, per the phase doc's
+    own scope.
 
 ## Open Items Carried From the Masterplan
 
