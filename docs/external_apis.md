@@ -15,13 +15,13 @@ All numbers below are measured, not estimated — see `spikes/` for the scripts 
 | Exa (search) | **GO** | $20 signup + $10/mo recurring | $0.007/query (base), +$0.01 for `summary` content | ~740ms (worst query-level p50 observed; typical ~270ms) | None |
 | OpenRouter — deepseek/deepseek-v4-flash | **GO**, with a usage rule | none (metered) | $0.0000000882/tok in, $0.0000001764/tok out | 14.7s (schema-constrained); 62.1s (free-form, avoid) | Must always use `response_format` schema constraints — see LLM section |
 | GitHub REST/GraphQL (issues, search, rate limit) | **GO** | 5,000 req/hr (PAT), 30 req/min (search endpoint specifically) | $0 | 691ms | None |
-| GitHub Starring endpoint (star velocity) | **NO-GO as configured** | n/a | n/a | n/a | Fine-grained PAT's default "Public repositories (read-only)" access returns 403 on `/stargazers` for both REST and GraphQL. Needs a classic PAT or an explicit "Starring" repo permission — not yet obtained. |
+| GitHub Starring endpoint (star velocity) | **NO-GO** | n/a | n/a | n/a | Restricted since 2026-06-30 to repo **admins and collaborators only**; fine-grained PATs are not supported for it at all (no fine-grained permission exists), and a classic PAT with `public_repo` works only when its owner is an admin/collaborator of the target repo — never true for competitor repos. Only total `stargazers_count` remains readable; per-star timestamps for 90-day velocity are unavailable for arbitrary repos. |
 | HN Algolia | **GO** | unlimited, unauthenticated | $0 | 648ms | None |
 | Wayback CDX | **GO, with a caveat** | unlimited, unauthenticated | $0 | 3076ms | Genuinely slow — keep off any latency-sensitive path; run in background/async only |
 | npm downloads API | **GO** | unlimited, unauthenticated | $0 | 272ms | None |
 | PyPI downloads (via pypistats.org) | **GO** | unlimited, unauthenticated | $0 | not separately measured (single call, fast) | None |
 | Stack Exchange | **GO** | 300 req/day, anonymous | $0 | 350ms | Quota is body-only JSON (`quota_max`/`quota_remaining`), never headers — masterplan text implied headers; code must poll the body |
-| Product Hunt GraphQL | **PENDING** | n/a | n/a | n/a | Developer token not yet obtained — requires manual app registration. Not on the critical path; can close later without blocking this phase's exit. |
+| Product Hunt GraphQL | **GO** | free developer token | $0 | not yet measured | Developer token obtained 2026-08-07; `post_by_slug` verified live and cassette-recorded. **No text-search field exists in Product Hunt v2 GraphQL** (query root: `collection`/`collections`/`comment`/`post`/`posts`/`topic`/`topics`/`user`/`viewer` — verified by schema introspection) — the retriever is slug-lookup only. |
 | Reddit | **DEFERRED (per D5)** | n/a | n/a | n/a | Application **not yet submitted** in this pass (2–4 week manual approval once it is). HN Algolia + GitHub + Stack Exchange are the community-mining backbone regardless — see [README](execution_phases/README.md#deviations-from-the-masterplan). |
 | Playwright | **Deferred behind a feature flag** | n/a | ~300–400MB image size delta, ~650MB RSS under load | 35–83ms cold start (binary pre-cached) | Static crawl hit rate (88%) already clears the masterplan's 80% bar — see Crawl section |
 
@@ -123,6 +123,6 @@ corpus Phase 01 used — see `spikes/pathguess_hitrate.py`.
 |---|---|---|---|
 | Exa | ✅ Obtained | 2026-08-06 | Working, verified live |
 | OpenRouter | ✅ Obtained | 2026-08-06 | Working, verified live; account has a $0.20/day spend cap configured — the full LLM validation in this phase cost well under a cent |
-| GitHub | ✅ Obtained | 2026-08-06 | Fine-grained PAT, public-repo read-only. Sufficient for REST/GraphQL reads and issue search; **insufficient for the Starring endpoint** (see Go/No-Go table) — a classic PAT or a fine-grained token with explicit Starring permission is needed before Phase 04/07 build on star-velocity |
-| Product Hunt | ⏳ Pending | — | Requires manual app registration at api.producthunt.com; not started this pass. Not on the critical path. |
+| GitHub | ✅ Obtained | 2026-08-06 | Fine-grained PAT, public-repo read-only. Sufficient for REST/GraphQL reads and issue search. **Starring endpoint is a permanent NO-GO** (restricted to repo admins/collaborators since 2026-06-30, fine-grained PATs unsupported for it) — see Go/No-Go table. Only total `stargazers_count` via `repo_metadata` is available; 90-day star velocity is out of reach for competitor repos. |
+| Product Hunt | ✅ Obtained | 2026-08-07 | Developer token, verified live; `post_by_slug` cassette-recorded. No text-search field exists in v2 GraphQL — slug lookup only. |
 | Reddit | ⏳ Not yet applied | — | 2–4 week manual approval once submitted. **Exit criterion "Reddit credentials applied for" is not met by this pass** — flagged here rather than silently marked done. Community mining ships on HN Algolia + GitHub + Stack Exchange regardless (D5). |

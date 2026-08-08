@@ -17,6 +17,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 
 import vcr
 
@@ -26,12 +27,25 @@ SECRET_HEADERS = {"authorization", "x-api-key", "x-apikey", "api-key", "cookie",
 SECRET_QUERY_PARAMS = {"api_key", "apikey", "key", "token", "access_token"}
 
 
+def _scrub_response_headers(response: dict[str, Any]) -> dict[str, Any]:
+    """vcrpy's `filter_headers` covers request headers only; response headers
+    (e.g. a `set-cookie` from Cloudflare) need this before-record hook —
+    mirroring `spikes/_common.py`, so every cassette keeps secrets REDACTED
+    on both sides (enforced by `test_fixture_corpus.py`)."""
+    headers = response.get("headers", {})
+    for header in list(headers):
+        if header.lower() in SECRET_HEADERS:
+            headers[header] = ["REDACTED"]
+    return response
+
+
 def make_vcr(*, match_on: list[str] | None = None) -> vcr.VCR:
     extra = {} if match_on is None else {"match_on": match_on}
     return vcr.VCR(
         cassette_library_dir=str(CASSETTES_DIR),
         filter_headers=[(h, "REDACTED") for h in SECRET_HEADERS],
         filter_query_parameters=[(p, "REDACTED") for p in SECRET_QUERY_PARAMS],
+        before_record_response=_scrub_response_headers,
         decode_compressed_response=True,
         **extra,
     )

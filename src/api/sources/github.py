@@ -10,13 +10,16 @@ reports remaining quota in `X-RateLimit-*` headers, that's read as ground
 truth on top of the local buckets.
 
 `star_velocity_90d` needs the Starring endpoint's per-star timestamps
-(`application/vnd.github.star+json`), which 403s under the current
-fine-grained PAT's default "Public repositories (read-only)" scope — a real,
-still-open finding from Phase 01. Rather than block on a credential upgrade
-this phase can't perform, that 403 degrades to `RetrieverUnavailableError`
-(a coverage gap), proven against the real recorded 403 in
-`tests/fixtures/cassettes/github_api.yaml`. See `docs/tracker.md`'s
-carried-forward PAT-upgrade item.
+(`application/vnd.github.star+json`), but GitHub restricted that endpoint on
+2026-06-30 to repo **admins and collaborators only** — and fine-grained PATs
+are not supported for it at all (no fine-grained permission exists; a classic
+PAT with `public_repo` works only when the token's owner *is* an admin or
+collaborator of the target repo). We are never that for competitor repos, so
+`star_velocity_90d` is effectively dead for arbitrary repositories; its 403
+degrades to `RetrieverUnavailableError` (a coverage gap), proven against the
+real recorded 403 in `tests/fixtures/cassettes/github_api.yaml`. Only the
+total `stargazers_count` (via `repo_metadata`) remains readable. See
+`docs/external_apis.md`.
 """
 
 from __future__ import annotations
@@ -235,8 +238,9 @@ class GitHubRetriever:
         if resp.status_code == 403:
             raise RetrieverUnavailableError(
                 self.name,
-                "Starring endpoint returned 403 - PAT lacks Starring permission "
-                "(needs a classic PAT or an explicit fine-grained Starring scope)",
+                "Starring endpoint returned 403 - restricted to repo admins/collaborators "
+                "since 2026-06-30; fine-grained PATs are not supported for it at all, and a "
+                "classic PAT works only if its owner is an admin/collaborator of the target repo",
             )
         self._raise_for_rate_limit(resp)
         resp.raise_for_status()

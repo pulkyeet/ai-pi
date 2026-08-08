@@ -62,7 +62,8 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   Seven free structured retrievers live in `api.sources`: `github` (repo metadata, reaction-sorted
   issues, 90-day star velocity — the last one degrades to a coverage gap under the current PAT, see
   Known Issues), `hn`, `wayback`, `packages` (npm+PyPI), `stackexchange` (quota read from the
-  response body, not headers), `producthunt` (token pending, untested against a real endpoint),
+  response body, not headers), `producthunt` (slug-lookup only — `post_by_slug`, token obtained
+  2026-08-07; Product Hunt v2 GraphQL has no text-search field, see its module docstring),
   `serp_snippets` (G2/Capterra — structurally cannot fetch; no `httpx` import in the module at
   all), and `reddit` (behind `ENABLE_REDDIT`, default off). All seven degrade via the shared
   `api.sources.base.RetrieverUnavailableError` rather than crashing a run.
@@ -393,11 +394,14 @@ fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model se
 - **Stack Exchange's quota is reported in the JSON response body** (`quota_max`/`quota_remaining`
   fields), never in HTTP headers, despite what you'd assume from every other rate-limited API.
   Poll the body, not `response.headers`.
-- **GitHub's Starring endpoint (`/repos/{owner}/{repo}/stargazers`) 403s for a fine-grained PAT**
-  with the default "Public repositories (read-only)" access, on both REST and GraphQL, even though
-  star data is public. Needed for the masterplan's 90-day star-velocity signal ([Phase 04](execution_phases/phase-04-search-domain-retrievers.md)/[07](execution_phases/phase-07-entity-resolution.md)).
-  Fix: use a classic PAT, or add an explicit Starring permission to the fine-grained token — not
-  yet done as of Phase 01's close.
+- **GitHub's Starring endpoint (`/repos/{owner}/{repo}/stargazers`) is a permanent NO-GO, not a
+  credential fix.** Since 2026-06-30 GitHub restricts it to repo **admins/collaborators only**, and
+  fine-grained PATs are not supported for it at all (no fine-grained permission exists; a classic
+  PAT with `public_repo` works only when the token's owner is an admin/collaborator of the target
+  repo). We are never that for competitor repos, so `star_velocity_90d` cannot be unblocked by any
+  PAT change — a fine-grained Starring permission has no effect. Only total `stargazers_count`
+  (via `repo_metadata`) remains readable. Needed for the masterplan's 90-day star-velocity signal
+  ([Phase 04](execution_phases/phase-04-search-domain-retrievers.md)/[07](execution_phases/phase-07-entity-resolution.md)).
 - **GitHub's Search API has its own, much stricter rate limit: 30 req/min**, separate from the
   general REST 5,000 req/hr. The masterplan's `is:issue label:X sort:reactions-desc` query pattern
   must budget against 30/min, not 5,000/hr.
@@ -467,13 +471,14 @@ fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model se
   any new test file against a shared cache/ledger table twice in a row before trusting a single
   green run — the same spirit as Phase 02's "a single green run is weak evidence" for concurrency
   bugs, but for cross-invocation state instead of cross-task races.
-- **GitHub's Starring-endpoint 403 (open since Phase 01) is now load-bearing, not just
-  documented.** `api.sources.github.GitHubRetriever.star_velocity_90d` calls the real endpoint —
-  there is no workaround short of a credential upgrade — and converts the 403 into
-  `RetrieverUnavailableError`, proven against the real recorded 403 in
-  `tests/fixtures/cassettes/github_api.yaml`. Star velocity is a genuine coverage gap in every run
-  until the PAT is upgraded (classic PAT, or an explicit Starring permission on the fine-grained
-  one) — see `docs/tracker.md` Next Steps, carried forward unchanged since Phase 01.
+- **GitHub's Starring-endpoint 403 (open since Phase 01) is now resolved as a permanent vendor
+  restriction, not a credential gap.** `api.sources.github.GitHubRetriever.star_velocity_90d`
+  calls the real endpoint and converts the 403 into `RetrieverUnavailableError`, proven against the
+  real recorded 403 in `tests/fixtures/cassettes/github_api.yaml`. Since GitHub restricted
+  `/stargazers` to repo admins/collaborators (2026-06-30) and fine-grained PATs are unsupported for
+  it, no PAT change (including an explicit fine-grained Starring permission) can unblock it for
+  competitor repos — star velocity is a permanent coverage gap; only total `stargazers_count`
+  remains — see `docs/tracker.md` and `docs/external_apis.md`.
 - **Never run a schema-modifying test (anything that does `alembic downgrade`/`upgrade`, e.g.
   `tests/integration/test_migrations.py`) concurrently with a long-running test against the same
   shared Postgres database.** Discovered while verifying Phase 05's live gateway checks: a

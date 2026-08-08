@@ -21,13 +21,14 @@ Last Updated: 2026-08-07
   cost-deduplication bug, both caught by tests before the live run, not by it).
 - **Focus**: Begin Phase 12 — API, Auth, Quotas & Guardrails: an authenticated HTTP API with SSE in
   front of what `api.cli`/`api.synth` already do end to end.
-- **Blockers**: None for Phase 12. Carried forward, all non-blocking: Product Hunt developer token
-  (still not started), Reddit API application (still not submitted), the GitHub PAT
-  Starring-permission upgrade (open since Phase 01), `api.evidence.coverage.compute_coverage`'s
-  entity-signal term reading `0.00` for essentially any real run (Phase 10, worth Phase 14's
-  attention), and three new Phase 11 items — see Next Steps: (a) the community thread-breadth
-  approximation (`api.synth.findings`'s own module docstring), (b) `evaluate_github_theme`
-  (reaction-weighted promotion) has no real caller in v1, (c) two frozen Phase 00 `Report` leaf
+- **Blockers**: None for Phase 12. Carried forward, all non-blocking: Reddit API application (still
+  not submitted), the GitHub Starring endpoint's permanent restriction (resolved 2026-08-07 as a
+  **vendor lockdown**, not a credential gap — a fine-grained PAT Starring permission cannot unblock
+  it; see Next Steps item 2), `api.evidence.coverage.compute_coverage`'s entity-signal term reading
+  `0.00` for essentially any real run (Phase 10, worth Phase 14's attention), and three new Phase 11
+  items — see Next Steps: (a) the community thread-breadth approximation (`api.synth.findings`'s
+  own module docstring), (b) `evaluate_github_theme` (reaction-weighted promotion) has no real
+  caller in v1, (c) two frozen Phase 00 `Report` leaf
   fields were widened (`CompetitorEntry.maturity`, `ContradictionValue.v`) — logged, not hidden.
 
 ## Recent Activities
@@ -1049,6 +1050,41 @@ Last Updated: 2026-08-07
     this live run, not by it — the same pattern as Phase 10's live run catching things the
     previous live run taught us to check.
   - Full design/scope: [`docs/execution_phases/phase-11-synthesis-report-assembly.md`](execution_phases/phase-11-synthesis-report-assembly.md).
+- **Phase 11 credential wrap-up (2026-08-07, post-commit)** — two carry-over credentials were
+  obtained and verified live, and the third turned out to be unfixable as a credential change:
+  - **Product Hunt token obtained and verified live.** `post_by_slug` returns real data against
+    the real endpoint, and the cassette
+    `tests/fixtures/cassettes/producthunt_post_by_slug.yaml` was recorded (authorization
+    REDACTED), upgrading the retriever from MockTransport-only to cassette-tested — the first time
+    this vendor has real traffic coverage since Phase 01 flagged it PENDING. **While verifying, two
+    real problems surfaced and were fixed:** (1) `search_posts` was **broken on arrival** — the
+    query declared `$query` but never used it, so GraphQL rejected every call with
+    `variableNotUsed` and the method silently always returned `[]`; and (2) Product Hunt v2
+    GraphQL has **no text-search field at all** (query root verified by schema introspection:
+    `collection`/`collections`/`comment`/`post`/`posts`/`topic`/`topics`/`user`/`viewer`), so a
+    search method was unimplementable-as-designed, not merely buggy. Removed `search_posts` (no
+    caller exists; only `post_by_slug`, used by Phase 07's `ph:` verification, is real), updated
+    the module docstring, and deleted its dead test. The carry-over item "Product Hunt developer
+    token (still not started)" is **closed**.
+  - **GitHub Starring endpoint: verified the "upgrade the PAT" fix cannot work — it is a
+    permanent vendor restriction, now closed as such.** The intended fix was to add an explicit
+    Starring permission to the fine-grained PAT. Live verification 2026-08-07: the token's
+    `/user` and `/repos/{owner}/{repo}` both return 200, but `/stargazers` still returns 403
+    (`"Resource not accessible by personal access token"`, rate limit remaining fine). Root cause
+    is a GitHub platform change, not a credential gap: since **2026-06-30 GitHub restricts
+    `/stargazers` to repo admins and collaborators only**, fine-grained PATs are **not supported
+    for that endpoint at all** (no fine-grained permission exists for it; a classic PAT with
+    `public_repo` works only when the token's owner is an admin/collaborator of the target repo).
+    We are never that for competitor repos, so `star_velocity_90d` is **permanently degraded** —
+    no PAT change can unblock it; only total `stargazers_count` (via `repo_metadata`) remains
+    readable. Code and docs updated to say the real cause: `src/api/sources/github.py`'s module
+    docstring + 403 message, `docs/external_apis.md` (Go/No-Go table + credentials table), and
+    `docs/working_knowledge.md`'s Known Issues entries. Next Steps item 2 and 16(d) rewritten from
+    "config fix needed" to "permanent vendor restriction, no fix". The carry-over item "GitHub PAT
+    Starring-permission upgrade (open since Phase 01)" is **closed as unfixable-by-credential** —
+    not silently dropped, recorded as a vendor change with the measurement that proves it.
+  - **Reddit remains the one open credential** — application not yet submitted (2–4 week manual
+    approval); no change. `make check` green after the Product Hunt changes.
 
 ## Ongoing Work
 
@@ -1140,21 +1176,23 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
 
 ## Next Steps
 
-1. **Submit the Reddit application** — still not done; 2–4 week manual approval once submitted,
-   and it is not blocking anything else. Product Hunt (developer token, minutes) is similarly open
-   but non-blocking. Both now have real, tested `RetrieverUnavailableError` degradation paths in
-   `api.sources.reddit`/`api.sources.producthunt`, so obtaining either credential is a config
-   change, not a code change.
-2. **Upgrade the GitHub PAT** before Phase 10 wires a real `star_velocity_90d` value into
-   `api.resolve.maturity.MaturitySignals` — the current fine-grained PAT's default public-read
-   scope returns 403 on the Starring endpoint (REST and GraphQL both). Either switch to a classic
-   PAT or add an explicit Starring permission to the fine-grained one.
-   `api.sources.github.GitHubRetriever.star_velocity_90d` already degrades cleanly in the meantime
-   (Phase 04, see Recent Activities), and Phase 07's own `gh:` verification never calls it (only
-   `repo_metadata`), so this didn't block Phase 07 the way it was expected to — it's still worth
-   doing before a real run's maturity classifications silently run on a permanently-`None`
-   velocity signal.
-3. ~~Begin Phase 07 — entity resolution.~~ **Done** — see Recent Activities. Turned out to be the
+ 1. **Submit the Reddit application** — still not done; 2–4 week manual approval once submitted,
+    and it is not blocking anything else. Product Hunt is **closed** (developer token obtained and
+    verified live 2026-08-07). Both now have real, tested `RetrieverUnavailableError` degradation
+    paths in `api.sources.reddit`/`api.sources.producthunt`, so obtaining either credential is a
+    config change, not a code change.
+ 2. **GitHub Starring endpoint: resolved 2026-08-07 as a permanent vendor restriction, not a
+    credential gap.** The intended "upgrade the PAT" fix cannot work: since 2026-06-30 GitHub
+    restricts `/stargazers` to repo **admins and collaborators only**, fine-grained PATs are **not
+    supported for it at all** (no fine-grained permission exists), and a classic PAT with
+    `public_repo` works only when the token's owner *is* an admin/collaborator of the target repo —
+    never true for competitor repos. A fine-grained Starring permission has no effect (verified
+    live 2026-08-07: `/user` and `/repos/{o}/{r}` return 200, `/stargazers` still 403).
+    `star_velocity_90d` therefore stays permanently degraded to a coverage gap; only total
+    `stargazers_count` (via `repo_metadata`) remains readable. Phase 10's `oss.stars_90d_delta`
+    stays an approximation. Code/docstrings updated to say the real cause — see
+    `docs/external_apis.md` and `src/api/sources/github.py`.
+ 3. ~~Begin Phase 07 — entity resolution.~~ **Done** — see Recent Activities. Turned out to be the
    actual consumer of Phase 06's `ExtractedClaim.candidate_entity_hint` in name only: Phase 07
    itself resolves an `EntityEvidence` into a persisted `Entity`, but wiring `candidate_entity_hint`
    into a real `resolve_entity` call, and turning the result + `ExtractedClaim` into a graded,
@@ -1268,10 +1306,11 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    `category:<run_id>` bookkeeping entity regardless; **(c)** discovery's seed strategies are
    narrower than the phase doc's own list (general search + GitHub `awesome-` repos only; no
    AlternativeTo, no package-registry search) — see Recent Activities for why neither had a retriever
-   to call; **(d)** the GitHub PAT Starring-permission gap (open since Phase 01) was directly
+   to call; **(d)** the GitHub Starring-endpoint gap (open since Phase 01) was directly
    observed degrading a real run's `oss.stars_90d_delta` to an approximation rather than an exact
-    figure — the fix is still a config change (classic PAT or an explicit fine-grained Starring
-    scope), not code.
+   figure — **resolved 2026-08-07 as a permanent vendor restriction, not a config fix** (GitHub
+   locked `/stargazers` to repo admins/collaborators on 2026-06-30; fine-grained PATs unsupported
+   for it) — see Next Steps item 2.
 17. Phase 11's own new open items, none blocking Phase 12 (all carried from its Recent Activities
     entry or phase doc's "Open decisions"): **(a)** `api.tasks.community`'s thread-breadth
     approximation — a `complaint.*`/`request.*` claim has no surviving link to which real thread/

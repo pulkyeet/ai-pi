@@ -1,0 +1,79 @@
+interactions:
+- request:
+    body: '{"query":"\nquery($slug: String!) {\n  post(slug: $slug) {\n    name\n    tagline\n    votesCount\n    website\n    featuredAt\n  }\n}\n","variables":{"slug":"notion-ai"}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - REDACTED
+      connection:
+      - keep-alive
+      content-length:
+      - '171'
+      content-type:
+      - application/json
+      host:
+      - api.producthunt.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://api.producthunt.com/v2/api/graphql
+  response:
+    body:
+      string: '{"data":{"post":{"name":"Notion AI","tagline":"Email Intelligence for
+        Gmail and beyond","votesCount":4,"website":"https://www.producthunt.com/r/f486e9a9c69552?utm_campaign=producthunt-api\u0026utm_medium=api-v2\u0026utm_source=Application%3A+product-investigator+%28ID%3A+295621%29","featuredAt":null}}}'
+    headers:
+      alt-svc:
+      - h3=":443"; ma=86400
+      cache-control:
+      - max-age=0, private, must-revalidate
+      cf-cache-status:
+      - DYNAMIC
+      cf-ray:
+      - a277567df8fbcd07-DEL
+      connection:
+      - keep-alive
+      content-length:
+      - '303'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Fri, 07 Aug 2026 15:33:07 GMT
+      etag:
+      - W/"4d993a4bdecb195328d42881e5eb87db"
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      server:
+      - cloudflare
+      set-cookie:
+      - REDACTED
+      strict-transport-security:
+      - max-age=2592000; includeSubDomains; preload
+      transfer-encoding:
+      - chunked
+      vary:
+      - Origin
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-permitted-cross-domain-policies:
+      - none
+      x-rate-limit-limit:
+      - '6250'
+      x-rate-limit-remaining:
+      - '5650'
+      x-rate-limit-reset:
+      - '271'
+      x-request-id:
+      - da0db088-d3b8-4b85-9e19-d7115ed68b92
+      x-runtime:
+      - '0.035602'
+      x-xss-protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1
