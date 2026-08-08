@@ -13,6 +13,8 @@ AI Product Investigator: type a product idea, get an evidence-backed discovery r
 - Package root `src/api/` (editable). One module per concern, no `utils.py`.
 - DB: Postgres 16 + pgvector via `docker-compose.yml`. Runtime access is **asyncpg only**; psycopg/SQLAlchemy exist solely to run Alembic (autogenerate off — hand-written migrations in `migrations/versions/`).
 - pydantic-settings; secrets have **no defaults** — copy `.env.example` to `.env`.
+- Frontend (Phase 13) is `web/` — Next.js App Router + TypeScript, npm-managed, entirely separate
+  toolchain from the Python backend. `cd web && npm install`; see `web/README.md`.
 
 ## Commands
 - `make check` — ruff lint + format check + mypy --strict + pytest (== CI gate).
@@ -22,6 +24,9 @@ AI Product Investigator: type a product idea, get an evidence-backed discovery r
 - Migrate the *test* DB explicitly (default targets `ai_pi`): `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ai_pi_test uv run alembic upgrade head`.
 - End-to-end live run: `python -m api.cli run "<idea>"`; `python -m api.cli inspect|replay <run_id>`.
 - Concurrency suite (races are probabilistic): `uv run pytest tests/integration/test_lease.py tests/integration/test_executor.py tests/integration/test_chaos.py --count=50 --no-cov`.
+- Frontend, from `web/`: `npm test` (vitest, no backend needed), `npm run e2e` (Playwright — builds
+  and serves the app itself against a mocked backend, see `web/README.md`), `npm run typecheck`,
+  `npm run lint`.
 
 ## Test quirks
 - `@pytest.mark.live` (tests/live/) excluded by default; default run enforces `--cov-fail-under=85`.

@@ -258,7 +258,11 @@ async def test_logged_out_reads_benchmark_reports_and_drilldown_but_cannot_run(
 
             drilldown_resp = await client.get(f"/runs/{run_id}/claims/{claim_id}")
             assert drilldown_resp.status_code == 200
-            assert drilldown_resp.json()["quote"] == "Starts at $29/mo"
+            body = drilldown_resp.json()
+            assert body["quote"] == "Starts at $29/mo"
+            assert body["grade"] == "A"
+            assert body["confidence"] == 0.9
+            assert body["other_claims"] == []
 
             create_resp = await client.post("/runs", json={"query": "a note app"})
             assert create_resp.status_code == 401
@@ -407,6 +411,96 @@ async def test_drilldown_works_with_and_without_cached_source_text(pg_pool: asyn
         assert body["source_text"] is None
         assert body["quote"] == "Starts at $29/mo"
         assert body["quote_context"] == "Starts at $29/mo"
+    finally:
+        await http.aclose()
+
+
+async def test_drilldown_shows_confidence_inputs_and_other_claims_from_same_source(
+    pg_pool: asyncpg.Pool,
+) -> None:
+    """The phase 13 drill-down panel's whole justification (masterplan §12.5,
+    phase-13-frontend.md's "Design" section): showing *why* a number is what
+    it is, and letting a visitor page to sibling claims from the same page,
+    both need fields Phase 12's endpoint never returned."""
+    http, _transport = build_http_client()
+    app = create_app(build_settings(), pg_pool, http)
+    owner = new_user_id()
+    await seed_auth_user(pg_pool, owner)
+    run_id = await _seed_run(pg_pool, user_id=owner, is_public=True)
+    claim_id, source_id = await _seed_claim(pg_pool, run_id, source_text="Starts at $29/mo today")
+    await pg_pool.execute(
+        "UPDATE claims SET confidence_inputs = $1::jsonb WHERE id = $2",
+        '{"best_grade": "A", "n_distinct_domains": 2, "age_days": 5.0, "contradicted": false}',
+        claim_id,
+    )
+    sibling_id = await pg_pool.fetchval(
+        """
+        INSERT INTO claims (run_id, entity_id, attribute, value_text, source_id, quote,
+                             char_start, char_end, quote_context, context_offset, grade,
+                             extractor_version, confidence)
+        VALUES ($1, (SELECT entity_id FROM claims WHERE id = $2), 'pricing.free_tier', 'true',
+                $3, 'today', 15, 20, 'Starts at $29/mo today', 0, 'A', 'test@1-test', 0.9)
+        RETURNING id
+        """,
+        run_id,
+        claim_id,
+        source_id,
+    )
+
+    try:
+        async with _asgi_client(app) as client:
+            resp = await client.get(f"/runs/{run_id}/claims/{claim_id}")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["confidence_inputs"] == {
+            "best_grade": "A",
+            "n_distinct_domains": 2,
+            "age_days": 5.0,
+            "contradicted": False,
+        }
+        assert body["other_claims"] == [
+            {
+                "claim_id": sibling_id,
+                "attribute": "pricing.free_tier",
+                "value_text": "true",
+                "value_num": None,
+                "quote": "today",
+            }
+        ]
+    finally:
+        await http.aclose()
+
+
+async def test_finding_drilldown_resolves_to_its_claim_ids(pg_pool: asyncpg.Pool) -> None:
+    """`MVP`/`Risk`/`FeatureGap.addresses_finding_ids` name a `findings.id`,
+    not a `claims.id` — this is the one extra hop the frontend needs to make
+    an MVP/risk/feature-gap statement clickable the same way a competitor
+    or pain-point entry already is."""
+    http, _transport = build_http_client()
+    app = create_app(build_settings(), pg_pool, http)
+    owner = new_user_id()
+    await seed_auth_user(pg_pool, owner)
+    run_id = await _seed_run(pg_pool, user_id=owner, is_public=True)
+    claim_id, _source_id = await _seed_claim(pg_pool, run_id, source_text="Starts at $29/mo today")
+    finding_id = await pg_pool.fetchval(
+        "INSERT INTO findings (run_id, kind, statement, claim_ids, support_count, confidence) "
+        "VALUES ($1, 'mvp', 'Ship a seat-based tier first', $2, 1, 0.7) RETURNING id",
+        run_id,
+        [claim_id],
+    )
+
+    try:
+        async with _asgi_client(app) as client:
+            resp = await client.get(f"/runs/{run_id}/findings/{finding_id}")
+        assert resp.status_code == 200
+        assert resp.json() == {
+            "finding_id": finding_id,
+            "statement": "Ship a seat-based tier first",
+            "claim_ids": [claim_id],
+        }
+
+        missing_resp = await client.get(f"/runs/{run_id}/findings/999999")
+        assert missing_resp.status_code == 404
     finally:
         await http.aclose()
 

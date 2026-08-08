@@ -32,20 +32,36 @@ Last Updated: 2026-08-08
   matching the phase doc's own Open Decision #2 ("Lean polling until the run starts"). Concurrency
   tracking is in-memory, per-process — the same accepted single-worker limitation Phase 02's
   `BudgetTracker` already established, logged the same way rather than silently assumed.
-- **Focus**: Begin Phase 13 — Frontend & Drill-Down UI (depends on Phase 12), or Phase 14 — Benchmark
-  Harness & Calibration (depends on Phase 11, independent of 12/13) — either can start next; see
-  Next Steps.
-- **Blockers**: None for Phase 13/14. Carried forward, all non-blocking: Reddit API application (still
-  not submitted), the GitHub Starring endpoint's permanent restriction (resolved 2026-08-07 as a
-  **vendor lockdown**, not a credential gap — a fine-grained PAT Starring permission cannot unblock
-  it; see Next Steps item 2), `api.evidence.coverage.compute_coverage`'s entity-signal term reading
-  `0.00` for essentially any real run (Phase 10, worth Phase 14's attention), three Phase 11 items —
-  see Next Steps: (a) the community thread-breadth approximation (`api.synth.findings`'s own module
-  docstring), (b) `evaluate_github_theme` (reaction-weighted promotion) has no real caller in v1,
-  (c) two frozen Phase 00 `Report` leaf fields were widened (`CompetitorEntry.maturity`,
-  `ContradictionValue.v`), and one new Phase 12 item: the phase doc's Open Decision #1 (anonymous
-  trial runs) is still **unresolved**, deliberately deferred to Phase 14's real per-run cost number —
-  no BYO-key path exists anywhere, per masterplan §12.8.
+- **Phase**: Phase 13 complete — Frontend & Drill-Down UI. `web/` (Next.js App Router + TypeScript,
+  its own npm toolchain) puts a working UI in front of everything `src/api/web/` exposes: a
+  statically-rendered homepage of benchmark reports (zero backend dependency), a Supabase-authenticated
+  live-run flow with a real-time plan checklist and progressive findings over the fetch-based SSE
+  client, and the drill-down panel — click any cited sentence, the exact `[char_start, char_end)` span
+  highlights in the source text, code-point-to-UTF-16 offset conversion handled explicitly. 33 vitest
+  unit tests, 30 Playwright E2E tests (chromium + mobile-chrome), `tsc`/`eslint` clean. Extended
+  Phase 12's drill-down endpoint (`grade`/`confidence`/`confidence_inputs`/`source_fetched_at`/"other
+  claims from this source") and added `GET /runs/{id}/findings/{id}` — both real gaps found while
+  building against the phase doc's own drill-down design, not speculative additions.
+- **Focus**: Begin Phase 14 — Benchmark Harness & Calibration (depends on Phase 11, ready now), or
+  Phase 15 — Deployment, Observability & Cost Control (depends on 12+13+14, so 14 should go first in
+  practice even though the dependency graph doesn't strictly require it) — see Next Steps.
+- **Blockers**: None for Phase 14. Phase 15 needs Phase 14's real quota numbers to be worth deploying
+  behind (deploying with every quota knob still `TBD`/unenforced is a self-inflicted cost-overrun
+  risk). Carried forward, all non-blocking: Reddit API application (still not submitted), the GitHub
+  Starring endpoint's permanent restriction (resolved 2026-08-07 as a **vendor lockdown**, not a
+  credential gap — a fine-grained PAT Starring permission cannot unblock it; see Next Steps item 2),
+  `api.evidence.coverage.compute_coverage`'s entity-signal term reading `0.00` for essentially any real
+  run (Phase 10, worth Phase 14's attention), three Phase 11 items — see Next Steps: (a) the community
+  thread-breadth approximation (`api.synth.findings`'s own module docstring), (b)
+  `evaluate_github_theme` (reaction-weighted promotion) has no real caller in v1, (c) two frozen
+  Phase 00 `Report` leaf fields were widened (`CompetitorEntry.maturity`, `ContradictionValue.v`), one
+  Phase 12 item: the phase doc's Open Decision #1 (anonymous trial runs) is still **unresolved**,
+  deliberately deferred to Phase 14's real per-run cost number — no BYO-key path exists anywhere, per
+  masterplan §12.8 — and two new Phase 13 items: (d) the public SSE contract has no `node_key`, so
+  `PlanChecklist` matches streamed `task.*` events to plan nodes by `kind` only, best-effort (see
+  Recent Activities); (e) the Phase 12 backend extension made this session is untested against live
+  Postgres — no Docker available here — and needs a real `make integration` pass before being fully
+  trusted.
 
 ## Recent Activities
 
@@ -1195,6 +1211,89 @@ Last Updated: 2026-08-08
     Phase 01/05: keep real traffic out of the default tier without faking more than necessary.
   - Full design/scope: [`docs/execution_phases/phase-12-api-auth-quotas.md`](execution_phases/phase-12-api-auth-quotas.md).
 
+- **Implemented Phase 13**: `web/` — a new Next.js App Router + TypeScript project, entirely separate
+  npm toolchain from `src/api/`. `app/page.tsx` (homepage, `export const dynamic = "force-static"` —
+  the ten benchmark reports are baked into HTML at `next build` time, zero runtime backend
+  dependency), `app/r/[runId]/page.tsx` (report view, client-rendered — a permalink may point at a
+  private run, so auth is a browser-session concern, not a build-time one), `app/new/page.tsx` (query
+  input → Supabase sign-in gate → disambiguation chips → live SSE checklist → report). `components/`:
+  `SpanHighlight` (the critical component — renders `[char_start,char_end)` correctly across a
+  code-point/UTF-16 divergence), `SourcePanel` (the demo — source URL, fetched date, grade badge,
+  highlighted quote, the confidence formula spelled out, "other claims from this source" navigation,
+  focus-trapped + `Escape`-closable), `PlanChecklist`, `ReportView`, `CitedSentence`/`CitedFinding`,
+  `ContradictionCard`, `CoverageBanner`, `DisambiguationChips`. `lib/`: `api.ts` (typed client
+  mirroring the backend's Pydantic models field-for-field), `sse.ts` (fetch-based SSE client — not
+  `EventSource`, since a non-public run's stream needs an `Authorization` header `EventSource` can't
+  send — with explicit `Last-Event-ID` reconnect), `span.ts` (`cpToUtf16`, `resolveHighlightSpan`),
+  `checklist.ts` (streamed `task.*` events → per-node checklist state), `confidence.ts` (mirrors
+  `api.evidence.confidence`'s constants for display only), `supabase.ts` (lazy browser client, so
+  static homepage generation never touches Supabase). 33 vitest unit tests, 30 Playwright E2E tests
+  (15 specs × `chromium` + `mobile-chrome`), `tsc --noEmit` and `eslint` both clean.
+  - **Three backend contract gaps found and fixed before the frontend could be built at all** — the
+    same "surface a real gap, extend the earlier phase minimally, log it" pattern Phase 07 used on
+    `GitHubRepo`/`ProductHuntRetriever`. Phase 12's `GET /runs/{id}/claims/{claim_id}` was missing
+    every field the phase doc's own drill-down design requires showing: **(a)** `grade`/
+    `confidence`/`confidence_inputs` — without them the "turns a number into an argument" panel
+    (masterplan §12.5) has no argument to show; **(b)** `source_fetched_at` — the design calls for
+    "source URL, fetched date, grade badge" and the endpoint had no fetched date; **(c)** "other
+    claims from this source" — named directly in the phase doc's drill-down interaction diagram, so a
+    small sibling-claims query was added. A fourth gap needed a genuinely new endpoint, not just wider
+    fields: `MVP`/`Risk`/`FeatureGap.addresses_finding_ids` name a `findings.id`, and no route could
+    ever turn that into a `claims.id` — `GET /runs/{id}/findings/{id}` was added
+    (`findings_must_cite`'s `CHECK (cardinality(claim_ids) >= 1)`, migration `0001`, guarantees it
+    always resolves). All four changes are additive to Phase 12's response models, covered by new
+    integration tests in `tests/integration/test_api.py`
+    (`test_drilldown_shows_confidence_inputs_and_other_claims_from_same_source`,
+    `test_finding_drilldown_resolves_to_its_claim_ids`), `ruff`/`mypy --strict` clean. **Not verified
+    against live Postgres in this session** — this sandbox has no Docker (`docker: command not
+    found`), unlike every prior phase's own verification pass; the new tests collect correctly (731
+    collected, up from before) and follow the exact query/model shape of the surrounding endpoints,
+    but need a real `make integration` run before being trusted the way Phase 00's DB-backed fixes
+    were.
+  - **The public SSE contract has no field a checklist can use to deterministically match a streamed
+    `task.*` event back to a specific `PlanNode`.** `api.executor.protocol`'s *internal* telemetry
+    carries `node_key`, but `api.models.events.TaskStartedEvent`/etc. (the public vocabulary
+    `api.web.sse` actually persists and streams) only ever carry `task_id: int` + `kind: TaskKind` —
+    discovered while designing `PlanChecklist`, not by inspection first. `lib/checklist.ts`'s
+    `reduceChecklist` matches best-effort by `kind`: the first still-pending node of a streamed
+    event's `kind` is assigned that `task_id` the moment it starts, and every later event for that
+    `task_id` updates the same row — correct because same-kind nodes are fungible `SKIP LOCKED`-leased
+    work, not because the mapping is exact. A future phase wanting an exact mapping would need to add
+    `node_key` to the public event vocabulary, which Phase 13 deliberately did not do (out of scope,
+    and the approximation is invisible to a user — a checklist item ticking is either "some
+    `profile_product` finished" or "the specific one," and only the backend can tell the difference).
+  - **Disambiguation chips can't offer the mockup's literal alternative options.** Masterplan §3's
+    `[ B2B ✓ | B2C ]` mockup implies a closed alternative set per field, but `select_disambiguation_
+    fields` (`api.planner.interpret`) only ever reports *which* fields are low-confidence — `segment`/
+    `geography` are free text on `ResearchBrief`, not enums, and the interpreter never emits
+    alternatives. `DisambiguationChips` renders the model's best guess as a pre-selected, editable
+    pill instead of an invented multiple-choice set — "ignorable, sensible default" is preserved
+    (pressing Go untouched sends no overrides at all), but "pick from two options" isn't, because the
+    API genuinely has nothing to pick from. Logged here rather than silently deviating from the
+    masterplan's own mockup.
+  - **E2E testing had no live Postgres, Supabase project, or FastAPI process available in this
+    session** (same Docker gap as above) — resolved with two different mocking strategies, chosen for
+    what each test actually needs, not one blanket approach: `tests/e2e/mock-server.ts`, a real (not
+    `page.route`-stubbed) Node `http` server, answers the homepage's `next build`-time server-side
+    fetch — `page.route` is a browser network hook and structurally cannot see a fetch that happens
+    inside the Node build process, so a real listening server was the only way to prove the static
+    homepage actually bakes in real data rather than only its empty-state fallback. Every other
+    endpoint (run creation, polling, SSE) is mocked per-test via `page.route` in `tests/e2e/
+    fixtures.ts` instead, so each test can parametrise run status / SSE pacing independently. One
+    genuine test-design bug caught by a first failing run: the live-run "checklist ticks" test
+    delivered its whole scripted SSE body as one instant `page.route` chunk, collapsing `plan.created`
+    → `report.ready` into a single browser tick — too fast for Playwright's own poll loop to ever
+    observe the intermediate `running` state, a timing artifact of the mock, not of the real pipeline
+    (whose events are genuinely seconds apart). Fixed by giving `mock-server.ts`'s `/events` route
+    real ~250ms delays between writes for that one test. The authenticated flow
+    (`tests/e2e/live-run.spec.ts`) seeds a Supabase session directly into the `sb-<project-ref>-auth-
+    token` `localStorage` key `@supabase/supabase-js` v2 reads on init, since no real OAuth redirect
+    is possible here — flagged in `web/README.md` as needing re-verification against a real Supabase
+    project before trust. WebKit could not be installed (`playwright install webkit` needs system
+    libraries this sandbox has no root for) — `mobile-chrome` (`devices["Pixel 7"]`) stands in for the
+    mobile-viewport checks instead of `devices["iPhone 14"]`.
+  - Full design/scope: [`docs/execution_phases/phase-13-frontend.md`](execution_phases/phase-13-frontend.md).
+
 ## Ongoing Work
 
 - [x] Phase 00 — Foundation, Contracts & CI (complete; `make check` green including all
@@ -1230,6 +1329,10 @@ Last Updated: 2026-08-08
 - [x] Phase 12 — API, Auth, Quotas & Guardrails (complete; authenticated FastAPI HTTP layer with SSE,
       atomic quotas proven under real concurrency, a database-flag kill switch, and Cloudflare
       Turnstile in front of the existing pipeline — see Recent Activities)
+- [x] Phase 13 — Frontend & Drill-Down UI (complete; Next.js App Router app in `web/`, static
+      benchmark homepage, live SSE checklist, and the drill-down panel with code-point-correct span
+      highlighting — 33 unit + 30 E2E tests green; two Phase 12 backend gaps closed along the way —
+      see Recent Activities)
 
 ## Completed Milestones
 
@@ -1458,6 +1561,25 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
     coverage floors. **(d)** all quota knobs (`runs_per_user_per_day`, `global_runs_per_day`,
     `max_concurrent_runs`) are still `TBD`/`None` (unenforced) — Phase 14's job, per the phase doc's
     own scope.
+19. **Begin Phase 14 (Benchmark Harness & Calibration).** Depends only on Phase 11 and was always
+    unblocked; Phase 13 (now done) was the other independent option. Phase 13's own open items, none
+    blocking Phase 14: **(a)** `PlanChecklist` matches streamed `task.*` events to plan nodes by
+    `kind` only — the public SSE contract carries no `node_key` (see Recent Activities) — correct for
+    a checklist's purposes but worth knowing before building anything that needs an exact
+    task-to-node mapping. **(b)** `DisambiguationChips` renders an editable best-guess pill, not the
+    masterplan §3 mockup's closed alternative set, because `select_disambiguation_fields` reports
+    only which fields are ambiguous, never candidate values (`segment`/`geography` are free text, not
+    enums) — a real API gap, not a frontend shortcut; closing it would mean the interpreter emitting
+    real alternatives, which is Phase 09/14 territory, not Phase 13's. **(c)** the Phase 12 backend
+    extension made this session (`grade`/`confidence`/`confidence_inputs`/`source_fetched_at`/"other
+    claims", plus the new `GET /runs/{id}/findings/{id}`) has no Docker in this environment to verify
+    against live Postgres — re-run `make integration` for real before trusting it the way every prior
+    phase's DB-backed work was trusted. **(d)** the E2E suite's authenticated flow
+    (`tests/e2e/live-run.spec.ts`) exercises a planted Supabase session, not a real Google/GitHub OAuth
+    round trip — re-verify against a real Supabase project before Phase 15 deploys anything behind it.
+    **(e)** only Chromium is installed in this sandbox (no root for WebKit's system deps) —
+    `mobile-chrome` stands in for `mobile-safari` in `playwright.config.ts`; swap back wherever
+    `--with-deps` can run.
 
 ## Open Items Carried From the Masterplan
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
+from datetime import datetime
 from typing import Any
 
 import asyncpg
@@ -213,6 +214,14 @@ async def get_report(
     return dict(json.loads(payload) if isinstance(payload, str) else payload)
 
 
+class OtherClaim(BaseModel):
+    claim_id: int
+    attribute: str
+    value_text: str | None
+    value_num: float | None
+    quote: str
+
+
 class ClaimDrilldown(BaseModel):
     claim_id: int
     attribute: str
@@ -225,6 +234,11 @@ class ClaimDrilldown(BaseModel):
     context_offset: int
     source_url: str
     source_text: str | None
+    source_fetched_at: datetime
+    grade: str
+    confidence: float
+    confidence_inputs: dict[str, Any] | None
+    other_claims: list[OtherClaim]
 
 
 @router.get("/{run_id}/claims/{claim_id}", response_model=ClaimDrilldown)
@@ -238,7 +252,8 @@ async def get_claim_drilldown(
     row = await pool.fetchrow(
         """
         SELECT c.id, c.attribute, c.value_text, c.value_num, c.quote, c.char_start, c.char_end,
-               c.quote_context, c.context_offset, s.canonical_url, s.extracted_text
+               c.quote_context, c.context_offset, c.grade, c.confidence, c.confidence_inputs,
+               c.source_id, s.canonical_url, s.extracted_text, s.fetched_at
         FROM claims c JOIN sources s ON s.id = c.source_id
         WHERE c.run_id = $1 AND c.id = $2
         """,
@@ -247,6 +262,20 @@ async def get_claim_drilldown(
     )
     if row is None:
         raise NotFoundError("no such claim")
+
+    # "Other claims from this source" (phase doc's drill-down panel design):
+    # every other claim bound to the same source, in this same run.
+    other_rows = await pool.fetch(
+        """
+        SELECT id, attribute, value_text, value_num, quote
+        FROM claims
+        WHERE run_id = $1 AND source_id = $2 AND id != $3
+        ORDER BY id
+        """,
+        run_id,
+        row["source_id"],
+        claim_id,
+    )
     return ClaimDrilldown(
         claim_id=row["id"],
         attribute=row["attribute"],
@@ -259,6 +288,55 @@ async def get_claim_drilldown(
         context_offset=row["context_offset"],
         source_url=row["canonical_url"],
         source_text=row["extracted_text"],
+        source_fetched_at=row["fetched_at"],
+        grade=row["grade"],
+        confidence=float(row["confidence"]),
+        confidence_inputs=_load_jsonb(row["confidence_inputs"]),
+        other_claims=[
+            OtherClaim(
+                claim_id=r["id"],
+                attribute=r["attribute"],
+                value_text=r["value_text"],
+                value_num=float(r["value_num"]) if r["value_num"] is not None else None,
+                quote=r["quote"],
+            )
+            for r in other_rows
+        ],
+    )
+
+
+class FindingDrilldown(BaseModel):
+    finding_id: int
+    statement: str
+    claim_ids: list[int]
+
+
+@router.get("/{run_id}/findings/{finding_id}", response_model=FindingDrilldown)
+async def get_finding_drilldown(
+    run_id: str, finding_id: int, request: Request, user: User | None = Depends(optional_user)
+) -> FindingDrilldown:
+    """`MVP.addresses_finding_ids`/`Risk.addresses_finding_ids`/
+    `FeatureGap.addresses_finding_ids` (Report, Phase 11) name a
+    `findings.id`, not a `claims.id` — the one hop `ClaimDrilldown` can't
+    take. `findings_must_cite` (migration `0001`) guarantees `claim_ids` is
+    never empty, so every synthesised statement resolves to a real claim the
+    same way a competitor/pricing/pain-point entry already does (phase doc:
+    "findings is the only table whose text ever reaches a user, and it
+    always carries claim_ids... the entire drill down mechanism").
+    """
+    pool: asyncpg.Pool = request.app.state.pool
+    run_row = await pool.fetchrow("SELECT user_id, is_public FROM runs WHERE id = $1", run_id)
+    _authorize_row(run_row, user)
+
+    row = await pool.fetchrow(
+        "SELECT id, statement, claim_ids FROM findings WHERE run_id = $1 AND id = $2",
+        run_id,
+        finding_id,
+    )
+    if row is None:
+        raise NotFoundError("no such finding")
+    return FindingDrilldown(
+        finding_id=row["id"], statement=row["statement"], claim_ids=list(row["claim_ids"])
     )
 
 
