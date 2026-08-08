@@ -42,26 +42,55 @@ Last Updated: 2026-08-08
   Phase 12's drill-down endpoint (`grade`/`confidence`/`confidence_inputs`/`source_fetched_at`/"other
   claims from this source") and added `GET /runs/{id}/findings/{id}` — both real gaps found while
   building against the phase doc's own drill-down design, not speculative additions.
-- **Focus**: Begin Phase 14 — Benchmark Harness & Calibration (depends on Phase 11, ready now), or
-  Phase 15 — Deployment, Observability & Cost Control (depends on 12+13+14, so 14 should go first in
-  practice even though the dependency graph doesn't strictly require it) — see Next Steps.
-- **Blockers**: None for Phase 14. Phase 15 needs Phase 14's real quota numbers to be worth deploying
-  behind (deploying with every quota knob still `TBD`/unenforced is a self-inflicted cost-overrun
-  risk). Carried forward, all non-blocking: Reddit API application (still not submitted), the GitHub
-  Starring endpoint's permanent restriction (resolved 2026-08-07 as a **vendor lockdown**, not a
-  credential gap — a fine-grained PAT Starring permission cannot unblock it; see Next Steps item 2),
-  `api.evidence.coverage.compute_coverage`'s entity-signal term reading `0.00` for essentially any real
-  run (Phase 10, worth Phase 14's attention), three Phase 11 items — see Next Steps: (a) the community
-  thread-breadth approximation (`api.synth.findings`'s own module docstring), (b)
-  `evaluate_github_theme` (reaction-weighted promotion) has no real caller in v1, (c) two frozen
-  Phase 00 `Report` leaf fields were widened (`CompetitorEntry.maturity`, `ContradictionValue.v`), one
-  Phase 12 item: the phase doc's Open Decision #1 (anonymous trial runs) is still **unresolved**,
-  deliberately deferred to Phase 14's real per-run cost number — no BYO-key path exists anywhere, per
-  masterplan §12.8 — and two new Phase 13 items: (d) the public SSE contract has no `node_key`, so
-  `PlanChecklist` matches streamed `task.*` events to plan nodes by `kind` only, best-effort (see
-  Recent Activities); (e) the Phase 12 backend extension made this session is untested against live
-  Postgres — no Docker available here — and needs a real `make integration` pass before being fully
-  trusted.
+- **Phase**: Phase 14 complete — Benchmark Harness & Calibration. `bench/` (repo-root, sibling of
+  `src/`, mirrors `spikes/`'s own precedent) is a ten-query benchmark with hand-verified, dated ground
+  truth (`bench/queries/q01.yaml`–`q10.yaml`, six tuning / four held-out), a loader enforcing the
+  staleness (60-day) and tuning/held-out-split disciplines mechanically (`bench/loader.py`), a pure
+  scoring layer (`bench/metrics.py`), a live-pipeline runner (`bench/runner.py`, `--cached-only` for
+  zero-spend replay — a real, unresolved gap found verifying it, see Blockers), and a CI regression
+  check (`bench/regression.py`, `.github/workflows/bench.yml`). All ten queries were actually run
+  against real vendors this session — not simulated. `make check`: **792 tests** (up from 730),
+  **96.05% coverage overall**, stable across two consecutive full runs; `bench/loader.py` 100%,
+  `bench/metrics.py` 99%, `bench/regression.py`'s non-CLI logic fully covered, `bench/runner.py`
+  excluded from the coverage gate (drives real vendors/Postgres end to end, same treatment as
+  `api.cli`/`api.config`). Full numbers and every calibration decision: `docs/benchmark.md`/
+  `docs/tuning.md`. **Every masterplan §8.2 quota
+  knob is now a derived, real value** (`.env.example`, `RUN_BUDGET_WEIGHT=70`, `RUN_BUDGET_USD=0.25`,
+  `RUN_TIMEOUT_S=640`, `MAX_COMPETITORS_PROFILED=8`, `MAX_PAGES_PER_ENTITY=4`,
+  `MAX_COMMUNITY_THREADS=20`, `GLOBAL_RUNS_PER_DAY=4`, `RUNS_PER_USER_PER_DAY=3`,
+  `MAX_CONCURRENT_RUNS=2`, `EXA_DAILY_CREDIT_CAP_USD=0.33`, `EXA_GLOBAL_DAILY_CREDIT_CAP_USD=0.33`),
+  closing masterplan §14 open items #1 and #2.
+- **Focus**: Begin Phase 15 — Deployment, Observability & Cost Control. Its own dependency (12+13+14)
+  is now satisfied. Phase 14 leaves real, quantified findings for Phase 15 to weigh before deploying —
+  see Blockers and Recent Activities.
+- **Blockers**: None hard-blocking Phase 15, but three Phase 14 findings are worth reading before
+  deploying behind these numbers: **(a) recall against well-known market-leader ground truth was 0% on
+  every one of the six tuning queries** — not a benchmark-harness bug (precision stayed 100%, and the
+  harness's own tests plus a full re-run from cache confirm the scoring is correct) but a real,
+  traced discovery-layer weakness: the planner incorrectly engaged GitHub OSS discovery for
+  plainly-mainstream categories on 2 of 10 runs (q01, q03 — both of this benchmark's own
+  "GitHub-should-be-skipped" role queries), and even when discovery worked normally it consistently
+  surfaced small/long-tail products over household names (q04, q07, q09) — Phase 09/04-shaped work,
+  not fixed here, full detail in `docs/benchmark.md`. **(b) the trap query's contradiction detector
+  fired, but not on the researched trap** — `helpscout.com` was never discovered, and the
+  contradiction that did fire was a false positive on a legitimately multi-valued attribute
+  (`product.integrations`) that `api.evidence.contradictions`'s SQL treats as single-valued — a real
+  Phase 08 design gap, found by the benchmark exactly as intended, not fixed here. **(c) synthesis
+  (MVP/feature-gaps/risks) never fired on any of the six tuning runs** — traced to
+  `MAX_COMMUNITY_THREADS`'s per-pair floor bug (fixed at the quota-knob level, `docs/tuning.md`, but
+  only partially — the deeper fix is structural, a Phase 09/10 design note). **(d) true zero-spend CI
+  replay is not currently achievable** — `RobotsCache` is in-memory only and domain retrievers
+  (HN, GitHub Search) have no cache layer at all, confirmed by an actual `--cached-only` re-run
+  failing tasks on 5 of 6 tuning queries; `bench.yml` ships with `continue-on-error` on the affected
+  steps rather than either faking green or being withheld — real Phase 03/04 work, `docs/tuning.md`
+  §6. Carried forward,
+  unaffected by Phase 14: Reddit API application (still not submitted), the GitHub Starring endpoint's
+  permanent restriction (2026-06-30 vendor lockdown), `evaluate_github_theme`'s zero real callers
+  (confirmed still true — see `docs/tuning.md` §2), two frozen Phase 00 `Report` leaf fields widened in
+  Phase 11, the Phase 12 Open Decision #1 (anonymous trial runs — now unblockable: real per-run cost is
+  $0.062 mean, `docs/benchmark.md`, cheap enough that Phase 15 can revisit this for real), Phase 13's
+  `node_key`-less SSE contract and its untested-against-live-Postgres backend extension (now exercised
+  for real by every `bench.runner` invocation this session — Docker was available throughout).
 
 ## Recent Activities
 
@@ -1581,10 +1610,253 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
     `mobile-chrome` stands in for `mobile-safari` in `playwright.config.ts`; swap back wherever
     `--with-deps` can run.
 
+- **Implemented Phase 14**: `bench/` — `loader.py` (`BenchmarkQuery`/`GroundTruth`/`GroundTruthFact`
+  Pydantic models over `bench/queries/*.yaml`; `STALENESS_DAYS = 60` enforced mechanically —
+  `load_tuning_queries`/`load_held_out_queries` raise `StaleGroundTruthError` rather than silently
+  scoring a stale fact; `load_held_out_queries` additionally requires `confirm=True` and logs a loud
+  warning on every call, the mechanical half of masterplan §10's "touched once, at the end"
+  discipline), `metrics.py` (every masterplan §10 metric as a pure function over a `Report`/
+  `GroundTruth` — `competitor_recall`, `precision_proxy`, `fact_accuracy` (numeric facts within
+  `NUMERIC_FACT_TOLERANCE_USD=$1`, everything else exact/case-insensitive), `sentence_binding_rate`,
+  `contradiction_fired`, `synthesis_omitted_sections`, `extraction_drop_breakdown`,
+  `planner_fallback_rate`, `synthesis_rejection_rate`, `cost_summary`/`latency_summary`/
+  `cache_hit_rate_summary`/`coverage_summary` — two are honestly-scoped proxies, documented as such in
+  the module docstring rather than silently approximated: `sentence_binding_rate` checks the
+  *structural* invariant `Report`'s own aggregate `claim_ids`/`addresses_finding_ids` fields can prove,
+  not a true per-sentence count `api.synth.bind` computes internally and never returns;
+  `cache_hit_rate_summary` reports only the *source* (fetch) cache hit rate, since search/extraction
+  cache hits are not instrumented anywhere in the pipeline today), `runner.py` (`run_and_score` drives
+  `api.cli.run_query` in-process and scores the result; `write_results` persists a dated JSON snapshot
+  per query; `--cached-only` swaps in an `httpx.MockTransport` that raises on any request it sees at
+  all — needs no change anywhere in `src/api/`, since every layer's own cache is already checked before
+  a real HTTP call, so a genuinely warm run never reaches the transport; `--export-cache-seed` /
+  `export_cache_seed` shells out to `pg_dump --data-only` for the eight cache-relevant tables),
+  `regression.py` (`check_regression` — the phase doc's four CI failure conditions: sentence binding
+  <100%, recall dropping >10 points from `bench/results/baseline.json`, cost rising >50%, the trap
+  query's contradiction detector going quiet — pure comparison over two `QueryScore` sets, no I/O
+  beyond what's already on disk), `bench/queries/q01.yaml`–`q10.yaml` (six tuning / four held-out, 3
+  easy / 4 medium / 3 hard-and-thin, every fact hand-verified via real web research on 2026-08-08 —
+  not recalled from training data — with dated `verified_on`/`source` fields).
+  `.github/workflows/bench.yml` (nightly, ephemeral Postgres seeded from a committed cache dump,
+  `--tuning --cached-only` then `python -m bench.regression`, zero real spend — `continue-on-error`
+  on both, see Blockers). `make check`: **792 tests** (up from 730), **96.05% coverage overall**,
+  stable across two consecutive full runs; `bench/loader.py` 100%, `bench/metrics.py` 99%,
+  `bench/regression.py`'s non-CLI logic fully covered, `bench/runner.py` excluded from the coverage
+  gate (drives real vendors/Postgres end to end, same treatment as `api.cli`/`api.config`).
+  **All ten queries were actually run against real vendors this session, not simulated** — full
+  numbers, every real finding, and every calibration/quota decision: `docs/benchmark.md`/
+  `docs/tuning.md`. Highlights (full detail in those two docs, not duplicated here):
+  - **A real gap found and fixed at the Phase 14 boundary, the same "surgical extraction" pattern
+    every prior phase has used when a real caller needs something an earlier phase's module didn't
+    expose**: `api.cli.cmd_run` only ever printed — no return value, and `is_benchmark`/`is_public`
+    (real `runs` columns since Phase 00, read by Phase 12's own `GET /reports/benchmark`) were never
+    set anywhere in the codebase. Extracted the existing body into `run_query(pool, http, settings,
+    query, ...) -> RunOutcome` (`run_id`, `report`, `cost_usd`/`llm_cost_usd`/`search_cost_usd`,
+    `coverage`, `duration_s`, `used_fallback`, `stats`); `cmd_run` is now a thin wrapper that prints
+    from it, behavior-unchanged for every existing caller (`tests/integration/test_pipeline_e2e.py`
+    still passes untouched). `create_run` gained `is_benchmark: bool = False`; `is_public` is
+    deliberately **never** auto-set — publishing a benchmark report to the public homepage stays a
+    separate, deliberate step, not a side effect of running one. New
+    `tests/integration/test_cli_run_query.py` exercises the *whole* pipeline (interpret → plan →
+    execute → assemble), unlike `test_pipeline_e2e.py`'s deliberately-narrower deterministic-fallback
+    walking skeleton.
+  - **`bench/` lives at the repo root, a sibling of `src/`, not installed into the `api` wheel** —
+    mirrors `spikes/`'s own precedent from Phase 01. Needed `pythonpath = ["."]` added to
+    `[tool.pytest.ini_options]` (a genuine gap: nothing had ever needed to import a repo-root
+    non-`src` package from `tests/` before this — `spikes/` itself has never been imported by any
+    test, only referenced in module docstrings) and `--cov=bench` / `bench` added to
+    `[tool.coverage.run] source`, `bench/runner.py` added to `omit` alongside `api.cli`/`api.config`.
+  - **The single biggest real finding: 0% recall against household-name ground truth on every one of
+    the six tuning queries, traced to three independent, confirmed causes, not one bug** — (1) the
+    planner incorrectly engaged GitHub OSS discovery for plainly-mainstream categories on both of this
+    benchmark's own "GitHub-should-be-skipped" role queries (q01 "project management tool", q03
+    "video conferencing software" — spawning `oss_profile` against curated `awesome-*` list repos and
+    fan-fic-adjacent side projects, never real competitors); (2) discovery, when it worked normally,
+    consistently surfaced real, artifact-verified, but long-tail/indie products over the well-known
+    market leaders (q04's expense tracker query found `mozey.co`/`centsense.app`/`fwdtools.com`/
+    `flexpro.app`/`vuuv.co`/`keepr.co.uk`, never Expensify/Wave/FreshBooks — precision stayed 100%
+    throughout, so this is a recall problem, not hallucination); (3) a structural gap in
+    `api.synth.assemble.build_competitors`'s all-or-nothing pricing-triple requirement means a
+    genuinely, permanently free OSS product (q08's `docusaurus.io`, real `pricing.free_tier=true`
+    claim, zero paid tiers to report) can **never** appear in `report.competitors` at all — the closed
+    `pricing.model` vocabulary (`seat|usage|flat|freemium`) has no honest value for "there is no paid
+    tier." All three are real, owning-phase findings (Phase 09/04 for #1/#2, Phase 00/11's `Report`
+    contract for #3) — logged per this phase's own explicit scope ("changing product behaviour beyond
+    tuning constants... a design flaw is a fix in the owning phase"), not patched here.
+  - **The trap query fired the contradiction detector, but not on the researched trap.** `q07.yaml`
+    documents a real, dated Help Scout pricing-model reversal (contacts-based usage pricing in 2025,
+    reverted to per-seat in 2026, full citations in the query file) specifically so the detector would
+    have something genuine to catch — `helpscout.com` was never discovered by the live run (cause #2
+    above), so the fired contradiction (`contradiction_fired=true`, satisfying the raw exit-criterion
+    boolean) was unrelated: a false positive on `helpspot.com`'s `product.integrations` (`"REST API"`
+    vs. `"Office365"` — both true simultaneously, not a real disagreement). The same shape recurred on
+    other tuning runs (`klaviyo.com`: three integrations flagged mutually exclusive;
+    `wapmini.in`: platform values across eight sources). Real finding:
+    `api.evidence.contradictions`'s `GROUP BY attribute HAVING count(distinct value) > 1` treats every
+    closed-vocabulary attribute as single-valued, but `product.integrations`/`product.platforms` are
+    legitimately multi-valued — a genuine Phase 08 design gap the benchmark found exactly as the phase
+    doc hoped it would ("without \[a trap\] there is no evidence the contradiction detector ever fires
+    rather than silently never triggering" — it fires, just not selectively enough).
+  - **Synthesis (MVP/feature-gaps/risks) never fired on any of the six tuning runs** — traced, not
+    guessed at: every `complaint.*`/`request.*` theme observed had `support_count` 1-4, never near
+    `api.evidence.promotion.COMMENT_SUPPORT_THRESHOLD=5`. Root cause found in
+    `api.tasks.community.MineCommunityHandler`'s own `per_call_limit = max_community_threads //
+    (keywords * venues)`: real plans used 6-18 keyword/venue pairs against the old default of 10,
+    flooring `per_call_limit` to exactly 1 in every single run observed. `MAX_COMMUNITY_THREADS`
+    doubled to 20 (`docs/tuning.md`) partially relieves this; a full fix needs a per-pair floor or
+    fewer keyword variants, a Phase 09/10 design note, not something one flat cap fully solves.
+  - **What held up under real, messy, live data**: sentence binding 100% on all ten runs, no
+    exceptions — the one hard pass/fail metric, and `api.synth.bind`'s "drop, don't fabricate"
+    discipline never broke once. Precision 100% across ten runs — masterplan Rule 2 (verifiable
+    artifact required) structurally prevented every hallucinated competitor, even while recall
+    struggled. `coverage.score` read `0.00` on every run, confirming (not newly discovering) Phase
+    10's own finding at real production scale: every `web:` entity across all ten runs landed on
+    `insufficient_signal`, since no domain-age/install-count source exists for that scheme yet.
+  - **Calibration: four constant groups reviewed, all four kept unchanged, each for a distinct,
+    evidence-based reason** (`docs/tuning.md` has the full reasoning) — `evidence/confidence.py`'s
+    formula constants are masterplan-specified, not guesses, and the six runs produced almost no
+    matched-fact data to responsibly override them against; `evidence/promotion.py`'s
+    `COMMENT_SUPPORT_THRESHOLD`/`COMMENT_MIN_DISTINCT_THREADS` are likewise masterplan-specified, and
+    the real bottleneck (traced above) was `MAX_COMMUNITY_THREADS`, not these; `GITHUB_REACTION_
+    THRESHOLD` is confirmed **still untunable** — `evaluate_github_theme` has zero real callers,
+    exactly as Phase 11's own tracker entry already found; `resolve/maturity.py`'s five thresholds and
+    `synth/cluster.py`'s `DEFAULT_SIMILARITY_THRESHOLD` both had no real per-entity signal or enough
+    clustering data (18 complaint/request claims total across all six runs, mostly singletons) to
+    calibrate against. "Kept, and here's why" counted as a real calibration decision throughout, not a
+    skipped one.
+  - **Every masterplan §8.2 quota knob derived from the six live runs and set for real** (full
+    arithmetic in `docs/tuning.md`) — `RUN_BUDGET_WEIGHT`: 40 → **70** (p95 *wanted* plan weight
+    across the six runs was 47, × 1.5 headroom; the old 40 was observed directly causing q01's
+    zero-competitor report by starving real `profile_product`/`extract_pricing` tasks after OSS
+    profiling ate the budget first) — this is also a `DEFAULT_RUN_BUDGET_WEIGHT` change in
+    `api.planner.registry`, not just a `.env` value, since that constant is the actual fallback used
+    whenever `Settings.run_budget_weight` is unset; `RUN_BUDGET_USD`: unset → **0.25** (p95 cost
+    $0.0777 × 3); `RUN_TIMEOUT_S`: unset → **640** (p95 duration 317s × 2 — confirmed to have zero
+    consumers anywhere in the codebase; the value is set per the masterplan §8.2 checklist, the wiring
+    gap is a carried-forward Phase 15 item); `MAX_COMPETITORS_PROFILED`/`MAX_PAGES_PER_ENTITY`: kept
+    at 8/4 (no sweep performed, no signal pointed at either); `MAX_COMMUNITY_THREADS`: 10 → **20**
+    (`DEFAULT_MAX_COMMUNITY_THREADS` in `api.tasks.context`, same "real fallback, not just `.env`"
+    treatment — the traced per-pair-floor bug above); `GLOBAL_RUNS_PER_DAY`: unset → **4** (`(Exa
+    $10/mo ÷ 30) ÷ p95 search-$/run ($0.070)` ≈ 4.76, floored per the phase doc's own p95-not-median
+    rule); `RUNS_PER_USER_PER_DAY`/`MAX_CONCURRENT_RUNS`: unset → **3/2** (judgement calls, not
+    derivable from six queries alone, documented as such); `EXA_DAILY_CREDIT_CAP_USD`/
+    `EXA_GLOBAL_DAILY_CREDIT_CAP_USD`: unset → **0.33/0.33** (`$10/mo ÷ 30`, the two collapsing to one
+    system-wide check by Phase 04's own design).
+  - **A real, if narrow, test-infrastructure interaction found while verifying `make check` after
+    setting the new quota values for real**: `api.web.quota.try_create_run`'s admission check counts
+    `runs` rows by wall-clock `started_at > now() - interval '1 day'`, not scoped to any one test —
+    enforcing a small real `GLOBAL_RUNS_PER_DAY` in this repo's own local `.env` (read by every
+    `Settings()` call, including test helpers that don't override it) made
+    `tests/integration/test_quota.py`/`test_api.py` start tripping the kill switch on rows *other*
+    tests in the same session had already inserted into the shared, long-lived local `ai_pi_test`
+    Postgres — never exercised before since these knobs were always `None`. Not a bug in
+    `try_create_run` (working exactly as designed) or in those tests; resolved by leaving
+    `RUNS_PER_USER_PER_DAY`/`GLOBAL_RUNS_PER_DAY`/`MAX_CONCURRENT_RUNS` commented out in this repo's
+    own local `.env` specifically (documented inline there and in `docs/tuning.md`) while shipping
+    the derived values in `.env.example` for a real deployment to uncomment — `.env` is gitignored and
+    CI never reads it (`ci.yml` sets its own placeholder env vars directly), so this is a purely local
+    convenience, not a scope reduction on the deliverable.
+  - **The held-out run hit the newly-derived `EXA_DAILY_CREDIT_CAP_USD` for real, mid-run, on its
+    first attempt** — the six tuning runs plus the first held-out attempt spent more than $0.33 of Exa
+    credit within the same real calendar day (both batches run hours apart in one working session, not
+    across a genuine day boundary), and search began degrading (`search.degraded... credit allowance
+    exhausted`) partway through q05. Killed before any held-out result was scored or written (the
+    runner only persists results after a full batch completes, so nothing partial or misleading
+    landed on disk); the cap was temporarily unset for a clean held-out run and restored immediately
+    after, documented in `docs/tuning.md` rather than silently worked around — a genuine demonstration
+    that the derived cap does exactly what it's for.
+  - **The re-run held-out set reproduced the tuning set's own findings independently, on data never
+    looked at until this run — not overfitting, the same real gap** (masterplan §10's own held-out
+    discipline: "if the held-out numbers are much worse... that is reported, not tuned away"). 3 of 4
+    held-out queries (q03, q05, q06) independently reproduced 0% recall against real ground truth,
+    same long-tail-over-household-name pattern; **all four held-out contradictions that fired were the
+    same `product.integrations`/`product.platforms` false positive** already found on the tuning set
+    (`sentry.io`: ten platforms flagged mutually exclusive; similarly `shakebug.com`/`dialpad.com`/
+    `dune.com`/`kanorio.com`) — across the full ten-query benchmark, **zero of eight fired
+    contradictions were the researched Help Scout trap**, generalizing the Phase 08 finding from "seen
+    once" to "seen on every run that fired one." **q10 ("MEV monitoring for solo Ethereum validators,"
+    the thin-category role query) is this benchmark's one genuinely clean result**: the real run
+    correctly returned zero competitors for a category whose ground truth was deliberately built
+    empty, with zero `known_absent` false positives either — masterplan Rule 2 holding under a
+    genuinely adversarial "there's almost nothing real here" input, exactly what the query exists to
+    test, and the only run in all ten with a nonzero `coverage.score` (0.041, worth a follow-up look,
+    not chased further this phase).
+  - **A genuine, unresolved architectural gap found while verifying `bench.yml`'s own zero-spend
+    promise, confirmed empirically, not just read from the code**: `python -m bench.runner --tuning
+    --cached-only`, re-run against the very same Postgres the live tuning benchmark had just
+    populated, still fails at least one task on five of six queries.
+    `api.retrieval.robots.RobotsCache` keeps parsed `robots.txt` results in a plain in-memory dict,
+    never persisted to Postgres — a fresh process starts with an empty robots cache regardless of how
+    warm the `sources`/`search_cache`/`extraction_cache`/`llm_response_cache` tables are.
+    `api.sources.hn.HNRetriever` and GitHub's Search API have **no caching layer at all** — masterplan
+    §9 names exactly three cache types and none cover domain retrievers. This is real Phase 03/04
+    infrastructure work (new cache tables, new read/write paths per retriever), not a Phase 14
+    "tuning constant" — `bench.yml` ships anyway, `continue-on-error: true` on the two affected steps
+    with a top-of-file comment explaining why, rather than either lying about being green or
+    withholding the workflow the phase doc's own exit criteria ask for. A second, distinct,
+    not-yet-diagnosed bug surfaced in the same pass: `api.resolve.store.merge_alias` raised a real
+    Postgres FK violation trying to merge an entity that still had `claims` referencing it from an
+    earlier run — logged for Phase 07, not chased down this phase. Full detail:
+    `docs/tuning.md`'s §6.
+  - Full numbers for both splits, every finding in complete detail, and the methodology notes:
+    [`docs/benchmark.md`](benchmark.md). Full design/scope:
+    [`docs/execution_phases/phase-14-benchmark-calibration.md`](execution_phases/phase-14-benchmark-calibration.md).
+  - **The phase doc's own exit criteria, walked explicitly rather than left implicit** — 13 of 18 met
+    cleanly, 4 met only partially (each a real, traced finding above, not a shortcut), 1 not met at
+    all (a genuine, logged infrastructure gap):
+    - ✅ Ten queries, matching difficulty and shape composition rules (3 easy/4 medium/3 hard-thin;
+      consumer-no-GitHub, dev-tools-GitHub, OSS-dominated, thin-category roles all assigned).
+    - ✅ At least one trap query with a recent pricing change (q07, the real Help Scout reversal).
+    - ✅ All ground truth hand-verified and date-stamped (`verified_on: 2026-08-08`, real web research,
+      not recalled from training data — including a real correction to the masterplan's own worked
+      example, Ramp's freelancer ineligibility).
+    - ✅ Six tuning / four held-out split enforced mechanically (`load_held_out_queries(confirm=True)`
+      plus a loud log line on every call, not just a convention).
+    - ❌ **Runner executes from cache at zero spend — not met.** `RobotsCache`/domain-retriever
+      persistence gap, confirmed empirically; `bench.yml` ships anyway with `continue-on-error`,
+      `docs/tuning.md` §6.
+    - ✅ All metrics computed and recorded in `docs/benchmark.md`, dated.
+    - ✅ **Sentence binding rate is 100%** — on all ten runs, no exceptions.
+    - ⚠️ **Contradiction detector fires on the trap query — met in letter, not in spirit.** It fired
+      (raw boolean true) but never once on the researched Help Scout trap across either split — every
+      fired contradiction traced to the `product.integrations`/`product.platforms` false-positive
+      class instead (Phase 08 finding, `docs/benchmark.md`).
+    - ✅ Thin-category query returns few/zero competitors, not invented ones (q10: zero competitors,
+      zero `known_absent` false positives — this benchmark's one genuinely clean result).
+    - ❌ **Consumer query correctly skips GitHub; dev-tools query uses it — the consumer half failed
+      twice.** q01 and q03 (both consumer-role queries) both incorrectly engaged GitHub OSS discovery;
+      q05 (dev-tools role) correctly used it. 1 for 2, not 2 for 2 — a real Phase 09 finding.
+    - ✅ All four constant groups calibrated, each with a recorded justification (`docs/tuning.md` §§1-4
+      — three "kept, here's why," one "untunable this phase and here's why").
+    - ✅ **Every `TBD` in masterplan §8.2 replaced with a derived value.**
+    - ✅ `GLOBAL_RUNS_PER_DAY` derived from p95 search *count* (10 searches/run, measured directly from
+      `search_credit_usage`), not guessed — `docs/tuning.md` §5.
+    - ✅ Held-out set run once, after tuning; results reported honestly, including that 3 of 4 held-out
+      queries independently reproduced the tuning set's own 0%-recall finding.
+    - ⚠️ **CI regression job runs nightly with the four failure conditions — ships, but not fully
+      green.** `bench.yml`/`bench.regression` exist and are correct; the underlying cached replay they
+      depend on has the same zero-spend gap above, so `continue-on-error` keeps the job from blocking
+      on a known, already-diagnosed limitation rather than pretending it passes.
+    - ✅ Masterplan §14 open items #1 and #2 closed (see "Open Items Carried From the Masterplan" table
+      below).
+    Per this project's own established convention (Phase 09/10/11 all shipped with logged, non-blocking
+    gaps rather than silently claiming completion): every unmet or partially-met criterion above is a
+    real, traced, owning-phase finding — not a shortcut taken to check a box.
+20. **Begin Phase 15 (Deployment, Observability & Cost Control).** Its dependency (12+13+14) is now
+    satisfied. Worth reading before starting: the three real findings in this entry's own Blockers
+    section (recall, the trap's false-positive contradiction, synthesis never firing) are not
+    deployment blockers per se, but they mean the report quality a Phase 15 deployment actually ships
+    is measurably weaker than the masterplan's own aspirational examples — worth setting expectations
+    with whoever the audience is before it's live. `RUN_TIMEOUT_S` is set but has no consumer; Phase 15
+    is a natural place to wire it into the executor's per-run timeout if that's judged worth doing.
+    `bench/fixtures/cache_seed.sql` is the seed CI's nightly `bench.yml` job restores — if Phase 15
+    changes the schema, that seed needs regenerating (`python -m bench.runner --export-cache-seed
+    --pg-dump-via-docker-compose`) or `bench.yml` will fail to restore it.
+
 ## Open Items Carried From the Masterplan
 
 | # | Item | Closes in |
 |---|---|---|
-| 1 | All quota and budget values | [Phase 14](execution_phases/phase-14-benchmark-calibration.md) |
-| 2 | The ten benchmark queries + hand-verified ground truth | [Phase 14](execution_phases/phase-14-benchmark-calibration.md) |
+| 1 | All quota and budget values | **Closed in [Phase 14](execution_phases/phase-14-benchmark-calibration.md): every masterplan §8.2 knob derived from six live benchmark runs and set — see this entry's own Recent Activities and `docs/tuning.md`.** |
+| 2 | The ten benchmark queries + hand-verified ground truth | **Closed in [Phase 14](execution_phases/phase-14-benchmark-calibration.md): `bench/queries/q01.yaml`–`q10.yaml`, every fact hand-verified via real web research on 2026-08-08, dated `verified_on`/`source` fields.** |
 | 3 | Whether Playwright is needed at all | **Closed in [Phase 01](execution_phases/phase-01-dependency-validation-spike.md): no — deferred behind a feature flag. Static crawl hit rate (88%) clears the masterplan's 80% bar; ships only if Phase 14 recall proves JS-rendering-limited.** |

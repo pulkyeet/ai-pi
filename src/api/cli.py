@@ -30,6 +30,7 @@ import asyncio
 import sys
 import time
 import uuid
+from dataclasses import dataclass
 from datetime import timedelta
 from typing import cast
 
@@ -54,6 +55,7 @@ from api.executor.protocol import (
 from api.llm.embed import build_embed_context
 from api.llm.gateway import LLMContext
 from api.models.plan import TASK_COST_WEIGHT, Plan, TaskKind
+from api.models.report import Report
 from api.planner.interpret import interpret
 from api.planner.plan import plan_stage1
 from api.planner.registry import DEFAULT_MAX_COMPETITORS_PROFILED, DEFAULT_RUN_BUDGET_WEIGHT
@@ -97,15 +99,16 @@ async def ensure_cli_user(pool: asyncpg.Pool) -> uuid.UUID:
     return cast(uuid.UUID, row["id"])
 
 
-async def create_run(pool: asyncpg.Pool, query: str) -> str:
+async def create_run(pool: asyncpg.Pool, query: str, *, is_benchmark: bool = False) -> str:
     user_id = await ensure_cli_user(pool)
     run_id = f"r_{uuid.uuid4().hex}"
     await pool.execute(
-        "INSERT INTO runs (id, user_id, query, status, started_at) "
-        "VALUES ($1, $2, $3, 'running', now())",
+        "INSERT INTO runs (id, user_id, query, status, started_at, is_benchmark) "
+        "VALUES ($1, $2, $3, 'running', now(), $4)",
         run_id,
         user_id,
         query,
+        is_benchmark,
     )
     return run_id
 
@@ -311,131 +314,195 @@ def print_summary(
     )
 
 
-async def cmd_run(query: str, *, budget: int | None, no_cache: bool) -> None:
+@dataclass(frozen=True)
+class RunOutcome:
+    """What a caller needs back from a completed run without re-querying
+    Postgres or scraping stdout — `cmd_run` prints from this; `bench.runner`
+    (Phase 14) consumes it in-process to score against ground truth. `status`
+    is always `"done"` when this is actually returned: a run that raises
+    part-way through propagates the exception instead (unchanged existing
+    behavior — the `runs` row is left `status='running'` in that case, same
+    as before this type existed), so there is no `"failed"` value to model
+    here yet.
+
+    `used_fallback`/`stats` carry process metrics `Report` itself doesn't
+    (masterplan §10's "process metrics... explain *why* a quality number
+    moved" — planner fallback rate, extraction drop breakdown by reason,
+    search degradation) without a second pass over Postgres; `stats` is the
+    same `RunStats` object `print_summary` already reads from."""
+
+    run_id: str
+    status: str
+    report: Report
+    cost_usd: float
+    llm_cost_usd: float
+    search_cost_usd: float
+    coverage: float
+    duration_s: float
+    used_fallback: bool
+    stats: RunStats
+
+
+async def run_query(
+    pool: asyncpg.Pool,
+    http: httpx.AsyncClient,
+    settings: Settings,
+    query: str,
+    *,
+    budget: int | None = None,
+    no_cache: bool = False,
+    is_benchmark: bool = False,
+) -> RunOutcome:
+    """The actual end-to-end pipeline: interpret -> plan -> execute -> claims
+    -> contradictions -> coverage -> synthesize -> report -> persist. Owns no
+    `Pool`/`AsyncClient` lifecycle — the caller (`cmd_run` for a one-shot CLI
+    invocation, `bench.runner` for ten benchmark queries sharing one pool)
+    decides whether to open one per call or reuse one across many."""
+    start = time.monotonic()
+    run_id = await create_run(pool, query, is_benchmark=is_benchmark)
+    print(f"run_id: {run_id}")
+
+    deps = await build_deps(pool, http, settings, run_id=run_id, force_fetch=no_cache)
+    llm_ctx: LLMContext = deps.llm_context(None)
+
+    interpretation = await interpret(query, ctx=llm_ctx)
+    print(f"brief: {interpretation.brief.model_dump()}")
+    if interpretation.disambiguation_fields:
+        print(
+            "(disambiguation fields, proceeding with the best guess: "
+            f"{interpretation.disambiguation_fields})"
+        )
+    await pool.execute(
+        "UPDATE runs SET brief = $2::jsonb WHERE id = $1",
+        run_id,
+        interpretation.brief.model_dump_json(),
+    )
+
+    run_budget_weight = budget or settings.run_budget_weight or DEFAULT_RUN_BUDGET_WEIGHT
+    max_competitors = settings.max_competitors_profiled or DEFAULT_MAX_COMPETITORS_PROFILED
+    plan_outcome = await plan_stage1(
+        interpretation.brief,
+        interpretation.keywords,
+        ctx=llm_ctx,
+        run_budget_weight=run_budget_weight,
+        max_competitors_profiled=max_competitors,
+    )
+    fallback_note = " (fallback)" if plan_outcome.used_fallback else ""
+    print(
+        f"plan: {len(plan_outcome.plan.nodes)} seed node(s), "
+        f"budget {plan_outcome.plan.total_budget_weight}{fallback_note}"
+    )
+
+    execution_plan = plan_to_execution_plan(plan_outcome.plan)
+    registry = build_registry(deps)
+    executor = Executor(
+        pool,
+        registry,
+        concurrency={
+            "search": settings.search_concurrency,
+            "crawl": settings.crawl_concurrency,
+            "llm": settings.llm_concurrency,
+        },
+        lease_duration=timedelta(seconds=settings.task_lease_duration_s),
+    )
+
+    print("executing:")
+    async for event in executor.submit(
+        run_id,
+        execution_plan,
+        budget_weight=run_budget_weight,
+        budget_usd=settings.run_budget_usd,
+    ):
+        print_event(event)
+
+    resolutions = await resolve_contradictions(pool, run_id)
+    if resolutions:
+        print(f"contradictions resolved: {len(resolutions)}")
+
+    coverage = await run_coverage(pool, run_id, deps.stats)
+    llm_cost = float(
+        await pool.fetchval(
+            "SELECT COALESCE(SUM(cost_usd), 0) FROM llm_calls WHERE run_id = $1", run_id
+        )
+    )
+    search_cost = float(
+        await pool.fetchval(
+            "SELECT COALESCE(SUM(credits_usd), 0) FROM search_credit_usage WHERE run_id = $1",
+            run_id,
+        )
+    )
+    duration_s = time.monotonic() - start
+    cache_hit_rate = (
+        deps.stats.fetch_cache_hits / deps.stats.fetches_attempted
+        if deps.stats.fetches_attempted
+        else 0.0
+    )
+    # `llm_cost` above is measured before this point, so it does not
+    # include the (typically sub-cent) embedding spend
+    # `assemble_report` itself incurs for complaint/request theme
+    # clustering — a known, negligible omission from `meta.cost_usd`
+    # rather than a two-pass reconciliation for a fraction of a cent.
+    embed_ctx = build_embed_context(
+        pool=pool,
+        http_client=http,
+        api_key=settings.openrouter_api_key.get_secret_value(),
+        run_id=run_id,
+    )
+    report = await assemble_report(
+        pool,
+        run_id=run_id,
+        query=query,
+        brief=interpretation.brief,
+        llm_ctx=llm_ctx,
+        embed_ctx=embed_ctx,
+        coverage=coverage,
+        meta=RunMeta(
+            cost_usd=llm_cost + search_cost,
+            duration_s=duration_s,
+            sources_fetched=deps.stats.fetches_attempted,
+            cache_hit_rate=cache_hit_rate,
+        ),
+    )
+    mvp_present = "yes" if report.mvp.statement else "no"
+    print(
+        f"report: {len(report.competitors)} competitors, {len(report.pain_points)} pain "
+        f"points, {len(report.feature_gaps)} feature gaps, {len(report.risks)} risks, "
+        f"{len(report.contradictions)} contradictions, mvp={mvp_present}"
+    )
+
+    await finish_run(pool, run_id, cost_usd=llm_cost + search_cost, coverage=coverage.score)
+
+    print_summary(
+        deps.stats,
+        duration_s=duration_s,
+        llm_cost=llm_cost,
+        search_cost=search_cost,
+        coverage=coverage,
+    )
+
+    return RunOutcome(
+        run_id=run_id,
+        status="done",
+        report=report,
+        cost_usd=llm_cost + search_cost,
+        llm_cost_usd=llm_cost,
+        search_cost_usd=search_cost,
+        coverage=coverage.score,
+        duration_s=duration_s,
+        used_fallback=plan_outcome.used_fallback,
+        stats=deps.stats,
+    )
+
+
+async def cmd_run(
+    query: str, *, budget: int | None, no_cache: bool, benchmark: bool = False
+) -> None:
     settings = Settings()  # type: ignore[call-arg]
     pool = await create_pool(settings)
     http = build_client()
-    start = time.monotonic()
     try:
-        run_id = await create_run(pool, query)
-        print(f"run_id: {run_id}")
-
-        deps = await build_deps(pool, http, settings, run_id=run_id, force_fetch=no_cache)
-        llm_ctx: LLMContext = deps.llm_context(None)
-
-        interpretation = await interpret(query, ctx=llm_ctx)
-        print(f"brief: {interpretation.brief.model_dump()}")
-        if interpretation.disambiguation_fields:
-            print(
-                "(disambiguation fields, proceeding with the best guess: "
-                f"{interpretation.disambiguation_fields})"
-            )
-        await pool.execute(
-            "UPDATE runs SET brief = $2::jsonb WHERE id = $1",
-            run_id,
-            interpretation.brief.model_dump_json(),
-        )
-
-        run_budget_weight = budget or settings.run_budget_weight or DEFAULT_RUN_BUDGET_WEIGHT
-        max_competitors = settings.max_competitors_profiled or DEFAULT_MAX_COMPETITORS_PROFILED
-        plan_outcome = await plan_stage1(
-            interpretation.brief,
-            interpretation.keywords,
-            ctx=llm_ctx,
-            run_budget_weight=run_budget_weight,
-            max_competitors_profiled=max_competitors,
-        )
-        fallback_note = " (fallback)" if plan_outcome.used_fallback else ""
-        print(
-            f"plan: {len(plan_outcome.plan.nodes)} seed node(s), "
-            f"budget {plan_outcome.plan.total_budget_weight}{fallback_note}"
-        )
-
-        execution_plan = plan_to_execution_plan(plan_outcome.plan)
-        registry = build_registry(deps)
-        executor = Executor(
-            pool,
-            registry,
-            concurrency={
-                "search": settings.search_concurrency,
-                "crawl": settings.crawl_concurrency,
-                "llm": settings.llm_concurrency,
-            },
-            lease_duration=timedelta(seconds=settings.task_lease_duration_s),
-        )
-
-        print("executing:")
-        async for event in executor.submit(
-            run_id,
-            execution_plan,
-            budget_weight=run_budget_weight,
-            budget_usd=settings.run_budget_usd,
-        ):
-            print_event(event)
-
-        resolutions = await resolve_contradictions(pool, run_id)
-        if resolutions:
-            print(f"contradictions resolved: {len(resolutions)}")
-
-        coverage = await run_coverage(pool, run_id, deps.stats)
-        llm_cost = float(
-            await pool.fetchval(
-                "SELECT COALESCE(SUM(cost_usd), 0) FROM llm_calls WHERE run_id = $1", run_id
-            )
-        )
-        search_cost = float(
-            await pool.fetchval(
-                "SELECT COALESCE(SUM(credits_usd), 0) FROM search_credit_usage WHERE run_id = $1",
-                run_id,
-            )
-        )
-        duration_s = time.monotonic() - start
-        cache_hit_rate = (
-            deps.stats.fetch_cache_hits / deps.stats.fetches_attempted
-            if deps.stats.fetches_attempted
-            else 0.0
-        )
-        # `llm_cost` above is measured before this point, so it does not
-        # include the (typically sub-cent) embedding spend
-        # `assemble_report` itself incurs for complaint/request theme
-        # clustering — a known, negligible omission from `meta.cost_usd`
-        # rather than a two-pass reconciliation for a fraction of a cent.
-        embed_ctx = build_embed_context(
-            pool=pool,
-            http_client=http,
-            api_key=settings.openrouter_api_key.get_secret_value(),
-            run_id=run_id,
-        )
-        report = await assemble_report(
-            pool,
-            run_id=run_id,
-            query=query,
-            brief=interpretation.brief,
-            llm_ctx=llm_ctx,
-            embed_ctx=embed_ctx,
-            coverage=coverage,
-            meta=RunMeta(
-                cost_usd=llm_cost + search_cost,
-                duration_s=duration_s,
-                sources_fetched=deps.stats.fetches_attempted,
-                cache_hit_rate=cache_hit_rate,
-            ),
-        )
-        mvp_present = "yes" if report.mvp.statement else "no"
-        print(
-            f"report: {len(report.competitors)} competitors, {len(report.pain_points)} pain "
-            f"points, {len(report.feature_gaps)} feature gaps, {len(report.risks)} risks, "
-            f"{len(report.contradictions)} contradictions, mvp={mvp_present}"
-        )
-
-        await finish_run(pool, run_id, cost_usd=llm_cost + search_cost, coverage=coverage.score)
-
-        print_summary(
-            deps.stats,
-            duration_s=duration_s,
-            llm_cost=llm_cost,
-            search_cost=search_cost,
-            coverage=coverage,
+        await run_query(
+            pool, http, settings, query, budget=budget, no_cache=no_cache, is_benchmark=benchmark
         )
     finally:
         await http.aclose()
@@ -523,6 +590,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_p.add_argument("query")
     run_p.add_argument("--budget", type=int, default=None, help="override run_budget_weight")
     run_p.add_argument("--no-cache", action="store_true", help="force-refetch pages (best effort)")
+    run_p.add_argument(
+        "--benchmark",
+        action="store_true",
+        help="flag the run as is_benchmark (Phase 14 bench harness; does not set is_public)",
+    )
 
     inspect_p = sub.add_parser("inspect", help="inspect a run's tasks, claims, and cost")
     inspect_p.add_argument("run_id")
@@ -536,7 +608,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "run":
-        asyncio.run(cmd_run(args.query, budget=args.budget, no_cache=args.no_cache))
+        asyncio.run(
+            cmd_run(
+                args.query, budget=args.budget, no_cache=args.no_cache, benchmark=args.benchmark
+            )
+        )
     elif args.command == "inspect":
         asyncio.run(cmd_inspect(args.run_id))
     elif args.command == "replay":

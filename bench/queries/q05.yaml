@@ -1,0 +1,28 @@
+# q05 — medium, dev-tools. Held-out set.
+# The designated "GitHub must be used" role: real OSS incumbents exist
+# (GlitchTip, and Sentry's own self-hosted core), unlike q03's consumer role.
+id: q05
+query: "error tracking and monitoring for developers"
+difficulty: medium
+split: held_out
+role: dev_tools_github
+ground_truth:
+  must_include:
+    - sentry.io
+    - bugsnag.com
+    - rollbar.com
+    - glitchtip.com
+  known_absent:
+    - datadoghq.com   # broad observability/APM platform, not primarily error tracking
+    - pagerduty.com   # incident alerting/on-call, adjacent but a different category
+  facts:
+    - entity: sentry.io
+      attribute: pricing.entry_usd_month
+      value: 26
+      verified_on: 2026-08-08
+      source: https://sentry.io/pricing/
+    - entity: glitchtip.com
+      attribute: pricing.entry_usd_month
+      value: 15
+      verified_on: 2026-08-08
+      source: https://glitchtip.com/pricing

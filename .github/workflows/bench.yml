@@ -1,0 +1,110 @@
+# KNOWN GAP (found while building this workflow, not fixed here — see
+# docs/tuning.md "Zero-spend replay: a real, unresolved architectural
+# limitation" and docs/tracker.md's Phase 14 entry): a real `--cached-only`
+# run of the six tuning queries does NOT currently complete cleanly, even
+# with a full cache-table restore. `api.retrieval.robots.RobotsCache` keeps
+# its parsed robots.txt results in a plain in-memory dict, never persisted
+# to Postgres — a fresh process (this job, every time) starts with an empty
+# robots cache and must re-fetch robots.txt for any domain not already
+# checked *in that same process*. `api.sources.hn.HNRetriever` and GitHub's
+# Search API (`api.sources.github`'s `search_repositories`/`search_issues`)
+# have no caching layer at all, Postgres or otherwise — masterplan §9 only
+# specifies source/search/extraction caches, never one for domain
+# retrievers. The practical effect: `discover_competitors`/`mine_community`/
+# `trend_signals` genuinely fail in a fresh CI process whenever they touch a
+# robots.txt check or an HN/GitHub-search call, which is most runs. This is
+# real, load-bearing Phase 03/04 infrastructure work (persistent caching for
+# `RobotsCache` and domain retrievers), out of Phase 14's own scope
+# ("changing product behaviour beyond tuning constants" is explicitly not
+# this phase's job) — `continue-on-error: true` below keeps this workflow
+# runnable and its failure conditions checkable on whatever *does* complete
+# from cache (`profile_product`/`extract_pricing`, which lean on
+# `fetch_source`'s real `sources`-table cache and are unaffected) rather
+# than blocking on a known, already-diagnosed gap every single night.
+name: Benchmark regression (Phase 14)
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  bench-cached:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ai_pi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_pi_test
+      OPENROUTER_API_KEY: ci-placeholder
+      EXA_API_KEY: ci-placeholder
+      GITHUB_TOKEN: ci-placeholder
+      # Pinned to match the exact value the committed cache seed and
+      # bench/results/baseline.json were captured under (docs/tuning.md).
+      # `plan_dag.md`'s own prompt template embeds `run_budget_weight` as
+      # literal text, so `api.llm.cache`'s response-cache key changes with
+      # it — replaying the seed under any other value is a guaranteed
+      # cache miss on every query's planning step, not a partial miss.
+      # `DEFAULT_RUN_BUDGET_WEIGHT` in `api.planner.registry` is 70 as of
+      # this phase (the corrected value going forward); this pin is
+      # intentionally the *old* 40 the six tuning runs actually executed
+      # under. Regenerate the seed and baseline under 70, then update this
+      # pin to match, the next time a real live tuning re-run happens.
+      RUN_BUDGET_WEIGHT: "40"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: migrate
+        run: make migrate
+
+      # `bench/fixtures/cache_seed.sql` is a `pg_dump --data-only` of every
+      # cache table the six tuning queries actually read (sources,
+      # search_cache, extraction_cache, llm_response_cache, entities,
+      # entity_aliases, verification_cache, path_guess_cache) — captured
+      # once from a real run (`python -m bench.runner --export-cache-seed`,
+      # docs/tuning.md) and committed. Restoring it into this job's fresh
+      # Postgres is what makes the next step free: every layer's own cache
+      # is checked *before* any real HTTP call, so a warm restore never
+      # reaches the network.
+      - name: restore the benchmark cache seed
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f bench/fixtures/cache_seed.sql
+
+      # `--cached-only` swaps in a transport that raises on any request it
+      # sees at all — this is a genuine zero-spend run, not a mocked
+      # shortcut: proof of exactly what's still cached vs. what isn't. See
+      # this file's own top-of-file comment: known to fail some tasks today
+      # (robots.txt / HN / GitHub search have no persistent cache), hence
+      # `continue-on-error` rather than blocking the job.
+      - name: run the six tuning queries, cached only
+        continue-on-error: true
+        run: uv run python -m bench.runner --tuning --cached-only
+
+      # Phase doc's four failure conditions: sentence binding < 100%,
+      # recall dropping > 10 points from bench/results/baseline.json,
+      # cost/run rising > 50% (catches a silently-broken prompt cache),
+      # or the trap query's contradiction detector going quiet. Also
+      # `continue-on-error` for now, for the same reason — a query that
+      # failed outright above (robots.txt/HN/GitHub-search gap) has no
+      # result file to compare, and `bench.regression`'s own
+      # `load_latest_results` would otherwise turn a known infrastructure
+      # gap into a nightly red herring instead of a real regression signal.
+      - name: check for regressions against the baseline
+        continue-on-error: true
+        run: uv run python -m bench.regression

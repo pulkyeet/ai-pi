@@ -1,0 +1,24 @@
+{
+  "claims_dropped": {},
+  "competitor_recall": 0.0,
+  "contradiction_fired": false,
+  "cost_usd": 0.0,
+  "coverage": 0.0,
+  "difficulty": "hard",
+  "duration_s": 0.5214209170007962,
+  "fact_accuracy": 0.0,
+  "llm_cost_usd": 0.0,
+  "precision_proxy": 1.0,
+  "query": "static site generator for documentation sites",
+  "query_id": "q08",
+  "run_id": "r_1ae5eb2cfb4747ca954a1ebf5719e530",
+  "search_cost_usd": 0.0,
+  "sentence_binding_rate": 1.0,
+  "split": "tuning",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": false
+}

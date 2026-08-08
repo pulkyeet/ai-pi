@@ -1,0 +1,29 @@
+{
+  "claims_dropped": {
+    "invalid_attribute": 2,
+    "quote_ambiguous": 4,
+    "quote_not_in_source": 35,
+    "value_type_mismatch": 1
+  },
+  "competitor_recall": 0.0,
+  "contradiction_fired": true,
+  "cost_usd": 0.06079461,
+  "coverage": 0.0,
+  "difficulty": "easy",
+  "duration_s": 224.3553483960004,
+  "fact_accuracy": 0.0,
+  "llm_cost_usd": 0.0047946099999999995,
+  "precision_proxy": 1.0,
+  "query": "video conferencing software",
+  "query_id": "q03",
+  "run_id": "r_2902b0a8662244b9aacb2e9f3b9de31d",
+  "search_cost_usd": 0.056,
+  "sentence_binding_rate": 1.0,
+  "split": "held_out",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": false
+}

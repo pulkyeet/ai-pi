@@ -1,0 +1,32 @@
+# q03 — easy, consumer. Held-out set.
+# The designated "GitHub must be correctly skipped" role: no meaningful OSS
+# incumbents in mainstream video conferencing.
+id: q03
+query: "video conferencing software"
+difficulty: easy
+split: held_out
+role: consumer_no_github
+ground_truth:
+  must_include:
+    - zoom.us
+    - webex.com
+    - whereby.com
+    - gotomeeting.com
+  known_absent:
+    - slack.com   # has a "huddles" call feature but is not a video-conferencing product
+    - loom.com    # async video messaging/screen recording, not live conferencing
+  facts:
+    # Paid-tier pricing on zoom.us/webex.com/gotomeeting.com/whereby.com
+    # renders via client-side JS or is bot-blocked (403) as of this
+    # verification pass — only free-tier existence could be primary-sourced
+    # honestly. See docs/tuning.md/docs/benchmark.md for the same caveat.
+    - entity: zoom.us
+      attribute: pricing.free_tier
+      value: true
+      verified_on: 2026-08-08
+      source: https://zoom.us/pricing
+    - entity: webex.com
+      attribute: pricing.free_tier
+      value: true
+      verified_on: 2026-08-08
+      source: https://pricing.webex.com/

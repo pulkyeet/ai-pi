@@ -1,0 +1,31 @@
+# q02 — easy, mainstream. Tuning set.
+id: q02
+query: "email marketing platform for small businesses"
+difficulty: easy
+split: tuning
+ground_truth:
+  must_include:
+    - mailchimp.com
+    - sendgrid.com
+    - constantcontact.com
+    - activecampaign.com
+    - klaviyo.com
+  known_absent:
+    - typeform.com   # survey/form builder, not an email marketing platform
+    - canva.com       # design tool for email graphics, doesn't send/manage campaigns
+  facts:
+    - entity: mailchimp.com
+      attribute: pricing.entry_usd_month
+      value: 13
+      verified_on: 2026-08-08
+      source: https://mailchimp.com/pricing/marketing/
+    - entity: sendgrid.com
+      attribute: pricing.entry_usd_month
+      value: 15
+      verified_on: 2026-08-08
+      source: https://www.twilio.com/en-us/products/marketing-campaigns/pricing
+    - entity: klaviyo.com
+      attribute: pricing.free_tier
+      value: true
+      verified_on: 2026-08-08
+      source: https://www.klaviyo.com/pricing

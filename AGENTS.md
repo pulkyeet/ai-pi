@@ -15,6 +15,11 @@ AI Product Investigator: type a product idea, get an evidence-backed discovery r
 - pydantic-settings; secrets have **no defaults** — copy `.env.example` to `.env`.
 - Frontend (Phase 13) is `web/` — Next.js App Router + TypeScript, npm-managed, entirely separate
   toolchain from the Python backend. `cd web && npm install`; see `web/README.md`.
+- Benchmark harness (Phase 14) is `bench/` — repo-root, sibling of `src/`, not installed into the
+  `api` wheel (mirrors `spikes/`'s own precedent); importable from `tests/` via `pythonpath = ["."]`
+  in `pyproject.toml`. `bench/queries/*.yaml` is the ten-query set with hand-verified, dated ground
+  truth; `bench/loader.py`/`bench/metrics.py`/`bench/runner.py`/`bench/regression.py` are pure logic
+  plus the live-pipeline driver. See `docs/benchmark.md`/`docs/tuning.md` for the numbers.
 
 ## Commands
 - `make check` — ruff lint + format check + mypy --strict + pytest (== CI gate).
@@ -23,6 +28,7 @@ AI Product Investigator: type a product idea, get an evidence-backed discovery r
 - Setup: `cp .env.example .env` → `make db-up` → create `ai_pi_test` once (`docker compose exec -T postgres psql -U postgres -c "CREATE DATABASE ai_pi_test;"`) → `make migrate`.
 - Migrate the *test* DB explicitly (default targets `ai_pi`): `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ai_pi_test uv run alembic upgrade head`.
 - End-to-end live run: `python -m api.cli run "<idea>"`; `python -m api.cli inspect|replay <run_id>`.
+- Benchmark: `python -m bench.runner --tuning|--held-out --confirm|--query <id>|--cached-only`.
 - Concurrency suite (races are probabilistic): `uv run pytest tests/integration/test_lease.py tests/integration/test_executor.py tests/integration/test_chaos.py --count=50 --no-cov`.
 - Frontend, from `web/`: `npm test` (vitest, no backend needed), `npm run e2e` (Playwright — builds
   and serves the app itself against a mocked backend, see `web/README.md`), `npm run typecheck`,

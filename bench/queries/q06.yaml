@@ -1,0 +1,20 @@
+# q06 — medium. Held-out set.
+id: q06
+query: "no-code website builder"
+difficulty: medium
+split: held_out
+ground_truth:
+  must_include:
+    - webflow.com
+    - squarespace.com
+    - wix.com
+    - framer.com
+  known_absent:
+    - shopify.com    # e-commerce platform; site-building is bundled but the product is commerce infra
+    - typeform.com    # form/survey builder, not a website builder
+  facts:
+    - entity: framer.com
+      attribute: pricing.entry_usd_month
+      value: 10
+      verified_on: 2026-08-08
+      source: https://www.framer.com/pricing/

@@ -1,0 +1,24 @@
+{
+  "claims_dropped": {},
+  "competitor_recall": 0.0,
+  "contradiction_fired": false,
+  "cost_usd": 0.0,
+  "coverage": 0.0,
+  "difficulty": "medium",
+  "duration_s": 0.5295165040006395,
+  "fact_accuracy": 0.0,
+  "llm_cost_usd": 0.0,
+  "precision_proxy": 1.0,
+  "query": "customer support helpdesk software",
+  "query_id": "q07",
+  "run_id": "r_e3409110b1344e14a83c5f28c19bbff2",
+  "search_cost_usd": 0.0,
+  "sentence_binding_rate": 1.0,
+  "split": "tuning",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": false
+}

@@ -1,0 +1,31 @@
+# q09 — hard/thin. Tuning set. Masterplan's own §10 example category.
+#
+# "FloCRM", named in the masterplan text as a result from an earlier
+# internal spike, could not be re-verified today: flocrm.com does not
+# resolve (DNS timeout) and no search evidence of it exists under any
+# variant — likely defunct or misremembered. Dropped rather than carried
+# over unverified. Replaced with four independently confirmed real, live,
+# specifically WhatsApp-first (not generic) CRM/commerce products targeting
+# Indian or global SMBs on WhatsApp.
+#
+# No `facts` here: all four vendors price primarily in INR for the India
+# market (e.g. interakt.shop: ~2,499 INR/month Sales CRM tier;
+# doubletick.io: ~3,000 INR/month Starter tier, both verified 2026-08-08).
+# `bench`'s ground-truth schema has no currency field, and fabricating a
+# same-day INR->USD conversion into `pricing.entry_usd_month` would
+# misrepresent a fact this pass didn't actually verify in USD — left empty
+# rather than guessed, per the same discipline as q10.
+id: q09
+query: "WhatsApp-first CRM for Indian SMBs"
+difficulty: hard
+split: tuning
+ground_truth:
+  must_include:
+    - interakt.shop
+    - wati.io
+    - doubletick.io
+    - zoko.io
+  known_absent:
+    - salesforce.com   # generic global CRM; not WhatsApp-first, not India-SMB-specific
+    - zendesk.com        # general helpdesk platform, not a WhatsApp-first CRM
+  facts: []

@@ -1,0 +1,32 @@
+# q01 — easy, mainstream. Tuning set.
+id: q01
+query: "project management tool"
+difficulty: easy
+split: tuning
+ground_truth:
+  must_include:
+    - asana.com
+    - trello.com
+    - monday.com
+    - clickup.com
+    - notion.so
+    - linear.app
+  known_absent:
+    - slack.com   # team chat; not itself a project management product
+    - salesforce.com   # CRM platform, unrelated category
+  facts:
+    - entity: asana.com
+      attribute: pricing.entry_usd_month
+      value: 10.99
+      verified_on: 2026-08-08
+      source: https://asana.com/pricing
+    - entity: monday.com
+      attribute: pricing.entry_usd_month
+      value: 9
+      verified_on: 2026-08-08
+      source: https://monday.com/pricing/
+    - entity: clickup.com
+      attribute: pricing.entry_usd_month
+      value: 7
+      verified_on: 2026-08-08
+      source: https://clickup.com/pricing

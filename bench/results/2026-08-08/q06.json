@@ -1,0 +1,29 @@
+{
+  "claims_dropped": {
+    "invalid_attribute": 3,
+    "quote_ambiguous": 17,
+    "quote_not_in_source": 5,
+    "value_type_mismatch": 2
+  },
+  "competitor_recall": 0.0,
+  "contradiction_fired": true,
+  "cost_usd": 0.07136142,
+  "coverage": 0.0,
+  "difficulty": "medium",
+  "duration_s": 327.9245530469998,
+  "fact_accuracy": 0.0,
+  "llm_cost_usd": 0.015361419999999999,
+  "precision_proxy": 1.0,
+  "query": "no-code website builder",
+  "query_id": "q06",
+  "run_id": "r_e819cf3be803429f93ad5e17619e31c7",
+  "search_cost_usd": 0.056,
+  "sentence_binding_rate": 1.0,
+  "split": "held_out",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": true
+}

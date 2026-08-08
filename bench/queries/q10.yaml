@@ -1,0 +1,29 @@
+# q10 — hard/thin. Held-out set. Masterplan's own §10 example category:
+# "the category barely exists, so the system can be checked for saying 'no
+# real competitors' instead of inventing four."
+#
+# Confirmed 2026-08-08 via direct research: there is no genuine commercial
+# product category for "MEV monitoring for solo Ethereum validators"
+# specifically. What exists instead is either free community-run,
+# network-wide relay dashboards (mevboost.org, mevboost.pics, mevwatch.info,
+# relayscan.io — monitor the whole relay/builder market, not one validator,
+# and are not marketed "for solo validators"), or institutional
+# staking-analytics infrastructure (rated.network, confirmed via direct
+# fetch to serve "pools, node operators, and applications" at scale,
+# explicitly not positioned for solo validators). `must_include` is
+# deliberately empty — the correct answer here is few or zero competitors,
+# not a stretched false positive, and `known_absent` is the precision test
+# for exactly that failure mode.
+id: q10
+query: "MEV monitoring for solo Ethereum validators"
+difficulty: hard
+split: held_out
+role: thin_category
+ground_truth:
+  must_include: []
+  known_absent:
+    - rated.network
+    - mevboost.org
+    - etherscan.io
+    - chainalysis.com
+  facts: []

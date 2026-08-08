@@ -1,0 +1,29 @@
+{
+  "claims_dropped": {
+    "invalid_attribute": 0,
+    "quote_ambiguous": 0,
+    "quote_not_in_source": 0,
+    "value_type_mismatch": 0
+  },
+  "competitor_recall": 1.0,
+  "contradiction_fired": true,
+  "cost_usd": 0.0435597,
+  "coverage": 0.041501976284584956,
+  "difficulty": "hard",
+  "duration_s": 232.8175927049997,
+  "fact_accuracy": 1.0,
+  "llm_cost_usd": 0.0015597,
+  "precision_proxy": 1.0,
+  "query": "MEV monitoring for solo Ethereum validators",
+  "query_id": "q10",
+  "run_id": "r_b476de48946a45f98bd403de7c4d10ae",
+  "search_cost_usd": 0.042,
+  "sentence_binding_rate": 1.0,
+  "split": "held_out",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": false
+}

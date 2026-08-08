@@ -1,0 +1,39 @@
+# q04 — medium. Tuning set. Masterplan's own §10 worked example, independently
+# re-verified rather than trusted as still-current.
+#
+# A real, primary-sourced correction to the masterplan's own example: Ramp
+# (masterplan §10 lists ramp.com as must_include) explicitly does not accept
+# individuals, sole proprietors, or other unregistered businesses — it
+# requires formal incorporation plus a $25,000 minimum US business bank
+# balance, verified continuously via Plaid
+# (https://support.ramp.com/applying-and-signing-up-for-ramp-us-based,
+# fetched 2026-08-08). Freelancers are categorically ineligible, so ramp.com
+# moves to known_absent here rather than being carried over unverified.
+id: q04
+query: "AI expense tracker for freelancers"
+difficulty: medium
+split: tuning
+ground_truth:
+  must_include:
+    - expensify.com
+    - wave.com
+    - freshbooks.com
+  known_absent:
+    - stripe.com   # payments infrastructure, not an expense tracker
+    - ramp.com      # requires incorporation + $25k min balance; freelancers ineligible (see above)
+  facts:
+    - entity: expensify.com
+      attribute: pricing.entry_usd_month
+      value: 5
+      verified_on: 2026-08-08
+      source: https://use.expensify.com/blog/collect-plan-pricing-update
+    - entity: freshbooks.com
+      attribute: pricing.entry_usd_month
+      value: 23
+      verified_on: 2026-08-08
+      source: https://www.freshbooks.com/pricing
+    - entity: wave.com
+      attribute: pricing.free_tier
+      value: true
+      verified_on: 2026-08-08
+      source: https://www.waveapps.com/pricing

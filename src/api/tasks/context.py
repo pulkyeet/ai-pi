@@ -39,11 +39,26 @@ from api.sources.reddit import RedditRetriever
 from api.sources.stackexchange import StackExchangeRetriever
 from api.sources.wayback import WaybackRetriever
 
-# Fallbacks for the still-TBD masterplan §8.2 quota knobs (`Settings.
-# max_pages_per_entity`/`max_community_threads` are `None` until Phase 14),
-# named the same way `api.planner.registry.DEFAULT_*` already is.
+# Fallbacks for the masterplan §8.2 quota knobs (`Settings.
+# max_pages_per_entity`/`max_community_threads` still default to `None` in
+# `config.py` — a real deployment sets them via `.env`), named the same way
+# `api.planner.registry.DEFAULT_*` already is.
 DEFAULT_MAX_PAGES_PER_ENTITY = 4
-DEFAULT_MAX_COMMUNITY_THREADS = 10
+# Phase 14 measured a real combinatorial problem at the old default of 10:
+# `api.tasks.community.MineCommunityHandler`'s own `per_call_limit =
+# max_community_threads // (len(keywords) * len(venues))` floors to exactly
+# 1 whenever keywords*venues >= max_community_threads — and every live
+# tuning-benchmark run had 6-18 keyword/venue pairs, so `per_call_limit`
+# was 1 in every single one. That's the real, traced cause of every
+# `complaint.*`/`request.*` theme observed this session landing at
+# support_count 1-4 (api.evidence.promotion's 5-comment threshold was
+# structurally out of reach) — not a promotion-threshold problem. Doubling
+# to 20 gives `per_call_limit >= 2` for up to 10 pairs; it does not fully
+# close the gap for the widest plans observed (up to 18 pairs) — the more
+# complete fix is a per-pair floor or fewer keyword variants, a
+# Phase 09/10 design note logged in docs/tuning.md, not something this
+# single flat cap can solve alone.
+DEFAULT_MAX_COMMUNITY_THREADS = 20
 DEFAULT_MAX_SEARCHES_PER_RUN = 40
 DEFAULT_MAX_FETCHES_PER_RUN = 200
 

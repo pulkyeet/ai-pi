@@ -1,0 +1,31 @@
+# q08 — hard. Tuning set. OSS-incumbent-dominated: gohugo.io, docusaurus.io,
+# and vitepress.dev are confirmed (direct fetch, 2026-08-08) fully open
+# source with zero pricing pages or commercial offerings — genuinely free,
+# not freemium. mkdocs.org follows the same well-established OSS-only
+# pattern. GitBook is the one genuine commercial contrast in this category.
+id: q08
+query: "static site generator for documentation sites"
+difficulty: hard
+split: tuning
+role: oss_dominated
+ground_truth:
+  must_include:
+    - gohugo.io
+    - docusaurus.io
+    - mkdocs.org
+    - vitepress.dev
+    - gitbook.com
+  known_absent:
+    - wordpress.com   # general CMS/blogging platform, not a docs-focused static site generator
+    - medium.com       # blogging platform, unrelated to documentation SSGs
+  facts:
+    - entity: gitbook.com
+      attribute: pricing.entry_usd_month
+      value: 65
+      verified_on: 2026-08-08
+      source: https://www.gitbook.com/pricing
+    - entity: gohugo.io
+      attribute: pricing.free_tier
+      value: true
+      verified_on: 2026-08-08
+      source: https://gohugo.io/

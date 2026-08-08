@@ -1,0 +1,54 @@
+# q07 — medium. Tuning set. THE TRAP QUERY (masterplan §10: "a company that
+# changed pricing recently, so a stale aggregator disagrees with the live
+# page... without it there is no evidence the contradiction detector ever
+# fires rather than silently never triggering").
+#
+# Help Scout is a real, dated pricing-model reversal, confirmed 2026-08-08,
+# not a fabricated trap:
+#   - ~Nov 2024/Jan 2025: Help Scout eliminated per-seat pricing entirely,
+#     moved to a "contacts helped per month" usage-based model with
+#     unlimited seats (e.g. ~$50/mo for ~100 contacts on a Standard-
+#     equivalent tier). This generated public backlash in April 2025 (see
+#     https://bitsplitting.org/2025/04/30/whither-help-scout/ — one user's
+#     real bill went from $22/mo to $50-266/mo depending on volume).
+#   - By 2026, Help Scout reverted to per-user pricing for new signups.
+#     helpscout.com/pricing/, fetched live 2026-08-08: Free (5 users),
+#     Standard $25/user/mo, Plus $45/user/mo, Pro $75/user/mo — explicitly
+#     NOT contact-based.
+#   - Stale sources still describe the contacts-based model as current: a
+#     G2 pricing-page snippet and at least one 2026-titled third-party blog
+#     both describe "$50/month starting at 100 contacts" as the live model.
+# A system relying on a stale aggregator would report Help Scout at ~$50/mo
+# contact-based; the true current answer, confirmed directly from
+# helpscout.com today, is $25/user/mo seat-based — a real, present-day
+# instance of masterplan §4.7's contradiction shape.
+id: q07
+query: "customer support helpdesk software"
+difficulty: medium
+split: tuning
+role: trap_pricing_change
+ground_truth:
+  must_include:
+    - zendesk.com
+    - freshdesk.com
+    - intercom.com
+    - helpscout.com
+  known_absent:
+    - slack.com    # team chat; sometimes used informally for support, not a helpdesk/ticketing platform
+    - notion.so     # docs/wiki tool; not a ticketing system
+  facts:
+    - entity: zendesk.com
+      attribute: pricing.entry_usd_month
+      value: 19
+      verified_on: 2026-08-08
+      source: https://www.zendesk.com/pricing/
+    - entity: freshdesk.com
+      attribute: pricing.entry_usd_month
+      value: 19
+      verified_on: 2026-08-08
+      source: https://www.freshworks.com/freshdesk/pricing/
+    - entity: helpscout.com
+      attribute: pricing.entry_usd_month
+      value: 25
+      verified_on: 2026-08-08
+      source: https://www.helpscout.com/pricing/

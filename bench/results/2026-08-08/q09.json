@@ -1,0 +1,24 @@
+{
+  "claims_dropped": {},
+  "competitor_recall": 0.0,
+  "contradiction_fired": false,
+  "cost_usd": 0.0,
+  "coverage": 0.0,
+  "difficulty": "hard",
+  "duration_s": 0.5263579599995865,
+  "fact_accuracy": 1.0,
+  "llm_cost_usd": 0.0,
+  "precision_proxy": 1.0,
+  "query": "WhatsApp-first CRM for Indian SMBs",
+  "query_id": "q09",
+  "run_id": "r_4d2bb2fcf1564094ad62bedb95c212b9",
+  "search_cost_usd": 0.0,
+  "sentence_binding_rate": 1.0,
+  "split": "tuning",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": false
+}
