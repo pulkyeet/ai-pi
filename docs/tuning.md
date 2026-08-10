@@ -327,3 +327,20 @@ Two deliberate constraints: `pricing.*` claims are **dropped** from
 snippet extraction (a machine summary must never satisfy the competitor
 pricing triple), and the grade-C tag labels the provenance honestly
 ("from a search snippet", not "fetched from the vendor's page").
+
+### Persistent replay follow-up (2026-08-10)
+
+The scoped Phase 15 pre-work is now implemented: migration `0011` adds
+`retriever_cache` and `robots_cache`; robots decisions, HN, GitHub
+search/metadata/star-velocity, Stack Exchange, and Wikimedia pageviews use
+the persistent 24-hour cache. Negative responses are cached where vendors
+are unavailable, so a fresh cached-only process does not repeat known
+failures. `bench.runner` exports both new tables into the cache seed.
+
+The q08 cached-only replay now completes with 19/19 tasks, zero network calls,
+and zero cost. The full six-query replay is **not yet a hard-green CI gate**:
+q04 still needs a historical HN response and one profile LLM response, while
+q07/q09 need current planner responses after the prompt-version change. These
+are cache-fixture refresh gaps, not failures in the new retriever cache paths.
+Keep `continue-on-error` until a refreshed seed demonstrates all six queries
+cleanly.

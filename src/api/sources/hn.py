@@ -12,9 +12,11 @@ from __future__ import annotations
 
 from datetime import datetime
 
+import asyncpg
 import httpx
 from pydantic import BaseModel
 
+from api.sources.cache import cache_key, get_fresh, upsert
 from api.sources.ratelimit import TokenBucket
 
 BASE = "https://hn.algolia.com/api/v1"
@@ -33,11 +35,19 @@ class HNRetriever:
     name = "hn_algolia"
     grade = "D"
 
-    def __init__(self, client: httpx.AsyncClient) -> None:
+    def __init__(self, client: httpx.AsyncClient, *, pool: asyncpg.Pool | None = None) -> None:
         self._client = client
+        self._pool = pool
         self._limiter = TokenBucket(RATE_PER_S)
 
     async def search(self, query: str, *, by_date: bool = False) -> list[HNHit]:
+        if self._pool is not None:
+            cached = await get_fresh(
+                self._pool, cache_key(self.name, query, "by_date" if by_date else "search")
+            )
+            if cached is not None:
+                return [HNHit.model_validate(item) for item in cached]
+
         await self._limiter.acquire()
         endpoint = "search_by_date" if by_date else "search"
         params: dict[str, str] = {"query": query}
@@ -46,7 +56,7 @@ class HNRetriever:
         resp = await self._client.get(f"{BASE}/{endpoint}", params=params)
         resp.raise_for_status()
         body = resp.json()
-        return [
+        hits = [
             HNHit(
                 title=hit.get("title") or "",
                 url=hit.get("url"),
@@ -56,6 +66,15 @@ class HNRetriever:
             )
             for hit in body.get("hits", [])
         ]
+
+        if self._pool is not None:
+            await upsert(
+                self._pool,
+                key=cache_key(self.name, query, "by_date" if by_date else "search"),
+                provider=self.name,
+                payload=[hit.model_dump(mode="json") for hit in hits],
+            )
+        return hits
 
 
 __all__ = ["HNHit", "HNRetriever"]

@@ -26,11 +26,14 @@ from __future__ import annotations
 
 import re
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
+import asyncpg
 import httpx
 from pydantic import BaseModel
 
 from api.sources.base import RetrieverUnavailableError
+from api.sources.cache import cache_key, get_fresh, upsert
 from api.sources.ratelimit import TokenBucket
 
 BASE = "https://api.github.com"
@@ -98,9 +101,16 @@ class GitHubRetriever:
     name = "github"
     grade = "A"  # structured API metadata; issue *comments* would grade D (masterplan §4.6)
 
-    def __init__(self, client: httpx.AsyncClient, token: str) -> None:
+    def __init__(
+        self,
+        client: httpx.AsyncClient,
+        token: str,
+        *,
+        pool: asyncpg.Pool | None = None,
+    ) -> None:
         self._client = client
         self._token = token
+        self._pool = pool
         self._general_limiter = TokenBucket(GENERAL_RATE_PER_S, capacity=5)
         self._search_limiter = TokenBucket(SEARCH_RATE_PER_S, capacity=1)
 
@@ -114,12 +124,16 @@ class GitHubRetriever:
             )
 
     async def repo_metadata(self, owner: str, repo: str) -> GitHubRepo:
+        key = cache_key(self.name, "repo_metadata", owner, repo)
+        cached = await self._cached_search(key)
+        if cached is not None:
+            return GitHubRepo.model_validate(cached[0])
         await self._general_limiter.acquire()
         resp = await self._client.get(f"{BASE}/repos/{owner}/{repo}", headers=self._headers())
         self._raise_for_rate_limit(resp)
         resp.raise_for_status()
         body = resp.json()
-        return GitHubRepo(
+        metadata = GitHubRepo(
             full_name=body["full_name"],
             stargazers_count=body["stargazers_count"],
             open_issues_count=body["open_issues_count"],
@@ -128,6 +142,8 @@ class GitHubRetriever:
             contributors_count=await self._contributors_count(owner, repo),
             homepage=body.get("homepage") or None,
         )
+        await self._store_search(key, [metadata.model_dump(mode="json")])
+        return metadata
 
     async def _contributors_count(self, owner: str, repo: str) -> int | None:
         await self._general_limiter.acquire()
@@ -144,9 +160,22 @@ class GitHubRetriever:
             return int(match.group(1))
         return len(resp.json())
 
+    async def _cached_search(self, key: str) -> list[dict[str, Any]] | None:
+        if self._pool is None:
+            return None
+        return await get_fresh(self._pool, key)
+
+    async def _store_search(self, key: str, payload: list[dict[str, Any]]) -> None:
+        if self._pool is not None:
+            await upsert(self._pool, key=key, provider=self.name, payload=payload)
+
     async def issues_by_reactions(
         self, owner: str, repo: str, *, label: str, limit: int = 5
     ) -> list[GitHubIssue]:
+        key = cache_key(self.name, "issues_by_reactions", f"{owner}/{repo}", label, str(limit))
+        cached = await self._cached_search(key)
+        if cached is not None:
+            return [GitHubIssue.model_validate(item) for item in cached]
         await self._search_limiter.acquire()
         resp = await self._client.get(
             f"{BASE}/search/issues",
@@ -161,7 +190,7 @@ class GitHubRetriever:
         self._raise_for_rate_limit(resp)
         resp.raise_for_status()
         body = resp.json()
-        return [
+        issues = [
             GitHubIssue(
                 number=item["number"],
                 title=item["title"],
@@ -171,6 +200,8 @@ class GitHubRetriever:
             )
             for item in body.get("items", [])
         ]
+        await self._store_search(key, [i.model_dump(mode="json") for i in issues])
+        return issues
 
     async def search_issues(
         self, query: str, *, label: str | None = None, limit: int = 10
@@ -181,6 +212,10 @@ class GitHubRetriever:
         repo (`oss_profile`'s use case). Masterplan §5's leaderboard query
         (`is:issue label:enhancement sort:reactions-desc`) is illustrated
         without a `repo:` qualifier, i.e. a category-wide search."""
+        key = cache_key(self.name, "search_issues", query, label or "", str(limit))
+        cached = await self._cached_search(key)
+        if cached is not None:
+            return [GitHubIssue.model_validate(item) for item in cached]
         await self._search_limiter.acquire()
         q = f"{query} is:issue"
         if label:
@@ -193,7 +228,7 @@ class GitHubRetriever:
         self._raise_for_rate_limit(resp)
         resp.raise_for_status()
         body = resp.json()
-        return [
+        issues = [
             GitHubIssue(
                 number=item["number"],
                 title=item["title"],
@@ -203,12 +238,18 @@ class GitHubRetriever:
             )
             for item in body.get("items", [])
         ]
+        await self._store_search(key, [i.model_dump(mode="json") for i in issues])
+        return issues
 
     async def search_repositories(
         self, query: str, *, limit: int = 10
     ) -> list[GitHubRepoSearchHit]:
         """Repository search — masterplan §5's `awesome-<category>` curated-list
         seeding, "very high precision seeds", for `discover_competitors`."""
+        key = cache_key(self.name, "search_repositories", query, str(limit))
+        cached = await self._cached_search(key)
+        if cached is not None:
+            return [GitHubRepoSearchHit.model_validate(item) for item in cached]
         await self._search_limiter.acquire()
         resp = await self._client.get(
             f"{BASE}/search/repositories",
@@ -218,7 +259,7 @@ class GitHubRetriever:
         self._raise_for_rate_limit(resp)
         resp.raise_for_status()
         body = resp.json()
-        return [
+        hits = [
             GitHubRepoSearchHit(
                 full_name=item["full_name"],
                 html_url=item["html_url"],
@@ -227,8 +268,18 @@ class GitHubRetriever:
             )
             for item in body.get("items", [])
         ]
+        await self._store_search(key, [h.model_dump(mode="json") for h in hits])
+        return hits
 
     async def star_velocity_90d(self, owner: str, repo: str, *, per_page: int = 100) -> float:
+        key = cache_key(self.name, "star_velocity_90d", owner, repo, str(per_page))
+        cached = await self._cached_search(key)
+        if cached is not None:
+            if cached[0].get("unavailable"):
+                raise RetrieverUnavailableError(
+                    self.name, "starring endpoint unavailable (cached response)"
+                )
+            return float(cached[0]["velocity"])
         await self._general_limiter.acquire()
         resp = await self._client.get(
             f"{BASE}/repos/{owner}/{repo}/stargazers",
@@ -236,6 +287,7 @@ class GitHubRetriever:
             params={"per_page": per_page},
         )
         if resp.status_code == 403:
+            await self._store_search(key, [{"unavailable": True}])
             raise RetrieverUnavailableError(
                 self.name,
                 "Starring endpoint returned 403 - restricted to repo admins/collaborators "
@@ -246,7 +298,9 @@ class GitHubRetriever:
         resp.raise_for_status()
         stars = resp.json()
         starred_ats = [s["starred_at"] for s in stars if "starred_at" in s]
-        return compute_star_velocity(starred_ats)
+        velocity = compute_star_velocity(starred_ats)
+        await self._store_search(key, [{"velocity": velocity}])
+        return velocity
 
 
 __all__ = ["GitHubIssue", "GitHubRepo", "GitHubRetriever", "compute_star_velocity"]

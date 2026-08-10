@@ -4,6 +4,12 @@ Fetched once per host, cached 24h, parsed with `urllib.robotparser`. A
 fetch failure (host down, non-200) is treated as allow-all — the common
 crawler convention, and the alternative (treat as disallow) would silently
 starve every task whose target host's robots.txt is briefly unreachable.
+
+Phase 14 follow-up (2026-08-10): the in-memory cache alone broke
+`--cached-only` replay — a fresh process re-fetched every host's robots.txt
+even though the page content itself was Postgres-cached. With `pool`
+supplied, the raw body is persisted to `robots_cache` (24h TTL) so a new
+process replays from Postgres instead of the network.
 """
 
 from __future__ import annotations
@@ -11,6 +17,7 @@ from __future__ import annotations
 import time
 from urllib.robotparser import RobotFileParser
 
+import asyncpg
 import httpx
 import structlog
 
@@ -34,10 +41,42 @@ def is_no_crawl_domain(host: str) -> bool:
 
 
 class RobotsCache:
-    def __init__(self, client: httpx.AsyncClient, *, ttl_s: float = ROBOTS_CACHE_TTL_S) -> None:
+    def __init__(
+        self,
+        client: httpx.AsyncClient,
+        *,
+        ttl_s: float = ROBOTS_CACHE_TTL_S,
+        pool: asyncpg.Pool | None = None,
+    ) -> None:
         self._client = client
         self._ttl_s = ttl_s
+        self._pool = pool
         self._parsers: dict[str, tuple[float, RobotFileParser]] = {}
+
+    async def _from_db(self, host: str) -> RobotFileParser | None:
+        if self._pool is None:
+            return None
+        row = await self._pool.fetchrow(
+            "SELECT body FROM robots_cache WHERE host = $1 "
+            "AND checked_at > now() - interval '1 day'",
+            host,
+        )
+        if row is None:
+            return None
+        parser = RobotFileParser()
+        parser.parse(str(row["body"]).splitlines())
+        return parser
+
+    async def _store(self, host: str, body: str) -> None:
+        if self._pool is None:
+            return
+        await self._pool.execute(
+            "INSERT INTO robots_cache (host, body, checked_at) VALUES ($1, $2, now()) "
+            "ON CONFLICT (host) DO UPDATE SET body = EXCLUDED.body, "
+            "checked_at = EXCLUDED.checked_at",
+            host,
+            body,
+        )
 
     async def _get_parser(self, scheme: str, host: str) -> RobotFileParser:
         cached = self._parsers.get(host)
@@ -45,17 +84,27 @@ class RobotsCache:
         if cached is not None and now - cached[0] < self._ttl_s:
             return cached[1]
 
+        parser = await self._from_db(host)
+        if parser is not None:
+            self._parsers[host] = (now, parser)
+            return parser
+
         parser = RobotFileParser()
         robots_url = f"{scheme}://{host}/robots.txt"
+        body: str | None = None
         try:
             resp = await self._client.get(robots_url, timeout=5.0)
-            if resp.status_code == 200:
-                parser.parse(resp.text.splitlines())
-            else:
-                parser.parse(_ALLOW_ALL_ROBOTS_TXT)
+            body = resp.text if resp.status_code == 200 else None
         except httpx.HTTPError:
             logger.warning("robots.fetch_failed", host=host)
-            parser.parse(_ALLOW_ALL_ROBOTS_TXT)
+            body = None
+
+        if body is None:
+            body = "\n".join(_ALLOW_ALL_ROBOTS_TXT)
+            parser.parse(body.splitlines())
+        else:
+            parser.parse(body.splitlines())
+        await self._store(host, body)
 
         self._parsers[host] = (now, parser)
         return parser

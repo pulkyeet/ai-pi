@@ -43,6 +43,38 @@ async def test_cache_hit_makes_zero_network_calls(pg_pool) -> None:
     await client.aclose()
 
 
+async def test_robots_cache_survives_a_new_process_cache_instance(pg_pool) -> None:
+    root = unique_root()
+    transport = ScriptedTransport(
+        {"/robots.txt": [httpx.Response(200, text="User-agent: *\nDisallow: /private\n")]}
+    )
+    client = make_client(transport)
+    url = f"https://{root}/private"
+
+    first = RobotsCache(client, pool=pg_pool)
+    second = RobotsCache(client, pool=pg_pool)
+
+    assert await first.is_allowed(url, "AIProductInvestigatorBot") is False
+    assert await second.is_allowed(url, "AIProductInvestigatorBot") is False
+    assert transport.calls["/robots.txt"] == 1
+    await client.aclose()
+
+
+async def test_failed_robots_fetch_is_negative_cached(pg_pool) -> None:
+    root = unique_root()
+    transport = ScriptedTransport({"/robots.txt": [httpx.Response(404)]})
+    client = make_client(transport)
+    url = f"https://{root}/private"
+
+    first = RobotsCache(client, pool=pg_pool)
+    second = RobotsCache(client, pool=pg_pool)
+
+    assert await first.is_allowed(url, "AIProductInvestigatorBot") is True
+    assert await second.is_allowed(url, "AIProductInvestigatorBot") is True
+    assert transport.calls["/robots.txt"] == 1
+    await client.aclose()
+
+
 async def test_conditional_304_refreshes_ttl_without_reextraction(pg_pool) -> None:
     root = unique_root()
     transport = ScriptedTransport({"/pricing": [httpx.Response(200, content=PLAIN_HTML)]})

@@ -68,15 +68,15 @@ def build_deps(
 ) -> HandlerDeps:
     http = make_client(transport)
     throttle = HostThrottle()
-    robots = RobotsCache(http)
+    robots = RobotsCache(http, pool=pool)
     return HandlerDeps(
         pool=pool,
         http=http,
         throttle=throttle,
         robots=robots,
-        github=GitHubRetriever(http, "test-gh-token"),
-        hn=HNRetriever(http),
-        stackexchange=StackExchangeRetriever(http),
+        github=GitHubRetriever(http, "test-gh-token", pool=pool),
+        hn=HNRetriever(http, pool=pool),
+        stackexchange=StackExchangeRetriever(http, pool=pool),
         wayback=WaybackRetriever(http),
         packages=PackagesRetriever(http),
         producthunt=ProductHuntRetriever(http, None),

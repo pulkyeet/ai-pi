@@ -32,6 +32,7 @@ import structlog
 
 from api.executor.protocol import HandlerResult, ServiceName, TaskContext
 from api.models.plan import TASK_COST_WEIGHT, TaskKind
+from api.sources.cache import cache_key, get_fresh, upsert
 from api.tasks.context import HandlerDeps
 
 logger = structlog.get_logger()
@@ -89,18 +90,53 @@ class TrendSignalsHandler:
         url = WIKIPEDIA_PAGEVIEWS_URL.format(
             article=article, start=start.strftime("%Y%m01"), end=end.strftime("%Y%m01")
         )
+        key = cache_key(
+            "wikimedia_pageviews",
+            article,
+            start.strftime("%Y%m01"),
+            end.strftime("%Y%m01"),
+        )
+        cached = await get_fresh(self._deps.pool, key)
+        if cached is not None:
+            value = cached["views"]
+            return int(value) if value is not None else None
         try:
             resp = await self._deps.http.get(url, timeout=10.0)
         except httpx.HTTPError as exc:
             logger.info("trends.wikipedia_pageviews_failed", article=article, error=str(exc))
+            await upsert(
+                self._deps.pool,
+                key=key,
+                provider="wikimedia_pageviews",
+                payload={"views": None},
+            )
             return None
         if resp.status_code != 200:
+            await upsert(
+                self._deps.pool,
+                key=key,
+                provider="wikimedia_pageviews",
+                payload={"views": None},
+            )
             return None
         try:
             items = resp.json().get("items", [])
         except ValueError:
+            await upsert(
+                self._deps.pool,
+                key=key,
+                provider="wikimedia_pageviews",
+                payload={"views": None},
+            )
             return None
-        return sum(int(item.get("views", 0)) for item in items) or None
+        views = sum(int(item.get("views", 0)) for item in items) or None
+        await upsert(
+            self._deps.pool,
+            key=key,
+            provider="wikimedia_pageviews",
+            payload={"views": views},
+        )
+        return views
 
 
 __all__ = ["TrendSignalsHandler"]

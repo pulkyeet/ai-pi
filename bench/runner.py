@@ -56,6 +56,8 @@ CACHE_SEED_TABLES = (
     "sources",
     "path_guess_cache",
     "search_cache",
+    "retriever_cache",
+    "robots_cache",
     "extraction_cache",
     "llm_response_cache",
     "entities",

@@ -1908,6 +1908,16 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
     changes the schema, that seed needs regenerating (`python -m bench.runner --export-cache-seed
     --pg-dump-via-docker-compose`) or `bench.yml` will fail to restore it.
 
+### 2026-08-10 - Phase 15 pre-work: persistent replay caching
+
+- Added migration `0011` with `retriever_cache` and `robots_cache`.
+- Added persistent 24-hour caching for robots decisions, HN, GitHub search/metadata/star velocity,
+  Stack Exchange, and Wikimedia pageviews; unavailable responses are cached where safe.
+- Added regression coverage for fresh-process HN, GitHub, and robots cache reuse; focused suites pass.
+- Added both tables to cache-seed export. q08 cached-only now completes 19/19 tasks at zero cost and
+  zero network. The full six-query replay remains non-blocking until historical HN/profile/planner
+  cache fixtures are refreshed after prompt-version changes; `continue-on-error` remains correct.
+
 ## Open Items Carried From the Masterplan
 
 | # | Item | Closes in |

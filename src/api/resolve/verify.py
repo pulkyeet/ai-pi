@@ -116,7 +116,7 @@ async def _verify_web(ctx: VerificationContext, key: EntityKey) -> VerificationR
             f"https://{key.value}",
             retrieval_reason="entity_verification",
         )
-    except FetchError as exc:
+    except (FetchError, httpx.HTTPError) as exc:
         return VerificationResult(verified=False, grade="A", reason=type(exc).__name__)
 
     source = outcome.source

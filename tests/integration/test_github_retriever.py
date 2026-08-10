@@ -9,6 +9,8 @@ cassette-tested.
 
 from __future__ import annotations
 
+import uuid
+
 import httpx
 import pytest
 from _http import ScriptedTransport, make_client
@@ -123,4 +125,93 @@ async def test_general_rate_limit_exhausted_raises_unavailable() -> None:
 
     with pytest.raises(RetrieverUnavailableError):
         await retriever.repo_metadata("acme", "widget")
+    await client.aclose()
+
+
+async def test_repository_search_cache_survives_a_new_retriever_instance(pg_pool) -> None:
+    query = f"persistent github cache {uuid.uuid4().hex}"
+    transport = ScriptedTransport(
+        {
+            "/search/repositories": [
+                httpx.Response(
+                    200,
+                    json={
+                        "items": [
+                            {
+                                "full_name": "acme/widget",
+                                "html_url": "https://github.com/acme/widget",
+                                "description": "A cached widget",
+                                "stargazers_count": 12,
+                            }
+                        ]
+                    },
+                )
+            ]
+        }
+    )
+    client = make_client(transport)
+
+    first = await GitHubRetriever(client, token="test-token", pool=pg_pool).search_repositories(
+        query
+    )
+    second = await GitHubRetriever(client, token="test-token", pool=pg_pool).search_repositories(
+        query
+    )
+
+    assert first == second
+    assert transport.calls["/search/repositories"] == 1
+    await client.aclose()
+
+
+async def test_repo_metadata_cache_survives_a_new_retriever_instance(pg_pool) -> None:
+    repo = f"acme/widget-{uuid.uuid4().hex}"
+    owner, name = repo.split("/")
+    transport = ScriptedTransport(
+        {
+            f"/repos/{repo}": [
+                httpx.Response(
+                    200,
+                    json={
+                        "full_name": repo,
+                        "stargazers_count": 42,
+                        "open_issues_count": 3,
+                        "license": {"spdx_id": "MIT"},
+                        "pushed_at": "2026-08-01T00:00:00Z",
+                    },
+                )
+            ],
+            f"/repos/{repo}/contributors": [httpx.Response(200, json=[])],
+        }
+    )
+    client = make_client(transport)
+
+    first = await GitHubRetriever(client, token="test-token", pool=pg_pool).repo_metadata(
+        owner, name
+    )
+    second = await GitHubRetriever(client, token="test-token", pool=pg_pool).repo_metadata(
+        owner, name
+    )
+
+    assert first == second
+    assert transport.calls[f"/repos/{repo}"] == 1
+    assert transport.calls[f"/repos/{repo}/contributors"] == 1
+    await client.aclose()
+
+
+async def test_star_velocity_unavailable_response_is_cached(pg_pool) -> None:
+    repo = f"acme/widget-{uuid.uuid4().hex}"
+    owner, name = repo.split("/")
+    path = f"/repos/{repo}/stargazers"
+    transport = ScriptedTransport({path: [httpx.Response(403)]})
+    client = make_client(transport)
+
+    first = GitHubRetriever(client, token="test-token", pool=pg_pool)
+    with pytest.raises(RetrieverUnavailableError):
+        await first.star_velocity_90d(owner, name)
+
+    second = GitHubRetriever(client, token="test-token", pool=pg_pool)
+    with pytest.raises(RetrieverUnavailableError):
+        await second.star_velocity_90d(owner, name)
+
+    assert transport.calls[path] == 1
     await client.aclose()

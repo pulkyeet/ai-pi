@@ -11,10 +11,12 @@ than firing a request that's certain to be rejected.
 
 from __future__ import annotations
 
+import asyncpg
 import httpx
 from pydantic import BaseModel
 
 from api.sources.base import RetrieverUnavailableError
+from api.sources.cache import cache_key, get_fresh, upsert
 from api.sources.ratelimit import TokenBucket
 
 BASE = "https://api.stackexchange.com/2.3"
@@ -32,8 +34,9 @@ class StackExchangeRetriever:
     name = "stackexchange"
     grade = "D"
 
-    def __init__(self, client: httpx.AsyncClient) -> None:
+    def __init__(self, client: httpx.AsyncClient, *, pool: asyncpg.Pool | None = None) -> None:
         self._client = client
+        self._pool = pool
         self._limiter = TokenBucket(RATE_PER_S, capacity=1)
         self._quota_remaining: int | None = None
 
@@ -44,6 +47,11 @@ class StackExchangeRetriever:
     async def search(
         self, query: str, *, site: str = "stackoverflow", limit: int = 5
     ) -> list[StackExchangeQuestion]:
+        key = cache_key(self.name, query, site, str(limit))
+        if self._pool is not None:
+            cached = await get_fresh(self._pool, key)
+            if cached is not None:
+                return [StackExchangeQuestion.model_validate(item) for item in cached]
         if self._quota_remaining is not None and self._quota_remaining <= 0:
             raise RetrieverUnavailableError(self.name, "anonymous daily quota exhausted")
 
@@ -62,7 +70,7 @@ class StackExchangeRetriever:
         resp.raise_for_status()
         body = resp.json()
         self._quota_remaining = body.get("quota_remaining")
-        return [
+        questions = [
             StackExchangeQuestion(
                 title=item.get("title", ""),
                 link=item.get("link", ""),
@@ -71,6 +79,14 @@ class StackExchangeRetriever:
             )
             for item in body.get("items", [])
         ]
+        if self._pool is not None:
+            await upsert(
+                self._pool,
+                key=key,
+                provider=self.name,
+                payload=[question.model_dump(mode="json") for question in questions],
+            )
+        return questions
 
 
 __all__ = ["StackExchangeQuestion", "StackExchangeRetriever"]

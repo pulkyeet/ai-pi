@@ -184,7 +184,7 @@ async def build_deps(
     force_fetch: bool,
 ) -> HandlerDeps:
     throttle = HostThrottle()
-    robots = RobotsCache(http)
+    robots = RobotsCache(http, pool=pool)
 
     producthunt_token = (
         settings.producthunt_token.get_secret_value() if settings.producthunt_token else None
@@ -219,9 +219,9 @@ async def build_deps(
         http=http,
         throttle=throttle,
         robots=robots,
-        github=GitHubRetriever(http, settings.github_token.get_secret_value()),
-        hn=HNRetriever(http),
-        stackexchange=StackExchangeRetriever(http),
+        github=GitHubRetriever(http, settings.github_token.get_secret_value(), pool=pool),
+        hn=HNRetriever(http, pool=pool),
+        stackexchange=StackExchangeRetriever(http, pool=pool),
         wayback=WaybackRetriever(http),
         packages=PackagesRetriever(http),
         producthunt=ProductHuntRetriever(http, producthunt_token),
