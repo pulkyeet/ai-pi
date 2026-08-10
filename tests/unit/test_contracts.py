@@ -180,6 +180,28 @@ def test_enum_attribute_outside_choices_fails() -> None:
         Claim(**kwargs)
 
 
+def test_enum_attribute_free_is_accepted() -> None:
+    """Phase 14 follow-up: permanently-free products (no paid tier) must be
+    expressible — 'freemium' would fabricate a paid tier above the free one."""
+    kwargs = {
+        **_SAMPLE_CLAIM_KWARGS,
+        "attribute": "pricing.model",
+        "value_num": None,
+        "value_text": "free",
+    }
+    Claim(**kwargs)
+
+
+def test_enum_attribute_freemium_still_accepted() -> None:
+    kwargs = {
+        **_SAMPLE_CLAIM_KWARGS,
+        "attribute": "pricing.model",
+        "value_num": None,
+        "value_text": "freemium",
+    }
+    Claim(**kwargs)
+
+
 def test_char_end_must_exceed_char_start() -> None:
     kwargs = {**_SAMPLE_CLAIM_KWARGS, "char_start": 10, "char_end": 5}
     with pytest.raises(ValidationError):

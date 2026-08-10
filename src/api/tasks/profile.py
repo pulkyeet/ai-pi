@@ -16,7 +16,7 @@ from typing import Any
 
 import structlog
 
-from api.evidence.grade import classify_own_domain_fetch, grade_for
+from api.evidence.grade import SourceKind, classify_own_domain_fetch, grade_for
 from api.executor.protocol import HandlerResult, ServiceName, TaskContext
 from api.extract.extractor import extract_claims
 from api.llm.gateway import LLMValidationError
@@ -27,7 +27,7 @@ from api.retrieval.errors import FetchError
 from api.retrieval.fetch import fetch_source
 from api.retrieval.pathguess import guess_path
 from api.search.budget import BudgetExhaustedError
-from api.tasks.claims import persist_extracted_claims
+from api.tasks.claims import get_or_create_synthetic_source, persist_extracted_claims
 from api.tasks.context import HandlerDeps
 
 logger = structlog.get_logger()
@@ -126,6 +126,54 @@ async def fetch_and_extract(
     return len(persisted)
 
 
+async def extract_snippet_claims(
+    deps: HandlerDeps,
+    ctx: TaskContext,
+    *,
+    entity_id: int,
+    root_key: str,
+    snippet: str,
+) -> int:
+    """06b "quote Exa" — a search-result snippet as grade-C evidence. The
+    snippet is stored as its own synthetic `serp_snippet` source (a distinct
+    `canonical_url` so it can never collide with a real homepage fetch) and
+    extracted exactly like a fetched page; the span guarantee holds because
+    the quote is verbatim in the stored snippet text. Graded C (`SourceKind.
+    AGGREGATOR` — a search engine's summary is aggregator-grade provenance,
+    not the page's own words). `pricing.*` claims are dropped before
+    persisting: a machine-written summary is too weak to report a
+    competitor's price, and must never satisfy the pricing triple
+    `api.synth.assemble.build_competitors` requires."""
+    if not snippet.strip():
+        return 0
+    source = await get_or_create_synthetic_source(
+        deps.pool,
+        canonical_url=f"https://{root_key}#serp-snippet",
+        root_key=root_key,
+        text=snippet,
+        retrieval_reason="serp_snippet",
+    )
+    llm_ctx = deps.llm_context(ctx.task_id)
+    try:
+        result = await extract_claims(source, ctx=llm_ctx)
+    except LLMValidationError as exc:
+        logger.warning("tasks.snippet_extraction_failed", root_key=root_key, error=str(exc))
+        return 0
+    deps.stats.record_extraction(result.metrics)
+    claims = [c for c in result.claims if not c.attribute.startswith("pricing.")]
+    if not claims:
+        return 0
+    persisted = await persist_extracted_claims(
+        deps.pool,
+        run_id=deps.run_id,
+        entity_id=entity_id,
+        source=source,
+        claims=claims,
+        grade=grade_for(SourceKind.AGGREGATOR),
+    )
+    return len(persisted)
+
+
 class ProfileProductHandler:
     kind = TaskKind.PROFILE_PRODUCT.value
     cost_weight = TASK_COST_WEIGHT[TaskKind.PROFILE_PRODUCT]
@@ -181,6 +229,12 @@ class ProfileProductHandler:
                 retrieval_reason="profile_product",
             )
 
+        snippet = str(args.get("snippet") or "").strip()
+        if snippet:
+            claims_total += await extract_snippet_claims(
+                deps, ctx, entity_id=entity_id, root_key=root_key, snippet=snippet
+            )
+
         cost_usd = await task_llm_cost(deps, ctx.task_id)
         return HandlerResult(cost_usd=cost_usd, artifacts={"claims_persisted": claims_total})
 
@@ -188,6 +242,7 @@ class ProfileProductHandler:
 __all__ = [
     "PATH_KINDS_FULL",
     "ProfileProductHandler",
+    "extract_snippet_claims",
     "fetch_and_extract",
     "resolve_entity_id",
     "task_llm_cost",

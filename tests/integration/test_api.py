@@ -492,15 +492,15 @@ async def test_finding_drilldown_resolves_to_its_claim_ids(pg_pool: asyncpg.Pool
     try:
         async with _asgi_client(app) as client:
             resp = await client.get(f"/runs/{run_id}/findings/{finding_id}")
-        assert resp.status_code == 200
-        assert resp.json() == {
-            "finding_id": finding_id,
-            "statement": "Ship a seat-based tier first",
-            "claim_ids": [claim_id],
-        }
+            assert resp.status_code == 200
+            assert resp.json() == {
+                "finding_id": finding_id,
+                "statement": "Ship a seat-based tier first",
+                "claim_ids": [claim_id],
+            }
 
-        missing_resp = await client.get(f"/runs/{run_id}/findings/999999")
-        assert missing_resp.status_code == 404
+            missing_resp = await client.get(f"/runs/{run_id}/findings/999999")
+            assert missing_resp.status_code == 404
     finally:
         await http.aclose()
 

@@ -18,8 +18,14 @@ Registry (the only `kind` values that may ever appear in your output):
   advisory fields inside `args` that are not part of the base registry but
   are read by the executor: `max_profile_count` (integer, how many
   discovered competitors are worth profiling in depth, bounded by the
-  stated cap), `consider_oss` (boolean, whether this category plausibly has
-  open-source competitors worth checking GitHub for), and
+  stated cap), `consider_oss` (boolean — true only when open-source projects
+  are a genuine, commonly-considered alternative in this category, e.g.
+  developer tools, infrastructure, or self-hostable software; false for
+  mainstream consumer or business SaaS categories such as project
+  management, CRM, or email marketing, even though a GitHub search for
+  almost any term will always return *some* repository — the question is
+  whether a real buyer evaluating this category would actually compare it
+  against an OSS option, not whether GitHub has results), and
   `consider_funding` (boolean, whether funding history is a meaningful
   signal for this category — usually true for venture-style categories,
   often false for e.g. solo-dev tools or niche utilities).

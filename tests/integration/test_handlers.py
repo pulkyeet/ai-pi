@@ -42,7 +42,7 @@ from api.tasks.discover import DiscoverCompetitorsHandler
 from api.tasks.funding import FindFundingHandler
 from api.tasks.oss import OssProfileHandler
 from api.tasks.pricing import ExtractPricingHandler
-from api.tasks.profile import ProfileProductHandler
+from api.tasks.profile import ProfileProductHandler, extract_snippet_claims
 from api.tasks.trends import TrendSignalsHandler
 
 pytestmark = pytest.mark.usefixtures("skip_without_postgres")
@@ -363,6 +363,80 @@ class TestProfileProduct:
         assert 0 < row["confidence"] <= 1
         # The core guarantee: the stored span is exactly the stored quote.
         assert row["extracted_text"][row["char_start"] : row["char_end"]] == row["quote"]
+
+    async def test_snippet_claims_persist_grade_c_with_pricing_dropped(
+        self, pg_pool: asyncpg.Pool
+    ) -> None:
+        """06b 'quote Exa': a search-result snippet becomes a grade-C synthetic
+        source. Non-pricing claims bind against the stored snippet text; pricing
+        claims are dropped so snippets can never complete the pricing triple."""
+        domain = unique_domain()
+        entity_key = f"web:{domain}"
+        async with pg_pool.acquire() as conn:
+            run_id = await insert_run(conn)
+            task_id = await insert_task(conn, run_id, "profile:1", kind="profile_product")
+        entity = await upsert_entity(
+            pg_pool, entity_key=entity_key, display_name=domain, maturity=None, meta={}
+        )
+
+        snippet = (
+            f"Acme ships an expense tracker for iOS and Android teams. "
+            f"Plans start at $29/mo per seat. {uuid.uuid4().hex[:8]}"
+        )
+        transport = HostRoutedTransport()
+        transport.add(
+            "openrouter.ai",
+            "/api/v1/chat/completions",
+            extraction_response(
+                [
+                    {
+                        "attribute": "pricing.entry_usd_month",
+                        "value_num": 29,
+                        "unit": "usd/month",
+                        "quote": "$29/mo per seat",
+                    },
+                    {"attribute": "product.platforms", "value_text": "ios", "quote": "iOS"},
+                ]
+            ),
+        )
+        deps = build_deps(pg_pool, transport, run_id)
+        ctx = task_ctx(run_id, task_id, "profile:1", "profile_product")
+
+        n = await extract_snippet_claims(
+            deps, ctx, entity_id=entity.id, root_key=domain, snippet=snippet
+        )
+
+        assert n == 1
+        row = await pg_pool.fetchrow(
+            "SELECT c.attribute, c.value_text, c.grade, c.quote, c.char_start, c.char_end, "
+            "s.retrieval_reason, s.extracted_text "
+            "FROM claims c JOIN sources s ON s.id = c.source_id "
+            "WHERE c.run_id = $1",
+            run_id,
+        )
+        assert row is not None
+        assert row["attribute"] == "product.platforms"
+        assert row["value_text"] == "ios"
+        assert row["grade"] == "C"
+        assert row["retrieval_reason"] == "serp_snippet"
+        assert row["extracted_text"][row["char_start"] : row["char_end"]] == row["quote"]
+        pricing = await pg_pool.fetchval(
+            "SELECT count(*) FROM claims WHERE run_id = $1 AND "
+            "attribute = 'pricing.entry_usd_month'",
+            run_id,
+        )
+        assert pricing == 0
+
+    async def test_empty_snippet_is_a_no_op(self, pg_pool: asyncpg.Pool) -> None:
+        async with pg_pool.acquire() as conn:
+            run_id = await insert_run(conn)
+            task_id = await insert_task(conn, run_id, "profile:1", kind="profile_product")
+        deps = build_deps(pg_pool, HostRoutedTransport(), run_id)
+        ctx = task_ctx(run_id, task_id, "profile:1", "profile_product")
+        n = await extract_snippet_claims(
+            deps, ctx, entity_id=0, root_key="unused.example", snippet="   "
+        )
+        assert n == 0
 
     async def test_handler_idempotent_on_rerun(self, pg_pool: asyncpg.Pool) -> None:
         domain = unique_domain()

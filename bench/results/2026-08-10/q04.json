@@ -1,0 +1,29 @@
+{
+  "claims_dropped": {
+    "invalid_attribute": 0,
+    "quote_ambiguous": 8,
+    "quote_not_in_source": 5,
+    "value_type_mismatch": 4
+  },
+  "competitor_recall": 0.0,
+  "contradiction_fired": true,
+  "cost_usd": 0.17940747,
+  "coverage": 0.0,
+  "difficulty": "medium",
+  "duration_s": 362.64234215800025,
+  "fact_accuracy": 0.0,
+  "llm_cost_usd": 0.00940747,
+  "precision_proxy": 1.0,
+  "query": "AI expense tracker for freelancers",
+  "query_id": "q04",
+  "run_id": "r_7c8d8026fa44437799e3e2f6af643b6c",
+  "search_cost_usd": 0.17,
+  "sentence_binding_rate": 1.0,
+  "split": "tuning",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": true
+}

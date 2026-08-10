@@ -180,6 +180,14 @@ async def merge_alias(pool: asyncpg.Pool, *, canonical_key: str, alias_key: str)
             canonical_id,
             alias_own_key,
         )
+        # claims.entity_id has no ON DELETE CASCADE (deliberate — never
+        # orphan a claim), so repoint the losing entity's claims onto the
+        # canonical before collapsing it. Postgres raises
+        # claims_entity_id_fkey otherwise (observed live on q08 discovery,
+        # and on cached-only benchmark replay).
+        await conn.execute(
+            "UPDATE claims SET entity_id = $1 WHERE entity_id = $2", canonical_id, alias_id
+        )
         await conn.execute("DELETE FROM entities WHERE id = $1", alias_id)
         return canonical_id
 

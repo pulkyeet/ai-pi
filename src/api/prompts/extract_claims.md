@@ -12,7 +12,9 @@ vocabulary and grounded in an exact quote from the page.
 Closed claim vocabulary — do not use any attribute outside this list. Each
 entry shows `attribute` and how to fill `value_text` / `value_num` / `unit`:
 
-- `pricing.model` — value_text one of: seat, usage, flat, freemium
+- `pricing.model` — value_text one of: seat, usage, flat, freemium, free
+  ("free" means the product has no paid tier at all, not just a free tier
+  alongside paid plans — use "freemium" when paid plans also exist)
 - `pricing.entry_usd_month` — value_num, the cheapest paid monthly price in USD
 - `pricing.free_tier` — value_text exactly "true" or "false"
 - `pricing.trial_days` — value_num, length of the free trial in days

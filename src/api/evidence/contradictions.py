@@ -65,6 +65,16 @@ def _comparison_key(attribute: str, row: asyncpg.Record) -> tuple[str, Any]:
 
 
 def _is_contradictory(attribute: str, rows: list[asyncpg.Record]) -> bool:
+    # Phase 14 finding, confirmed on 8/8 fired contradictions across the full
+    # ten-query benchmark: a `ValueKind.LIST` attribute (`product.platforms`,
+    # `product.integrations`) is naturally multi-valued — a real product can
+    # and does have several platforms/integrations at once, each one
+    # extracted as its own single-value claim. Distinctness across those
+    # claims is the expected shape, not disagreement, so this comparison
+    # rule (built for single-valued attributes like `pricing.model`) never
+    # applies to them.
+    if attribute_spec(attribute).kind is ValueKind.LIST:
+        return False
     return len({_comparison_key(attribute, r) for r in rows}) > 1
 
 

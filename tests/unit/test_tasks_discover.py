@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from api.models.entity import EntityScheme
-from api.tasks.discover import NON_CANDIDATE_DOMAINS, candidate_from_url
+from api.tasks.discover import NON_CANDIDATE_DOMAINS, _is_github_list_repo, candidate_from_url
 
 
 class TestCandidateFromUrl:
@@ -42,3 +42,28 @@ class TestCandidateFromUrl:
 
     def test_unparseable_url_returns_none(self) -> None:
         assert candidate_from_url("not a url", "x") is None
+
+
+class TestGithubListRepoFilter:
+    """Phase 14 follow-up: GitHub seeding must never profile `awesome-*`
+    curated lists — a list of a hundred projects is not a product."""
+
+    def test_awesome_prefixed_repo_is_a_list(self) -> None:
+        assert _is_github_list_repo("sindresorhus/awesome", "A curated list of awesome things")
+
+    def test_curated_list_description_is_a_list(self) -> None:
+        assert _is_github_list_repo("acme/tools", "A curated list of awesome software tools")
+
+    def test_list_of_best_description_is_a_list(self) -> None:
+        assert _is_github_list_repo("acme/things", "A list of the best useful libraries")
+
+    def test_awesome_in_description_is_a_list(self) -> None:
+        assert _is_github_list_repo("acme/x", "An awesome list of resources")
+
+    def test_real_oss_product_repo_is_not_a_list(self) -> None:
+        assert not _is_github_list_repo(
+            "facebook/docusaurus", "Docusaurus is a static site generator"
+        )
+
+    def test_none_description_is_not_a_list(self) -> None:
+        assert not _is_github_list_repo("acme/widget", None)

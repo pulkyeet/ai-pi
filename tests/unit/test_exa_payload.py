@@ -27,6 +27,17 @@ def test_bare_eval_set_shape_omits_mode_and_contents() -> None:
     assert payload == {"query": "CRM software", "numResults": 10}
 
 
+def test_auto_mode_requests_auto_search_type() -> None:
+    """Phase 14 follow-up: discovery runs with mode='auto' so Exa picks
+    keyword vs neural per query — same flat $0.007/query, but household names
+    (which rarely use verbatim category keywords) get a chance to surface."""
+    payload = _build_payload(
+        "expense tracker", limit=20, site=None, mode="auto", include_contents=True
+    )
+    assert payload["type"] == "auto"
+    assert payload["numResults"] == 20
+
+
 def test_site_adds_include_domains() -> None:
     payload = _build_payload("acme", limit=5, site="g2.com", mode="", include_contents=False)
     assert payload["includeDomains"] == ["g2.com"]

@@ -199,7 +199,17 @@ async def build_deps(
         settings.langfuse_secret_key.get_secret_value() if settings.langfuse_secret_key else None
     )
 
-    exa = ExaProvider(http, settings.exa_api_key.get_secret_value())
+    # mode="auto" (Phase 14 finding): the hardcoded "neural" default
+    # consistently favoured long-tail/indie content over household-name
+    # brand pages on real tuning runs — a Phase 01 bake-off artifact still
+    # confirms it (`tests/integration/test_exa_provider.py`'s own cassette
+    # top-hits OpenProject over Asana for "project management tool"). Exa
+    # bills the same $0.007/query across neural/keyword/auto
+    # (docs/external_apis.md), so letting Exa pick per-query is free and
+    # keeps neural's own strength on thin/niche categories (Phase 01: "Exa's
+    # neural search does what the masterplan needed it for" there) while
+    # giving keyword-style exact matching a chance on mainstream ones.
+    exa = ExaProvider(http, settings.exa_api_key.get_secret_value(), mode="auto")
     search_router = SearchRouter(
         pool, exa, run_id=run_id, daily_credit_cap_usd=settings.exa_daily_credit_cap_usd
     )

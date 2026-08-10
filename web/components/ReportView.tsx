@@ -97,8 +97,9 @@ export function ReportView({ report, accessToken, showExport = true }: ReportVie
                 <span style={{ fontSize: 13 }}>{c.positioning}</span>
               </CitedSentence>
               <div style={{ fontSize: 13, marginTop: 6 }}>
-                ${c.pricing.entry_usd_month}/mo · {c.pricing.model}
-                {c.pricing.free_tier ? " · free tier" : ""}
+                {c.pricing.model === "free"
+                  ? "Free"
+                  : `$${c.pricing.entry_usd_month}/mo · ${c.pricing.model}${c.pricing.free_tier ? " · free tier" : ""}`}
               </div>
             </div>
           ))}

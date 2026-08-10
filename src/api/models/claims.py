@@ -61,7 +61,15 @@ class AttributeSpec(BaseModel):
 
 ATTRIBUTE_SPEC: dict[str, AttributeSpec] = {
     ClaimAttribute.PRICING_MODEL: AttributeSpec(
-        kind=ValueKind.ENUM, choices=frozenset({"seat", "usage", "flat", "freemium"})
+        # "free" (Phase 14 finding): a genuinely, permanently free product
+        # (no paid tier at all) has no honest member of the original four —
+        # "freemium" implies a paid tier exists above the free one, which
+        # would be a fabricated claim for e.g. an OSS tool with no pricing
+        # page. Without this, such a product can never complete the pricing
+        # triple `build_competitors` requires and is structurally invisible
+        # to `report.competitors` no matter how well it was discovered.
+        kind=ValueKind.ENUM,
+        choices=frozenset({"seat", "usage", "flat", "freemium", "free"}),
     ),
     ClaimAttribute.PRICING_ENTRY_USD_MONTH: AttributeSpec(kind=ValueKind.NUMERIC, unit="usd/month"),
     ClaimAttribute.PRICING_FREE_TIER: AttributeSpec(kind=ValueKind.BOOLEAN),

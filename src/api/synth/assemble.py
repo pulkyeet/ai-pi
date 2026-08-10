@@ -146,6 +146,14 @@ async def build_pricing_landscape(pool: asyncpg.Pool, run_id: str) -> PricingLan
 # triple (model + entry_usd_month + free_tier). An entity missing any one of
 # the three is excluded, not padded with a fabricated value — CompetitorPricing
 # has no optional fields, and Rule 1 rules out inventing one.
+#
+# Exception (Phase 14 finding): `pricing.model == "free"` has no honest
+# `entry_usd_month` to report — a permanently free product's own pricing
+# page never states one, so requiring that claim made this whole category of
+# entity structurally unable to appear in `report.competitors`, no matter how
+# well it was discovered and verified. `entry_usd_month` defaults to 0.0 in
+# that one case instead — not fabricated, just the only truthful number for
+# "there is no paid tier."
 # ---------------------------------------------------------------------------
 
 
@@ -198,14 +206,19 @@ async def build_competitors(pool: asyncpg.Pool, run_id: str) -> list[CompetitorE
         model_row = pricing.get("pricing.model")
         entry_row = pricing.get("pricing.entry_usd_month")
         free_tier_row = pricing.get("pricing.free_tier")
-        if model_row is None or entry_row is None or free_tier_row is None:
+        is_permanently_free = model_row is not None and model_row["value_text"] == "free"
+        if model_row is None or free_tier_row is None:
+            continue
+        if entry_row is None and not is_permanently_free:
             continue
 
         platform_claims = platforms_by_entity.get(e["id"], [])
         platform_values = [r["value_text"] for r in platform_claims if r["value_text"]]
         maturity = Maturity(e["maturity"]) if e["maturity"] is not None else None
 
-        claim_ids = [model_row["id"], entry_row["id"], free_tier_row["id"]]
+        claim_ids = [model_row["id"], free_tier_row["id"]]
+        if entry_row is not None:
+            claim_ids.append(entry_row["id"])
         claim_ids.extend(r["id"] for r in platform_claims)
 
         entries.append(
@@ -220,7 +233,7 @@ async def build_competitors(pool: asyncpg.Pool, run_id: str) -> list[CompetitorE
                 ),
                 pricing=CompetitorPricing(
                     model=model_row["value_text"],
-                    entry_usd_month=float(entry_row["value_num"]),
+                    entry_usd_month=float(entry_row["value_num"]) if entry_row is not None else 0.0,
                     free_tier=free_tier_row["value_text"] == "true",
                 ),
                 claim_ids=claim_ids,

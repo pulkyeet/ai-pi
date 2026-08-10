@@ -1,0 +1,29 @@
+{
+  "claims_dropped": {
+    "invalid_attribute": 0,
+    "quote_ambiguous": 15,
+    "quote_not_in_source": 11,
+    "value_type_mismatch": 54
+  },
+  "competitor_recall": 0.0,
+  "contradiction_fired": true,
+  "cost_usd": 0.12738461,
+  "coverage": 0.0,
+  "difficulty": "easy",
+  "duration_s": 240.57693060699967,
+  "fact_accuracy": 0.0,
+  "llm_cost_usd": 0.00838461,
+  "precision_proxy": 1.0,
+  "query": "project management tool",
+  "query_id": "q01",
+  "run_id": "r_a07d4f00112e4744bb7e249f050c1446",
+  "search_cost_usd": 0.11900000000000001,
+  "sentence_binding_rate": 1.0,
+  "split": "tuning",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": false
+}

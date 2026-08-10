@@ -32,7 +32,7 @@ from api.llm.embed import EMBEDDING_DIM, build_embed_context
 from api.llm.gateway import build_context
 from api.models.brief import ResearchBrief
 from api.models.report import Report
-from api.synth.assemble import RunMeta, assemble_report
+from api.synth.assemble import RunMeta, assemble_report, build_competitors
 
 pytestmark = pytest.mark.usefixtures("skip_without_postgres")
 
@@ -515,3 +515,79 @@ async def test_generic_advice_regression_no_complaints_means_no_mvp_section(
     }
     # competitors/pricing are unaffected — the guard is specific to synthesis
     assert len(report.competitors) == 2
+
+
+async def test_build_competitors_free_entity_included_with_zero_entry(
+    pg_pool: asyncpg.Pool,
+) -> None:
+    """Phase 14 follow-up: a permanently-free product (pricing.model='free',
+    no paid tier) must appear in report.competitors with entry_usd_month=0.0 —
+    it can never complete the old triple and was structurally invisible. A
+    paid-but-incomplete entity (model set, no entry price) stays excluded."""
+    async with pg_pool.acquire() as conn:
+        run_id = await insert_run(conn)
+
+        free_text = (
+            "Docusaurus is a static site generator. It is free and open source "
+            "forever with no paid tier. Available on web and ios platforms."
+        )
+        free_id = await _insert_entity(
+            conn, display_name="Docusaurus", key=f"web:{uuid.uuid4().hex[:10]}.com"
+        )
+        free_source = await _insert_source(conn, free_text)
+        await _insert_claim(
+            conn,
+            run_id=run_id,
+            entity_id=free_id,
+            source_id=free_source,
+            source_text=free_text,
+            attribute="pricing.model",
+            quote="free and open source forever",
+            value_text="free",
+        )
+        await _insert_claim(
+            conn,
+            run_id=run_id,
+            entity_id=free_id,
+            source_id=free_source,
+            source_text=free_text,
+            attribute="pricing.free_tier",
+            quote="no paid tier",
+            value_text="false",
+        )
+
+        seat_text = "SeatOnly has seat based pricing here but its entry price was never captured."
+        incomplete_id = await _insert_entity(
+            conn, display_name="SeatOnly", key=f"web:{uuid.uuid4().hex[:10]}.com"
+        )
+        incomplete_source = await _insert_source(conn, seat_text)
+        await _insert_claim(
+            conn,
+            run_id=run_id,
+            entity_id=incomplete_id,
+            source_id=incomplete_source,
+            source_text=seat_text,
+            attribute="pricing.model",
+            quote="seat based pricing here",
+            value_text="seat",
+        )
+        await _insert_claim(
+            conn,
+            run_id=run_id,
+            entity_id=incomplete_id,
+            source_id=incomplete_source,
+            source_text=seat_text,
+            attribute="pricing.free_tier",
+            quote="its entry price was never captured",
+            value_text="false",
+        )
+
+    competitors = await build_competitors(pg_pool, run_id)
+
+    by_name = {c.display_name: c for c in competitors}
+    assert set(by_name) == {"Docusaurus"}, "paid-but-incomplete entity must stay excluded"
+    free = by_name["Docusaurus"]
+    assert free.pricing.model == "free"
+    assert free.pricing.entry_usd_month == 0.0
+    assert free.pricing.free_tier is False
+    assert free.claim_ids

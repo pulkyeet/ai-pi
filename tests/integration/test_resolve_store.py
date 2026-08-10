@@ -18,6 +18,7 @@ import uuid
 
 import httpx
 import pytest
+from _db import insert_run
 from _http import PLAIN_HTML, make_client, unique_root
 from _http import ScriptedTransport as Transport
 
@@ -354,6 +355,48 @@ async def test_merge_alias_is_idempotent_on_repeated_calls(pg_pool) -> None:
 
     assert first == canonical.id
     assert second == canonical.id
+
+
+async def test_merge_alias_repoints_claims_before_deleting_losing_entity(pg_pool) -> None:
+    """`claims.entity_id` deliberately has no ON DELETE CASCADE, so a merge
+    that deletes the losing entity must first repoint its claims onto the
+    canonical — otherwise Postgres raises `claims_entity_id_fkey` (observed
+    live on q08 discovery and on cached-only benchmark replay)."""
+    canonical = await store.upsert_entity(
+        pg_pool, entity_key=f"web:{unique_root()}", display_name="Acme", maturity=None, meta={}
+    )
+    alias = await store.upsert_entity(
+        pg_pool, entity_key=f"gh:acme/{_slug()}", display_name="Widget", maturity=None, meta={}
+    )
+    async with pg_pool.acquire() as conn:
+        run_id = await insert_run(conn)
+        pricing_url = f"https://{_slug()}.com/pricing"
+        source_id = await conn.fetchval(
+            "INSERT INTO sources (canonical_url, root_key, extracted_text) "
+            "VALUES ($1, $2, $3) RETURNING id",
+            pricing_url,
+            _slug(),
+            "Starts at $29/mo per seat.",
+        )
+        await conn.execute(
+            "INSERT INTO claims (run_id, entity_id, source_id, attribute, value_text, "
+            "value_num, unit, quote, char_start, char_end, quote_context, context_offset, "
+            "grade, confidence, extractor_version) "
+            "VALUES ($1, $2, $3, 'pricing.entry_usd_month', NULL, 29, 'usd/month', "
+            "'$29/mo per seat', 11, 27, 'Starts at $29/mo per seat.', 0, 'A', 0.9, 'test@1-test')",
+            run_id,
+            alias.id,
+            source_id,
+        )
+
+    result = await store.merge_alias(
+        pg_pool, canonical_key=canonical.entity_key, alias_key=alias.entity_key
+    )
+
+    assert result == canonical.id
+    async with pg_pool.acquire() as conn:
+        entity_id = await conn.fetchval("SELECT entity_id FROM claims WHERE run_id = $1", run_id)
+    assert entity_id == canonical.id
 
 
 # ---------------------------------------------------------------------------

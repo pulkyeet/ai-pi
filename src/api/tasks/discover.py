@@ -8,8 +8,9 @@ Pipeline, in order:
 
 1. Search every `query_variants` entry via `api.search.router.SearchRouter`
    (budget-bounded).
-2. Optionally widen with GitHub `awesome-<category>` repo search
-   (`consider_oss`) — masterplan §5's "very high precision seeds".
+2. Optionally widen with GitHub repo search for the category itself
+   (`consider_oss`) — real OSS products, never `awesome-*` curated lists (a
+   list is not a product; Phase 14's q01/q03 finding, fixed here).
 3. Turn every raw search hit into a candidate `web:`/`gh:` entity key,
    filtering out aggregator/platform/social domains that can never
    legitimately be a competitor entity.
@@ -85,6 +86,39 @@ NON_CANDIDATE_DOMAINS: frozenset[str] = frozenset(
 _GH_NON_REPO_OWNERS = frozenset({"orgs", "sponsors", "topics", "search", "about", "marketplace"})
 _GH_REPO_PATH_RE = re.compile(r"^github\.com/([^/]+)/([^/]+)")
 
+# A GitHub repo that is a curated *list*, not a product, can never be a
+# competitor entity. `awesome-*` list repos (and "curated list of ..."-style
+# descriptions) are collections of a hundred projects — profiling one as a
+# "competitor" is meaningless, and Phase 14's q01/q03 proved it: both
+# consumer-role queries engaged GitHub, spawned `oss_profile` against
+# awesome-* lists, and shipped zero real competitors. Filtered mechanically
+# here so the LLM planner's `consider_oss` judgement can never seed one,
+# whatever the prompt says.
+_GH_LIST_NAME_RE = re.compile(r"^awesome-", re.IGNORECASE)
+_GH_LIST_DESC_RE = re.compile(
+    r"curated list|awesome list|collection of (awesome|useful|best)|"
+    r"list of (the )?(awesome|best|useful)",
+    re.IGNORECASE,
+)
+
+
+def _is_github_list_repo(full_name: str, description: str | None) -> bool:
+    repo_name = full_name.split("/", 1)[-1]
+    return bool(_GH_LIST_NAME_RE.match(repo_name)) or bool(
+        description is not None and _GH_LIST_DESC_RE.search(description)
+    )
+
+
+# Exa's cost is flat per query regardless of result count (docs/external_apis.md's
+# search bake-off), so widening this is free credit-wise. Raised from the
+# provider default of 10 (Phase 14 finding): household-name competitors for
+# mainstream categories consistently ranked outside Exa's top 10 on real
+# tuning runs (e.g. "project management tool" surfaced Basecamp/OpenProject,
+# not Asana/Trello/ClickUp, even in Phase 01's own bake-off) — a wider result
+# window gives them a chance to be seen at all before `_RankedEntity`'s own
+# frequency/rank scoring ever gets a say.
+DISCOVERY_SEARCH_LIMIT = 20
+
 # Verification is a real network call per candidate — bound how many raw
 # search hits ever reach it, independent of how many distinct domains a
 # noisy result set produced.
@@ -102,6 +136,10 @@ class _RawHit:
     display_name: str
     best_rank: int
     hit_count: int = 0
+    # First non-empty search-result snippet seen for this candidate — the
+    # raw material for the 06b "quote Exa" grade-C evidence path (see
+    # `profile_product`'s `extract_snippet_claims`).
+    snippet: str = ""
 
 
 def _registrable_host(url: str) -> str:
@@ -145,6 +183,7 @@ class _RankedEntity:
     entity: Entity
     hit_count: int
     best_rank: int
+    snippet: str = ""
 
     @property
     def score(self) -> float:
@@ -183,7 +222,9 @@ class DiscoverCompetitorsHandler:
         raw_hits: dict[tuple[EntityScheme, str], _RawHit] = {}
 
         for rank_offset, variant in enumerate(query_variants):
-            response = await deps.search_router.search(variant, budget=deps.retrieval_budget)
+            response = await deps.search_router.search(
+                variant, limit=DISCOVERY_SEARCH_LIMIT, budget=deps.retrieval_budget
+            )
             deps.stats.record_search(response)
             cost_usd += response.credits_usd
             for result in response.results:
@@ -195,13 +236,17 @@ class DiscoverCompetitorsHandler:
                 hit = raw_hits.get(key)
                 rank = result.rank + rank_offset * 1000  # later variants rank strictly worse
                 if hit is None:
-                    raw_hits[key] = _RawHit(display_name=name, best_rank=rank, hit_count=1)
+                    raw_hits[key] = _RawHit(
+                        display_name=name, best_rank=rank, hit_count=1, snippet=result.snippet
+                    )
                 else:
                     hit.hit_count += 1
                     hit.best_rank = min(hit.best_rank, rank)
+                    if not hit.snippet and result.snippet:
+                        hit.snippet = result.snippet
 
         if consider_oss and query_variants:
-            await self._seed_awesome_repos(query_variants[0], raw_hits)
+            await self._seed_github_repos(query_variants[0], raw_hits)
 
         ranked_raw = sorted(raw_hits.items(), key=lambda kv: (-kv[1].hit_count, kv[1].best_rank))[
             :MAX_CANDIDATES_VERIFIED
@@ -243,7 +288,10 @@ class DiscoverCompetitorsHandler:
             existing = entities_by_id.get(entity.id)
             if existing is None or hit.hit_count > existing.hit_count:
                 entities_by_id[entity.id] = _RankedEntity(
-                    entity=entity, hit_count=hit.hit_count, best_rank=hit.best_rank
+                    entity=entity,
+                    hit_count=hit.hit_count,
+                    best_rank=hit.best_rank,
+                    snippet=hit.snippet,
                 )
 
         ranked = sorted(entities_by_id.values(), key=lambda r: r.score, reverse=True)
@@ -253,7 +301,11 @@ class DiscoverCompetitorsHandler:
         pricing_only = ranked[max_profile_count : max_profile_count * (1 + PRICING_ONLY_MULTIPLIER)]
 
         for ranked_entity in profiled:
-            spawned.append(self._spawn_for_entity(ranked_entity.entity, full_profile=True))
+            spawned.append(
+                self._spawn_for_entity(
+                    ranked_entity.entity, full_profile=True, snippet=ranked_entity.snippet
+                )
+            )
         for ranked_entity in pricing_only:
             spawned.append(self._spawn_for_entity(ranked_entity.entity, full_profile=False))
 
@@ -277,7 +329,9 @@ class DiscoverCompetitorsHandler:
             spawned=spawned,
         )
 
-    def _spawn_for_entity(self, entity: Entity, *, full_profile: bool) -> SpawnRequest:
+    def _spawn_for_entity(
+        self, entity: Entity, *, full_profile: bool, snippet: str = ""
+    ) -> SpawnRequest:
         scheme = entity.entity_key.split(":", 1)[0]
         if scheme == EntityScheme.GH.value:
             repo = entity.entity_key.split(":", 1)[1]
@@ -286,24 +340,31 @@ class DiscoverCompetitorsHandler:
             )
         kind = TaskKind.PROFILE_PRODUCT if full_profile else TaskKind.EXTRACT_PRICING
         prefix = "profile" if full_profile else "pricing"
-        return _spawn(
-            node_key=f"{prefix}:{entity.entity_key}",
-            kind=kind,
-            args={"entity_key": entity.entity_key},
-        )
+        args: dict[str, object] = {"entity_key": entity.entity_key}
+        if full_profile and snippet:
+            # 06b "quote Exa": the search-result snippet becomes a grade-C
+            # synthetic source `profile_product` extracts claims from — cheap
+            # evidence for an entity even where the real pages fall short.
+            args["snippet"] = snippet
+        return _spawn(node_key=f"{prefix}:{entity.entity_key}", kind=kind, args=args)
 
-    async def _seed_awesome_repos(
+    async def _seed_github_repos(
         self, query: str, raw_hits: dict[tuple[EntityScheme, str], _RawHit]
     ) -> None:
-        """Best-effort widening: a GitHub repo-search failure (rate limit,
-        transport error) never fails discovery, it just means one fewer
-        seed strategy contributed this run."""
+        """Best-effort OSS widening: search GitHub for real repos in the
+        category itself (star-sorted), never `awesome-*` curated lists. A
+        search failure (rate limit, transport error) never fails discovery,
+        it just means one fewer seed strategy contributed this run."""
         try:
-            hits = await self._deps.github.search_repositories(f"awesome {query}")
+            hits = await self._deps.github.search_repositories(
+                f"{query} in:name,description stars:>100"
+            )
         except (httpx.HTTPError, RetrieverUnavailableError) as exc:
-            logger.info("discover.awesome_repo_search_failed", query=query, error=str(exc))
+            logger.info("discover.github_repo_search_failed", query=query, error=str(exc))
             return
         for rank, repo_hit in enumerate(hits):
+            if _is_github_list_repo(repo_hit.full_name, repo_hit.description):
+                continue
             key = (EntityScheme.GH, repo_hit.full_name)
             existing = raw_hits.get(key)
             if existing is None:

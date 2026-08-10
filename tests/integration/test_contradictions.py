@@ -151,6 +151,43 @@ async def test_agreeing_claims_are_not_a_contradiction(pg_pool: asyncpg.Pool) ->
     assert groups == []
 
 
+async def test_multi_valued_list_attributes_are_not_contradictions(
+    pg_pool: asyncpg.Pool,
+) -> None:
+    """Phase 14 finding: `product.platforms`/`product.integrations` are
+    naturally multi-valued — a product genuinely supports several at once,
+    each extracted as its own claim. Distinct values are the expected shape,
+    not disagreement (8/8 benchmark contradictions were this false positive)."""
+    async with pg_pool.acquire() as conn:
+        run_id = await insert_run(conn)
+        entity_id = await _insert_entity(conn)
+        for _ in range(3):
+            source = await _insert_source(conn)
+            await _insert_claim(
+                conn,
+                run_id=run_id,
+                entity_id=entity_id,
+                source_id=source,
+                attribute=ClaimAttribute.PRODUCT_PLATFORMS,
+                value_text="ios",
+                grade="A",
+            )
+            source2 = await _insert_source(conn)
+            await _insert_claim(
+                conn,
+                run_id=run_id,
+                entity_id=entity_id,
+                source_id=source2,
+                attribute=ClaimAttribute.PRODUCT_INTEGRATIONS,
+                value_text="slack",
+                grade="A",
+            )
+
+        groups = await find_contradiction_groups(conn, run_id)
+
+    assert groups == []
+
+
 async def test_numeric_tolerance_five_dollars_vs_five_zero_zero_is_not_a_contradiction(
     pg_pool: asyncpg.Pool,
 ) -> None:
