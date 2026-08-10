@@ -45,7 +45,8 @@ rejection 18/18 (100% — MVP/feature-gaps/risks never generated on *any*
 tuning run, see below); extraction drops across all six runs:
 `quote_ambiguous`=59, `quote_not_in_source`=51, `invalid_attribute`=12,
 `value_type_mismatch`=8 (130 total against several hundred bound claims —
-see `docs/tuning.md`'s note that this wasn't traced further this phase).
+traced in the Phase 14 follow-up (2026-08-10), below; verdict: a minimum
+quote length is *not* the fix — see `docs/tuning.md` §"Extraction drops").
 
 ---
 
@@ -79,7 +80,8 @@ should be skipped" check, and it failed both times. This is a genuine
 Phase 09 planner-judgement finding — logged here, not fixed here, per
 Phase 14's own scope (`docs/execution_phases/phase-14-benchmark-
 calibration.md`: "changing product behaviour beyond tuning constants... a
-design flaw is a fix in the owning phase").
+design flaw is a fix in the owning phase"). **→ since fixed and re-measured
+in the Phase 14 follow-up (2026-08-10), below.**
 
 ### 2. Discovery surfaces real, verified, but long-tail competitors — not the household names ground truth expects
 
@@ -103,6 +105,8 @@ products over established brand sites for these categories. Exactly the
 masterplan's own anticipated risk (§13): "the likely levers are discovery
 seeds (Phase 10) and search provider choice (Phase 04) — both measurable,
 both fixable in their owning phase." Measured here; not fixed here.
+**→ since fixed (wider discovery window + `mode="auto"`) and re-measured in
+the Phase 14 follow-up (2026-08-10), below.**
 
 ### 3. A structural gap: genuinely free/OSS products can never appear as "competitors" at all (q08)
 
@@ -126,6 +130,8 @@ whole category of entity (permanently free software) is invisible to
 `report.competitors` by construction. Logged here; the fix (a `free`
 member on `pricing.model`, or a triple-optional relaxation for confirmed-
 free entities) belongs to whichever phase owns that contract.
+**→ since fixed (`pricing.model='free'` + `entry_usd_month=0.0` default)
+and re-measured in the Phase 14 follow-up (2026-08-10), below.**
 
 ---
 
@@ -160,6 +166,8 @@ contradiction detector's SQL needs an attribute-cardinality concept
 found by the benchmark exactly as the phase doc hoped ("without \[a trap\]
 there is no evidence the contradiction detector ever fires rather than
 silently never triggering" — it triggers, just not selectively enough).
+**→ since fixed (`_is_contradictory` skips `ValueKind.LIST` attributes)
+and re-measured in the Phase 14 follow-up (2026-08-10), below.**
 
 ---
 
@@ -291,6 +299,83 @@ else) — worth a follow-up look, though not chased further this phase.
   within the same real calendar day purely because both batches ran hours
   apart in one working session, not across a real day boundary. That first
   attempt was killed before any result was scored or written; the cap was
-  temporarily unset for a clean held-out run and restored immediately after
+  temporarily unset for a clean held-out run and   restored immediately after
   (`docs/tuning.md`). A genuine one-time-a-day cap doing exactly its job,
   logged rather than quietly worked around.
+
+---
+
+## Phase 14 follow-up (2026-08-10): the owning-phase fix set, landed and re-measured
+
+Every "logged here, not fixed here" finding above was since implemented
+and re-measured on three tuning queries (q01, q04, q08) against real
+traffic (~$0.37 total). What changed in code:
+
+1. **Planner judgement (§"Why recall was zero" #1)** — `plan_dag.md`'s
+   `consider_oss` guidance rewritten (GitHub only for genuinely
+   OSS-considered categories), plus a mechanical backstop:
+   `discover.py` no longer seeds from `awesome-<category>` curated-list
+   repos at all (`_is_github_list_repo` filters name/description); when
+   `consider_oss` is true it searches GitHub for real repos in the
+   category instead (`"<category> in:name,description stars:>100"`).
+2. **Long-tail over household names (#2)** — discovery window widened
+   from `limit=10` to `DISCOVERY_SEARCH_LIMIT=20` and Exa switched from
+   `mode="neural"` to `mode="auto"` (same flat $0.007/query) so results
+   ranked 11–20 and keyword-matching queries get a chance to surface.
+3. **Free/OSS structural gap (#3)** — `pricing.model` gains a `free`
+   member (the only honest value for a permanently-free product;
+   `freemium` would fabricate a paid tier above it) and
+   `build_competitors` accepts `entry_usd_month=0.0` for `model=="free"`
+   without requiring an entry-price claim. `ReportView` renders "Free".
+4. **Contradiction false positives (trap §)** — `_is_contradictory` skips
+   `ValueKind.LIST` attributes (`product.integrations`/`platforms` are
+   legitimately multi-valued); the detector now fires only on genuinely
+   single-valued attributes.
+5. **New: Exa snippets are quoteable (decision 06b).** The search-result
+   snippet becomes a grade-C synthetic source
+   (`retrieval_reason='serp_snippet'`) that `profile_product` extracts
+   claims from — with `pricing.*` claims excluded so a machine summary can
+   never complete the competitor pricing triple.
+6. **`merge_alias` FK crash fixed.** An old run's `claims.entity_id`
+   (no cascade, deliberately) referenced the losing entity, so the merge
+   delete raised `claims_entity_id_fkey` — observed live on q08 discovery
+   and previously on cached-only replay. `merge_alias` now repoints claims
+   onto the canonical entity before the delete; q08 re-ran clean.
+
+Measured outcome (2026-08-10, same three queries, real traffic):
+
+| id | recall | precision | cost | duration | report shape |
+|---|---|---|---|---|---|
+| q01 | 0.00 | 1.00 | $0.1274 | 240.6s | 4 real competitors (OpenProject, Shortcut, Breeze, Project.co) vs **0** pre-fix |
+| q04 | 0.00 | 1.00 | $0.1794 | 362.6s | expensify.com discovered + profiled (absent pre-fix); fallback plan used |
+| q08 | 0.00 | 1.00 | $0.0021 | 68.0s | real OSS surfaced (mkdocs, docsify, starlight); discovery **crashed** pre-fix |
+
+Discovery improved exactly as intended — q01 went from zero competitors
+under budget starvation to four real, Rule-2-verified competitors; q04
+discovered and profiled expensify.com; q08 surfaced genuinely relevant
+OSS. Recall still reads 0.00 because a **second, distinct bottleneck** now
+blocks the report — not because the fixes failed:
+
+- **q01: `value_type_mismatch` mass-drops pricing claims** (54 in one run
+  vs 8 across all six pre-fix). The extractor emits `feature.<x>.present`
+  booleans with prose values ("Can I organize ideas and setup workflows on
+  a Kanban board?") and price strings ("Per user/month if billed
+  annually") instead of `true`/a number — so ClickUp and Basecamp,
+  correctly discovered and profiled, fail the pricing triple at assemble
+  and never reach `report.competitors`. Traced (06a) to prompt/schema
+  compliance, not span logic. Single highest-leverage remaining fix;
+  owning-phase (extractor) work, not a tuning constant.
+- **q04: `profile_product` times out at `timeout_s=90`** on JS-heavy
+  pricing pages (expensify.com, attempts=2) so no pricing claims land.
+- **New metric gap: cross-scheme identity.** q08 found `mkdocs/mkdocs` as
+  a `gh:` entity but ground truth names `web:mkdocs.org`;
+  `competitor_recall` scores only `web:` entities and no alias links the
+  two, so a correct OSS discovery scores zero. Fix options (scorer
+  resolving identity through the alias graph, or discovery creating the
+  web alias when a verified repo's homepage is known) own a design call,
+  deferred.
+
+The q07/q09 trap and contradiction findings were not re-run; the
+contradiction fix's correctness is covered by
+`tests/integration/test_contradictions.py` (multi-valued attributes no
+longer contradict; the researched trap still fires).

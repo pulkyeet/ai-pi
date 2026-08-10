@@ -1,8 +1,33 @@
 # Execution Tracker
 
-Last Updated: 2026-08-08
+Last Updated: 2026-08-10
 
 ## Current Status
+
+- **Phase 14 follow-up (2026-08-10): the owning-phase fix set landed and was re-measured.** Every
+  "logged here, not fixed here" finding in `docs/benchmark.md`/`docs/tuning.md` was implemented,
+  test-covered, and re-validated live on three tuning queries (q01/q04/q08, ~$0.37 real spend):
+  (1) `consider_oss` planner guidance rewritten in `plan_dag.md` **plus** a mechanical backstop —
+  `discover.py` never seeds from `awesome-*` curated-list repos again (`_is_github_list_repo`
+  filters name/description; when `consider_oss` is true it searches the category itself,
+  `"<cat> in:name,description stars:>100"`); (2) discovery widened to `DISCOVERY_SEARCH_LIMIT=20`
+  and Exa switched to `mode="auto"`; (3) `pricing.model` gains `free` and `build_competitors`
+  accepts `entry_usd_month=0.0` for it (`ReportView` renders "Free"); (4) `_is_contradictory`
+  skips `ValueKind.LIST` attributes (the 8/8 contradiction false-positive class); (5) new 06b —
+  Exa snippets are quoteable grade-C sources, `pricing.*` excluded; (6) **`merge_alias` FK crash
+  fixed** (repoint claims onto the canonical before the delete — q08's discovery crashed on it
+  live pre-fix, re-ran clean post-fix). `make check` **806 tests, 96.06% coverage**; web vitest 35
+  green. **Honest result: discovery improved exactly as intended** (q01: 0 → 4 real verified
+  competitors; q04: expensify.com discovered+profiled; q08: real OSS surfaced) **but recall still
+  reads 0.00** — a *second* bottleneck now blocks the report: `value_type_mismatch` mass-drops
+  pricing claims (54 in one q01 run; extractor emits prose where `true`/a number is required,
+  traced via 06a), `profile_product` times out at `timeout_s=90` on JS-heavy pricing pages, and
+  the recall metric can't credit a `gh:` discovery against `web:` ground truth (q08's mkdocs).
+  All documented with numbers in `docs/benchmark.md`/`docs/tuning.md`; the fix set is committed.
+  Decision 06a verdict: no quote-length floor — the traced drop causes are entity-decoding and
+  prompt/schema compliance, not short quotes. Decisions 06b–11 closed per the ELI5 walkthrough
+  (06b yes; the rest keep-current, documented). Reddit steps delivered to the user (script app +
+  manual 2–4 wk approval form); nothing waits on it.
 
 - **Phase**: Phase 12 complete — API, Auth, Quotas & Guardrails. `src/api/web/` puts an authenticated
   FastAPI HTTP layer in front of everything `api.cli`/`api.synth` already do end to end: Supabase JWT
@@ -60,9 +85,12 @@ Last Updated: 2026-08-08
   `MAX_COMMUNITY_THREADS=20`, `GLOBAL_RUNS_PER_DAY=4`, `RUNS_PER_USER_PER_DAY=3`,
   `MAX_CONCURRENT_RUNS=2`, `EXA_DAILY_CREDIT_CAP_USD=0.33`, `EXA_GLOBAL_DAILY_CREDIT_CAP_USD=0.33`),
   closing masterplan §14 open items #1 and #2.
-- **Focus**: Begin Phase 15 — Deployment, Observability & Cost Control. Its own dependency (12+13+14)
-  is now satisfied. Phase 14 leaves real, quantified findings for Phase 15 to weigh before deploying —
-  see Blockers and Recent Activities.
+- **Focus**: Begin Phase 15 — Deployment, Observability & Cost Control. The Phase 14 follow-up
+  (above) landed its owning-phase fixes and re-measured them; the residual recall gap is now
+  precisely located (pricing-triple completion + the cross-scheme scoring gap) and owns its next
+  phase. Phase 15's own work is unchanged: Option A topology (Vercel frontend + Fly api/worker +
+  Supabase, no custom domain), `RUN_TIMEOUT_S` executor wiring, Supabase pre-deploy verification,
+  keepalive/backups/eviction, Langfuse, alerts, CI/CD, runbook. See Blockers and Recent Activities.
 - **Blockers**: None hard-blocking Phase 15, but three Phase 14 findings are worth reading before
   deploying behind these numbers: **(a) recall against well-known market-leader ground truth was 0% on
   every one of the six tuning queries** — not a benchmark-harness bug (precision stayed 100%, and the
@@ -93,6 +121,33 @@ Last Updated: 2026-08-08
   for real by every `bench.runner` invocation this session — Docker was available throughout).
 
 ## Recent Activities
+
+### 2026-08-10 — Phase 14 follow-up: owning-phase fix set lands, re-measured, committed
+- **Landed the previously-uncommitted fix set** (the 8-file dirty diff that contradicted the
+  committed docs' "not fixed here" claims): `mode="auto"` + `DISCOVERY_SEARCH_LIMIT=20`
+  (cli.py, discover.py), `ValueKind.LIST` contradiction skip (contradictions.py), `pricing.model`
+  gains `free` (claims.py, extract_claims.md), `build_competitors` free-path (assemble.py),
+  `consider_oss` prompt rewrite (plan_dag.md), ReportView "Free" (web).
+- **Added the awesome-* filter** (`discover.py` `_is_github_list_repo`; `_seed_awesome_repos` →
+  `_seed_github_repos`, query `"<cat> in:name,description stars:>100"`) — a curated list is not a
+  product; general search is now unambiguously the priority channel. Unit-tested (6 new tests).
+- **06b implemented**: Exa snippet → grade-C synthetic source (`serp_snippet`, `#serp-snippet`
+  canonical URL, `pricing.*` dropped). Integration-tested (`test_snippet_claims_persist_grade_c...`,
+  `test_empty_snippet_is_a_no_op`).
+- **Tests for every in-diff behavior** (contracts, synth free-path, contradictions LIST, exa
+  payload auto-mode, discover limit/filter, ReportView vitest). Fixed a pre-existing
+  closed-client bug in `test_api.py`'s finding-drilldown test (the Phase 13 no-live-Postgres gap).
+- **Live re-measurement** (q01/q04/q08, $0.37): discovery improved (q01 0→4 real competitors,
+  q04 expensify.com surfaced, q08 real OSS), **recall still 0.00** — located a second bottleneck:
+  `value_type_mismatch`=54 on q01 (extractor emits prose for boolean/numeric), profile timeout on
+  JS pricing pages, and a cross-scheme scoring gap (`gh:` vs `web:` ground truth, q08 mkdocs).
+- **`merge_alias` FK fix** (repoint claims before delete) — q08's discovery crashed on
+  `claims_entity_id_fkey` live pre-fix; re-ran clean. Integration test added.
+- **06a drop-trace**: replayed 257 cached extractions (987 raw claims, 157 drops) — verdict: no
+  quote-length floor; causes are entity-decoding mismatch + prompt/schema compliance.
+- **Docs reconciled**: benchmark.md/tuning.md "not fixed here" claims amended with the outcome +
+  full follow-up sections; tracker Current Status/Focus updated. `make check` 806 tests, 96.06%.
+- Decisions 06b–11 closed per user walkthrough; Reddit API steps delivered (manual approval pending).
 
 ### 2026-08-06
 - Created `/docs` directory, `tracker.md`, `working_knowledge.md`

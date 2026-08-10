@@ -153,6 +153,10 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   `fetched_at`). `contradictions.py` is masterplan §4.7's `GROUP BY` (grade D excluded) extended
   with a per-`ATTRIBUTE_SPEC` comparison rule (numeric on `value_num` — Postgres `numeric` is exact
   decimal, so `$5.00`/`$5` already compare equal; everything else on normalised `value_text`);
+  **`_is_contradictory` returns `False` for any `ValueKind.LIST` attribute** — `product.integrations`/
+  `product.platforms` are legitimately multi-valued (Phase 14 follow-up 2026-08-10; the 8/8 benchmark
+  false-positive class was exactly these), so the detector fires only on genuinely single-valued
+  attributes;
   resolution is highest-grade-wins/tie-on-recency, losers are **retained** via `superseded_by`
   (never deleted), and the winner's confidence is recomputed with the 0.6 penalty from its own
   stored `claims.confidence_inputs` (migration `0008`, the one schema change this phase needed —
@@ -205,6 +209,33 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
 - `StrEnum` + Pydantic everywhere a vocabulary needs to be closed. If you're tempted to accept a
   bare `str` for something like a claim attribute or entity scheme, don't — the whole system's
   guarantees (contradiction detection, injection resistance) depend on these being enumerable.
+
+### Phase 14 follow-up conventions (2026-08-10)
+
+- **`pricing.model` vocabulary is `seat|usage|flat|freemium|free`.** `free` is the honest value for
+  a permanently-free product (no paid tier); `freemium` *implies* a paid tier above the free one,
+  so using it for an OSS tool would fabricate a claim. `build_competitors` accepts
+  `entry_usd_month=0.0` when `model=='free'` (the only truthful number) — a non-free entity still
+  requires the full triple.
+- **Contradictions never fire on `ValueKind.LIST` attributes** (`product.integrations`/
+  `product.platforms` are multi-valued by nature); the `GROUP BY` detector applies only to
+  single-valued attributes.
+- **Discovery never seeds from `awesome-*` curated-list repos** (`discover._is_github_list_repo`).
+  When `consider_oss` is true it searches GitHub for the category itself
+  (`"<cat> in:name,description stars:>100"`); general Exa search is the primary channel.
+  `DISCOVERY_SEARCH_LIMIT=20` (up from 10) and Exa `mode="auto"` give household names ranked
+  outside the top-10 a chance to surface.
+- **Exa snippets are quoteable evidence (decision 06b)**: a search-result snippet becomes a grade-C
+  synthetic source (`retrieval_reason='serp_snippet'`, canonical URL `https://<root>#serp-snippet`,
+  never collides with a real homepage fetch) that `profile_product` extracts claims from. **`pricing.*`
+  claims are dropped from snippet extraction** — a machine summary can never complete the competitor
+  pricing triple. Snippet provenance shows as grade C, not the vendor's own page.
+- **`merge_alias` repoints claims before deleting the losing entity** — `claims.entity_id` has no
+  cascade (deliberate), so a merge that deleted first raised `claims_entity_id_fkey` (q08 live, and
+  cached-only replay). The canonical entity absorbs the losing entity's claims.
+- **No quote-length floor on extraction (decision 06a)** — the measured drop causes are HTML-entity
+  mismatch (`&amp;` in quotes vs decoded stored text), non-vocabulary attributes, and
+  text-where-typed values, not short quotes.
 
 ### Naming Conventions
 

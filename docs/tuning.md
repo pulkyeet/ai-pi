@@ -263,16 +263,17 @@ Exa's cached search result names but this process has never checked
 simpler — no OSS/funding branches) got far enough to report a real
 competitor and a non-zero coverage score from cache alone.
 
-**A second, distinct, real bug found in the same pass, not yet
-diagnosed**: q08's cached-only replay failed with `update or delete on
-table "entities" violates foreign key constraint "claims_entity_id_fkey"`
-— `api.resolve.store.merge_alias` attempting to merge `gh:crisp-oss/chappe`
-into a canonical `web:npmjs.com` entity that still has `claims` rows
-pointing at it from an earlier run. Whether this is a genuine cross-run
-entity-merge safety gap in `merge_alias` or an artifact specific to
-replaying against a database that has accumulated more history across
-multiple same-session runs was not determined this phase — logged for
-Phase 07's attention rather than guessed at.
+**A second, distinct, real bug found in the same pass**: q08's cached-only
+replay failed with `update or delete on table "entities" violates foreign
+key constraint "claims_entity_id_fkey"` — `api.resolve.store.merge_alias`
+attempting to merge `gh:crisp-oss/chappe` into a canonical `web:npmjs.com`
+entity that still has `claims` rows pointing at it from an earlier run.
+**Diagnosed and fixed in the Phase 14 follow-up (2026-08-10)**: `claims.
+entity_id` deliberately has no `ON DELETE CASCADE`, so the merge delete
+orphaned the losing entity's old-run claims. `merge_alias` now repoints
+those claims onto the canonical entity before the delete. Confirmed live:
+q08's discovery crashed on exactly this FK on 2026-08-10 pre-fix and re-ran
+clean post-fix (also see `docs/benchmark.md`'s follow-up section).
 
 **Not fixed here.** Building persistent caching for `RobotsCache` and every
 domain retriever is real Phase 03/04 infrastructure work — a new migration,
@@ -286,3 +287,43 @@ doc's exit criteria ask for exists and remains informative on whatever
 *does* complete from cache, rather than either lying about being green or
 being withheld entirely over a gap this phase didn't create and isn't
 scoped to close.
+
+## 7. Phase 14 follow-up (2026-08-10): decisions 06a/06b + the owning-phase fixes
+
+### Extraction drops traced — and a minimum quote length is *not* the fix (06a)
+
+Decision 06a ("impose a quote-length floor?") was deliberately "measure
+first". Replayed every raw extraction from the permanent `extraction_cache`
+(257 entries, 987 raw claims): **157 reproduced drops** —
+`quote_ambiguous`=62, `quote_not_in_source`=57, `invalid_attribute`=20,
+`value_type_mismatch`=18. The dominant causes, in order:
+
+1. **HTML-entity mismatch (10 confirmed this way, pattern dominates
+   `quote_not_in_source`)**: the model quotes `&amp;`/`&#39;`-laden text
+   ("Trips &amp; projects") while the stored `sources.extracted_text` is
+   entity-decoded ("Trips & projects") — a Phase 03/06 normalisation
+   contract mismatch, not a short-quote problem.
+2. **Non-vocabulary attributes (`invalid_attribute`)**: the model emits
+   `pricing.free_trial_days` (vocabulary: `pricing.trial_days`) and
+   `feature.<slug>` without the required `.present` boolean suffix.
+3. **Text-where-typed (`value_type_mismatch`)**: price display strings
+   ("MXN $5,000/month", "Pay £108/year for Pro.") for the numeric
+   `pricing.entry_usd_month`; prose for boolean `feature.*.present`.
+4. **Genuinely short quotes are a minority** (a few list bullets like
+   "- Batch upload"), and *long* ambiguous quotes are just as common —
+   a length floor would fix at most a handful of drops and is not worth
+   its risk of discarding real short facts. **Verdict: no quote-length
+   floor; the levers are the three compliance gaps above (owning-phase,
+   extractor/prompt work).**
+
+### Exa snippets are now quoteable evidence (06b, implemented)
+
+The search-result snippet (≤500 chars, Exa `text`) becomes a grade-C
+synthetic source (`retrieval_reason='serp_snippet'`, canonical_url
+`https://<root>#serp-snippet` so it never collides with a real homepage
+fetch) that `profile_product` extracts claims from. The span guarantee
+holds mechanically — the quote is verbatim in the stored snippet text.
+Two deliberate constraints: `pricing.*` claims are **dropped** from
+snippet extraction (a machine summary must never satisfy the competitor
+pricing triple), and the grade-C tag labels the provenance honestly
+("from a search snippet", not "fetched from the vendor's page").
