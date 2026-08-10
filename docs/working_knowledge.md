@@ -236,6 +236,14 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
 - **No quote-length floor on extraction (decision 06a)** — the measured drop causes are HTML-entity
   mismatch (`&amp;` in quotes vs decoded stored text), non-vocabulary attributes, and
   text-where-typed values, not short quotes.
+- **Storage per run ≈ 0.40 MB (measured 2026-08-10, replaces the unmeasured ~1.2 MB masterplan
+  estimate).** Averaged over the 8 largest real runs in `ai_pi`: min 0.37 MB, max 0.50 MB, mean 0.40 MB.
+  `sources.extracted_text` (fetched page bodies) and `claims` dominate; `llm_calls` stores only
+  token/cost metadata (no prompt/response payloads), so LLM traffic adds negligible per-run bytes.
+  `entities`/`entity_aliases` are a global identity store shared across runs and are excluded from the
+  per-run figure. Implication for eviction: at 0.40 MB/run, the 500 MB Supabase ceiling holds ~1,250
+  runs before eviction — the hybrid "Postgres on Fly" escape hatch (tracker.md Supabase-over-Neon
+  section) is **not** triggered on storage grounds.
 
 ### Naming Conventions
 

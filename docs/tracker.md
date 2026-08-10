@@ -1452,7 +1452,9 @@ Trade-off accepted: no DB branching for CI (compensated by ephemeral Postgres in
 alongside API and worker — no pause, no ceiling, one less vendor. Cost of that move is auth (Authlib +
 OAuth flow return to Phase 12). Do *not* do the hybrid — self-hosted Postgres plus Supabase-for-auth-only
 splits `user_profiles` from `auth.users` across two databases and breaks the Phase 00 FK.
-Migration trigger: Phase 14 measures per-run storage well above ~1.2 MB, or the keepalive proves unreliable.
+Migration trigger: measured 2026-08-10 per-run storage is **~0.40 MB** (not above 1.2 MB — the
+escape hatch is NOT triggered on storage grounds; at 0.40 MB/run the 500 MB ceiling holds ~1,250
+runs). Re-evaluate only if a new large-payload column lands, or the keepalive proves unreliable.
 
 ### Search: single provider, deliberately
 

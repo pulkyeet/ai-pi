@@ -161,7 +161,7 @@ Non-HTML content types (PDF, JSON, plain text) are routed to type-specific handl
 | `retrieval_reason` | Why this was fetched — debugging and coverage reporting |
 | `is_pinned` | Benchmark sources, exempt from eviction ([Phase 00](phase-00-foundation-contracts-ci.md)) |
 
-**Eviction and the 500 MB ceiling.** Supabase free is 500 MB, and `extracted_text` dominates it (~1.2 MB/run). Eviction nulls `extracted_text` on expired, unpinned rows while keeping the metadata row:
+**Eviction and the 500 MB ceiling.** Supabase free is 500 MB, and `extracted_text` dominates it (~0.4 MB/run, measured 2026-08-10 — the ceiling holds ~1,250 runs). Eviction nulls `extracted_text` on expired, unpinned rows while keeping the metadata row:
 
 ```sql
 update sources

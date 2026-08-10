@@ -232,6 +232,6 @@ The repo is public and is part of the artifact. It needs:
 
 ## Open decisions
 
-1. **If Supabase becomes a problem, move Postgres to Fly.** Not open in the sense of undecided — Supabase ships in v1 ([README](README.md#sixth-change-supabase-over-neon)). Recorded here because Phase 15 owns the migration if the trigger fires: per-run storage materially above ~1.2 MB, or an unreliable keepalive. The cost of moving is auth, not data — Supabase Auth is providing Google and GitHub OAuth for free, and self-hosting Postgres means rebuilding that in [Phase 12](phase-12-api-auth-quotas.md).
+1. **If Supabase becomes a problem, move Postgres to Fly.** Not open in the sense of undecided — Supabase ships in v1 ([README](README.md#sixth-change-supabase-over-neon)). Recorded here because Phase 15 owns the migration if the trigger fires: per-run storage materially above ~0.4 MB (measured 2026-08-10; the trigger is not currently met), or an unreliable keepalive. The cost of moving is auth, not data — Supabase Auth is providing Google and GitHub OAuth for free, and self-hosting Postgres means rebuilding that in [Phase 12](phase-12-api-auth-quotas.md).
 2. **Custom domain?** ~$10–15/year, and it materially improves how the artifact reads to a recruiter versus a `*.vercel.app` URL. Recommend yes — it is the cheapest credibility available in the whole plan.
 3. **Public run history?** Showing recent anonymised queries would demonstrate real usage. Adds a privacy surface and a moderation obligation. Recommend deferring; benchmark reports already carry the demo.
