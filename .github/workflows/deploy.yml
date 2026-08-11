@@ -95,8 +95,11 @@ jobs:
           echo "PREV_IMAGE=$PREV_IMAGE" >> "$GITHUB_ENV"
           echo "previous image: ${PREV_IMAGE:-<none>}"
 
+      # --local-only is explicit: this flyctl defaults to remote (depot)
+      # builds, and the depot builder times out provisioning on this account.
+      # The ubuntu-latest runner has a Docker daemon, so build locally and push.
       - name: Build and push the image (no machine is touched)
-        run: flyctl deploy --config fly.toml --build-only --push
+        run: flyctl deploy --config fly.toml --build-only --push --local-only
 
       - name: Capture image ref for the worker machine
         run: |
