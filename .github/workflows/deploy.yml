@@ -98,14 +98,20 @@ jobs:
       # --local-only is explicit: this flyctl defaults to remote (depot)
       # builds, and the depot builder times out provisioning on this account.
       # The ubuntu-latest runner has a Docker daemon, so build locally and push.
-      - name: Build and push the image (no machine is touched)
-        run: flyctl deploy --config fly.toml --build-only --push --local-only
-
-      - name: Capture image ref for the worker machine
+      # flyctl prints the pushed ref as "image: registry.fly.io/<app>:<tag>";
+      # `image show` / `releases` report nothing until a machine exists, so the
+      # worker + API machine steps get the ref from that output.
+      - name: Build, push, and capture the image ref
         run: |
-          IMAGE_REF="$(flyctl image show -a ai-product-investigator --json | jq -r '.Image')"
-          if [ -z "$IMAGE_REF" ] || [ "$IMAGE_REF" = "null" ]; then
-            echo "failed to read the pushed image ref" >&2
+          OUTPUT="$(flyctl deploy --config fly.toml --build-only --push --local-only 2>&1)"
+          rc=$?
+          if [ "$rc" -ne 0 ]; then
+            printf '%s\n' "$OUTPUT" >&2
+            exit "$rc"
+          fi
+          IMAGE_REF="$(printf '%s\n' "$OUTPUT" | grep -oE 'image: registry\.fly\.io/[^[:space:]]+' | sed 's/^image: //' | head -1)"
+          if [ -z "$IMAGE_REF" ]; then
+            echo "no image ref in flyctl output" >&2
             exit 1
           fi
           echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
