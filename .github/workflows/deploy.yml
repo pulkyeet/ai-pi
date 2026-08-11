@@ -131,9 +131,14 @@ jobs:
         # an existing release to know the image, which a first deploy (or any
         # deploy before the API machine exists) doesn't have. Staged secrets
         # take effect on the next machine update / deploy below.
+        #
+        # DATABASE_URL uses the DIRECT connection string
+        # (SUPABASE_DB_URL_ASYNC_DIRECT, IPv6 — Fly has IPv6). The session
+        # pooler (SUPABASE_DB_URL_ASYNC) caps at 15 clients and cannot hold the
+        # API + worker machine pools; it stays for IPv4-only CI jobs.
         run: |
           flyctl secrets set --stage \
-            DATABASE_URL="${{ secrets.SUPABASE_DB_URL_ASYNC }}" \
+            DATABASE_URL="${{ secrets.SUPABASE_DB_URL_ASYNC_DIRECT }}" \
             OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
             EXA_API_KEY="${{ secrets.EXA_API_KEY }}" \
             GITHUB_TOKEN="${{ secrets.GH_TOKEN }}" \

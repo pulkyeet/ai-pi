@@ -31,8 +31,9 @@ Langfuse Cloud (free) traces + cost per run (LLM calls only)
 
 | Secret | Owned by | Set as | Used by |
 |---|---|---|---|
-| `DATABASE_URL` (asyncpg form, `?ssl=require`, session-pooler host) | Supabase DB password | Fly secret `DATABASE_URL` (from GitHub Actions secret `SUPABASE_DB_URL_ASYNC`) | api + worker machines |
-| `SUPABASE_DB_URL` (libpq form, `?sslmode=require`, session-pooler host) | Supabase DB password | GitHub Actions secret | alembic in deploy.yml; keepalive + backup in keepalive.yml |
+| `DATABASE_URL` (asyncpg form, `?ssl=require`, **direct** host `db.<ref>.supabase.co`) | Supabase DB password | Fly secret `DATABASE_URL` (from GitHub Actions secret `SUPABASE_DB_URL_ASYNC_DIRECT`) | api + worker machines |
+| `SUPABASE_DB_URL` (libpq form, `?sslmode=require`, **session-pooler** host) | Supabase DB password | GitHub Actions secret | alembic in deploy.yml; keepalive + backup in keepalive.yml |
+| `SUPABASE_DB_URL_ASYNC` (asyncpg form, `?ssl=require`, **session-pooler** host) | Supabase DB password | GitHub Actions secret | `api.maintenance` in keepalive.yml |
 | `OPENROUTER_API_KEY` | OpenRouter dashboard | Fly secret | api machine LLM calls |
 | `EXA_API_KEY` | Exa dashboard | Fly secret | api machine search |
 | `GH_TOKEN` → `GITHUB_TOKEN` | GitHub fine-grained PAT | GitHub Actions secret `GH_TOKEN`, forwarded to Fly secret `GITHUB_TOKEN` by deploy.yml | api machine domain retrievers |
@@ -48,25 +49,33 @@ Two rules that hold everywhere:
 1. Real values live in Fly secrets and GitHub Actions secrets, never in the
    repo. `deploy/.env.prod.example` and `.env.example` are placeholder
    checklists only.
-2. The Supabase DB password ships in two spellings because asyncpg and
-   libpq/psycopg demand different query params for the same TLS requirement:
-   `?ssl=require` (asyncpg runtime) vs `?sslmode=require` (alembic, psql,
-    pg_dump). Keep both GitHub secrets in sync when the password rotates.
+2. The Supabase DB password ships in three connection strings. Two dialects
+   because asyncpg and libpq/psycopg demand different query params for the
+   same TLS requirement (`?ssl=require` vs `?sslmode=require`); two hosts
+   because the Fly runtime uses the **direct** host (IPv6) while IPv4-only CI
+   uses the **session pooler** (rule 4). Keep all three GitHub secrets
+   (`SUPABASE_DB_URL`, `SUPABASE_DB_URL_ASYNC`, `SUPABASE_DB_URL_ASYNC_DIRECT`)
+   in sync when the password rotates.
 3. GitHub Actions reserves the secret name `GITHUB_TOKEN` (that name is its
    auto-generated per-run token), so the Actions secret is named `GH_TOKEN`.
    `deploy.yml` forwards it to the app's `GITHUB_TOKEN` env var, which is what
    `config.py` reads — if the Actions secret is ever renamed, update deploy.yml
    to match.
-4. **Session pooler, not direct.** `db.<project>.supabase.co` resolves to an
-   IPv6-only AAAA record, unreachable from this machine and from GitHub
-   Actions runners; the direct connection is usable only from IPv6-native
-   hosts. Everything therefore connects through the session pooler
+4. **Direct on Fly, pooler in CI — and never the pooler for the app.** The
+   pooler's session mode caps clients at `pool_size: 15`; the app's asyncpg
+   pool is 10 connections per machine (two machines ⇒ 20+), so pointing the
+   Fly runtime at the pooler **crashes startup with `EMAXCONNSESSION`**
+   (observed 2026-08-11, first Fly deploy). The Fly machines therefore use
+   the **direct** connection (`db.<ref>.supabase.co`, asyncpg `?ssl=require`),
+   which is IPv6-only but Fly has IPv6. IPv4-only CI (alembic, keepalive
+   psql, `pg_dump`, `api.maintenance` — one to ten short-lived connections
+   each) uses the **session pooler**
    (`aws-0-ap-south-1.pooler.supabase.com:5432`, user `postgres.<ref>`), which
-   pins a server connection per client — fine for a persistent worker. This
-   supersedes the phase doc's "direct connection, not the pooler" note
-   (dated 2026-08-11): session mode is the vendor's intended path for IPv4
-   clients. Verified: migration chain 0001→0012 applied cleanly to the real
-   Supabase project over the pooler on 2026-08-11.
+   pins a server connection per client. The direct host is unreachable from
+   this machine and GitHub Actions runners; the pooler is unreachable for the
+   app's pool size. This supersedes the phase doc's "direct connection, not
+   the pooler" note (dated 2026-08-11). Verified: migration chain 0001→0012
+   applied cleanly to the real Supabase project over the pooler on 2026-08-11.
 
 ## The nine alerts
 
@@ -229,7 +238,7 @@ would change behavior, and those are never auto-run.
 
 | Key | How | Repercussion |
 |---|---|---|
-| Supabase DB password | Supabase dashboard → rotate; update GitHub secrets `SUPABASE_DB_URL` **and** `SUPABASE_DB_URL_ASYNC`, then re-push `fly secrets set DATABASE_URL` | None to running machines until they reconnect (pool reconnects) |
+| Supabase DB password | Supabase dashboard → rotate; update all three GitHub secrets `SUPABASE_DB_URL`, `SUPABASE_DB_URL_ASYNC`, `SUPABASE_DB_URL_ASYNC_DIRECT`, then re-push `fly secrets set DATABASE_URL` | None to running machines until they reconnect (pool reconnects) |
 | OpenRouter / Exa / GitHub keys | Vendor dashboard → rotate → `fly secrets set OPENROUTER_API_KEY=…` (new value) → `fly machines restart` (for the GitHub key also update Actions secret `GH_TOKEN`) | A bad key degrades the relevant task class, never crashes the site |
 | Langfuse | `fly secrets set LANGFUSE_*` | None — unset keys are a no-op tracer |
 | `FLY_API_TOKEN` | Fly dashboard → GitHub Actions secret | Deploys stop until replaced |

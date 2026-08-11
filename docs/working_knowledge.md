@@ -687,9 +687,12 @@ near zero" — Fly's free tier is gone; the README and runbook say so).
   asyncpg-form) that must be rotated together. `deploy/.env.prod.example` documents both.
 - **Supabase direct connections are IPv6-only** (`db.<ref>.supabase.co` resolves to a single AAAA
   record), unreachable from this machine and from GitHub Actions runners; the direct connection is
-  usable only from IPv6-native hosts like Fly. **Resolution (2026-08-11): everything uses the
-  session pooler** — `aws-0-ap-south-1.pooler.supabase.com:5432` (user `postgres.<ref>`), which pins
-  a server connection per client and is the vendor's intended path for IPv4 clients. The migration
+  usable only from IPv6-native hosts like Fly. **Resolution (2026-08-11, refined after first Fly
+  deploy): Fly machines use the DIRECT connection** (asyncpg `?ssl=require`), while IPv4-only CI
+  uses the session pooler — `aws-0-ap-south-1.pooler.supabase.com:5432` (user `postgres.<ref>`),
+  which pins a server connection per client. The app must NEVER use the pooler: it caps at 15
+  clients (`EMAXCONNSESSION`), and the asyncpg pool is 10 connections per machine, so two machines
+  + worker crashed startup. The migration
   chain 0001→0012 was applied cleanly to the **real** Supabase project over the pooler on
   2026-08-11: 0001's `auth`-schema-exists guard skips the stub and `user_profiles` resolves its FK to
   the real `auth.users`.
