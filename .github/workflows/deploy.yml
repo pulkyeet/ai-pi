@@ -77,7 +77,7 @@ jobs:
 
       - name: Install flyctl
         run: |
-          curl -sSL https://fly.io/install.sh | sh
+          curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused https://fly.io/install.sh | sh
           echo "$HOME/.fly/bin" >> "$GITHUB_PATH"
 
       - name: Install uv

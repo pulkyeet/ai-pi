@@ -678,17 +678,23 @@ near zero" — Fly's free tier is gone; the README and runbook say so).
   phase adding a new status/enum value must either keep every value valid across every historical
   `CHECK`, or have its own tests clean up rows in the new value before they can outlive the test that
   created them — see [Phase 12](execution_phases/phase-12-api-auth-quotas.md).
-- **Supabase's direct connection requires TLS, and asyncpg and libpq spell it differently.**
-  asyncpg wants `?ssl=require` in the DSN; psycopg/psql/pg_dump (and therefore Alembic and the
-  backup/keepalive jobs) want `?sslmode=require`. The app runtime (`create_pool`) is asyncpg —
-  `api.worker`/`api.maintenance`/the API machine need the `ssl` spelling; the deploy workflow's
-  `alembic upgrade head` and `deploy/backup.sh` need the `sslmode` spelling. This is why the
-  runbook keeps **two** GitHub secrets (`SUPABASE_DB_URL` libpq-form, `SUPABASE_DB_URL_ASYNC`
-  asyncpg-form) that must be rotated together. `deploy/.env.prod.example` documents both.
+- **Supabase connection spellings (empirical, refined after the first Fly deploy on 2026-08-11).**
+  There are three distinct connection strings and each has its own exact query param:
+  - `SUPABASE_DB_URL` — libpq form, **session pooler** host, `?sslmode=require`; used by the deploy
+    workflow's `alembic upgrade head` and the keepalive/backup `psql`+`pg_dump` jobs (IPv4 CI).
+  - `SUPABASE_DB_URL_ASYNC` — asyncpg form, **session pooler** host, `?ssl=require`; used by
+    `api.maintenance` in keepalive.yml (IPv4 CI). asyncpg accepts the `ssl` spelling on the pooler.
+  - `SUPABASE_DB_URL_ASYNC_DIRECT` — asyncpg form, **direct** host `db.<ref>.supabase.co`,
+    `?sslmode=require`; used by the API and worker machines (Fly runtime). **The direct endpoint
+    REJECTS asyncpg's `ssl=require` with `CantChangeRuntimeParamError: parameter "ssl" cannot be
+    changed now`** (observed on the first Fly deploy); on the direct host asyncpg must use the
+    `sslmode` spelling, same as libpq.
+  All three are the same Supabase DB password, rotated together; `deploy/.env.prod.example`
+  documents the forms.
 - **Supabase direct connections are IPv6-only** (`db.<ref>.supabase.co` resolves to a single AAAA
   record), unreachable from this machine and from GitHub Actions runners; the direct connection is
   usable only from IPv6-native hosts like Fly. **Resolution (2026-08-11, refined after first Fly
-  deploy): Fly machines use the DIRECT connection** (asyncpg `?ssl=require`), while IPv4-only CI
+  deploy): Fly machines use the DIRECT connection** (asyncpg `?sslmode=require`), while IPv4-only CI
   uses the session pooler — `aws-0-ap-south-1.pooler.supabase.com:5432` (user `postgres.<ref>`),
   which pins a server connection per client. The app must NEVER use the pooler: it caps at 15
   clients (`EMAXCONNSESSION`), and the asyncpg pool is 10 connections per machine, so two machines
