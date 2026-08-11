@@ -153,7 +153,9 @@ jobs:
           WORKER_ID="$(flyctl machine list -a ai-product-investigator --json \
             | jq -r '.[] | select(.name == "worker") | .id' | head -1)"
           if [ -z "$WORKER_ID" ]; then
-            flyctl machine run "$IMAGE_REF" --config fly.worker.toml --name worker \
+            # `--` stops flag parsing: flyctl's `-m` is --metadata, which would
+            # otherwise swallow the `-m` of `python -m api.worker`.
+            flyctl machine run "$IMAGE_REF" --config fly.worker.toml --name worker -- \
               python -m api.worker
           else
             flyctl machine update "$WORKER_ID" --config fly.worker.toml \
