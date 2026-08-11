@@ -127,8 +127,12 @@ jobs:
           GITHUB_TOKEN: ci-placeholder
 
       - name: Set app secrets on the Fly machines
+        # --stage: set secrets without triggering a deploy. `secrets set` needs
+        # an existing release to know the image, which a first deploy (or any
+        # deploy before the API machine exists) doesn't have. Staged secrets
+        # take effect on the next machine update / deploy below.
         run: |
-          flyctl secrets set \
+          flyctl secrets set --stage \
             DATABASE_URL="${{ secrets.SUPABASE_DB_URL_ASYNC }}" \
             OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
             EXA_API_KEY="${{ secrets.EXA_API_KEY }}" \
