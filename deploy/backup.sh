@@ -17,6 +17,11 @@ set -euo pipefail
 : "${R2_SECRET_ACCESS_KEY:?R2_SECRET_ACCESS_KEY required}"
 : "${R2_BUCKET:?R2_BUCKET required}"
 
+# The aws cli reads AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY; map the R2-prefixed
+# names the workflow passes so this script is self-contained.
+export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
 STAMP="$(date -u +%Y-%m-%dT%H%M%SZ)"
 OBJECT="ai-pi-postgres-${STAMP}.sql.gz"
 TMPDIR_MINE="$(mktemp -d)"
