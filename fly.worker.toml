@@ -15,6 +15,11 @@
 
 app = "ai-product-investigator"
 
+# Separate process group from the API machine ("app"). `fly deploy` only
+# reconciles machines in its target process group, so an API deploy or its
+# rollback can never stop/re-image the worker.
+process_group = "worker"
+
 primary_region = "iad"
 
 [env]
