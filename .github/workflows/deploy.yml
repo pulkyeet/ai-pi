@@ -75,21 +75,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Install flyctl
+        run: |
+          curl -sSL https://fly.io/install.sh | sh
+          echo "$HOME/.fly/bin" >> "$GITHUB_PATH"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
 
       - name: Create the app if this is the first deploy
-        run: fly apps create ai-product-investigator || true
+        run: flyctl apps create ai-product-investigator || true
 
       - name: Build and push the image (no machine is touched)
-        run: fly deploy --config fly.toml --build-only --push --remote-only
+        run: flyctl deploy --config fly.toml --build-only --push --remote-only
 
       - name: Capture image ref for the worker machine
         run: |
-          IMAGE_REF="$(fly image show -a ai-product-investigator --json | jq -r '.Image')"
+          IMAGE_REF="$(flyctl image show -a ai-product-investigator --json | jq -r '.Image')"
           echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
           echo "pushed image: $IMAGE_REF"
 
@@ -103,7 +105,7 @@ jobs:
 
       - name: Set app secrets on the Fly machines
         run: |
-          fly secrets set \
+          flyctl secrets set \
             DATABASE_URL="${{ secrets.SUPABASE_DB_URL_ASYNC }}" \
             OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
             EXA_API_KEY="${{ secrets.EXA_API_KEY }}" \
@@ -126,19 +128,19 @@ jobs:
       - name: Deploy the worker machine (same image, entrypoint python -m api.worker)
         run: |
           set -euo pipefail
-          WORKER_ID="$(fly machine list -a ai-product-investigator --json \
+          WORKER_ID="$(flyctl machine list -a ai-product-investigator --json \
             | jq -r '.[] | select(.name == "worker") | .id' | head -1)"
           if [ -z "$WORKER_ID" ]; then
-            fly machine run "$IMAGE_REF" --config fly.worker.toml --name worker \
+            flyctl machine run "$IMAGE_REF" --config fly.worker.toml --name worker \
               python -m api.worker
           else
-            fly machine update "$WORKER_ID" --config fly.worker.toml \
+            flyctl machine update "$WORKER_ID" --config fly.worker.toml \
               --image "$IMAGE_REF" --command "python -m api.worker" --yes
           fi
 
       # API last: it owns the public surface and the health check that gates it.
       - name: Deploy the API machine (waits for its own health check)
-        run: fly deploy --config fly.toml --image "$IMAGE_REF"
+        run: flyctl deploy --config fly.toml --image "$IMAGE_REF"
 
       - name: Health check
         run: |
@@ -157,10 +159,10 @@ jobs:
         if: failure()
         run: |
           echo "deploy failed — rolling back"
-          fly releases rollback -a ai-product-investigator --yes || true
-          WORKER_ID="$(fly machine list -a ai-product-investigator --json \
+          flyctl releases rollback -a ai-product-investigator --yes || true
+          WORKER_ID="$(flyctl machine list -a ai-product-investigator --json \
             | jq -r '.[] | select(.name == "worker") | .id' | head -1)"
           if [ -n "$WORKER_ID" ]; then
-            PREV="$(fly machine show "$WORKER_ID" --json | jq -r '.image_ref_with_digest')"
-            fly machine update "$WORKER_ID" --image "$PREV" --yes || true
+            PREV="$(flyctl machine show "$WORKER_ID" --json | jq -r '.image_ref_with_digest')"
+            flyctl machine update "$WORKER_ID" --image "$PREV" --yes || true
           fi
