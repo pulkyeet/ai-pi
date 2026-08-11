@@ -34,8 +34,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Install postgresql-client (PGDG repo, matches Supabase's server version)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lsb-release wget ca-certificates
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo wget -qO /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+            https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
 
       - name: Keepalive query (trivial, cheap, keeps the project from idle-pausing)
         run: psql "$SUPABASE_DB_URL" -tAc "SELECT 1"
@@ -57,14 +67,27 @@ jobs:
         run: DATABASE_URL="$SUPABASE_DB_URL_ASYNC" uv run python -m api.maintenance
         env:
           SUPABASE_DB_URL_ASYNC: ${{ secrets.SUPABASE_DB_URL_ASYNC }}
+          OPENROUTER_API_KEY: ci-placeholder
+          EXA_API_KEY: ci-placeholder
+          GITHUB_TOKEN: ci-placeholder
 
   backup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Install postgresql-client (PGDG repo, matches Supabase's server version)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lsb-release wget ca-certificates
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo wget -qO /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+            https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
 
       - name: Nightly backup to R2
         run: ./deploy/backup.sh
