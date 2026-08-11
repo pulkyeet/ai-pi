@@ -10,8 +10,7 @@ brief yielded any keywords) mine the community backbone alongside it.
 either (see `api.planner.registry`'s module docstring): the executor's
 `discover_competitors` handler (Phase 10) spawns them once real entities
 exist. Venue defaults follow README.md's D5 backbone (HN Algolia + GitHub +
-Stack Exchange), since Reddit is credential-gated and not guaranteed
-available.
+Stack Exchange), the always-available community venues.
 """
 
 from __future__ import annotations

@@ -7,8 +7,8 @@ implementations catch everything internally) rather than being a discipline
 
 `NoopTracer` is the default whenever `settings.langfuse_public_key`/
 `langfuse_secret_key` are unset — same "`None` means unconfigured, never a
-crash" pattern as `producthunt_token`/`reddit_client_id` elsewhere in
-`api.config`. Free Hobby tier is 50,000 units/month; at ~65 units/run that's
+crash" pattern as `producthunt_token` elsewhere in `api.config`. Free Hobby
+tier is 50,000 units/month; at ~65 units/run that's
 comfortably above expected volume — see docs/execution_phases/phase-05-llm-gateway.md.
 """
 

@@ -33,7 +33,6 @@ from api.sources.github import GitHubRetriever
 from api.sources.hn import HNRetriever
 from api.sources.packages import PackagesRetriever
 from api.sources.producthunt import ProductHuntRetriever
-from api.sources.reddit import RedditRetriever
 from api.sources.stackexchange import StackExchangeRetriever
 from api.sources.wayback import WaybackRetriever
 from api.tasks.community import MineCommunityHandler
@@ -80,7 +79,6 @@ def build_deps(
         wayback=WaybackRetriever(http),
         packages=PackagesRetriever(http),
         producthunt=ProductHuntRetriever(http, None),
-        reddit=RedditRetriever(http, enabled=False, client_id=None, client_secret=None),
         search_router=SearchRouter(pool, ExaProvider(http, "test-exa-key"), run_id=run_id),
         retrieval_budget=RetrievalBudget(max_searches=50, max_fetches=50),
         run_id=run_id,
@@ -713,20 +711,20 @@ class TestMineCommunity:
         assert claim["attribute"] == "complaint.receipt-loss"
         assert claim["grade"] == "D"
 
-    async def test_reddit_venue_disabled_degrades_without_crashing(
+    async def test_unknown_venue_is_filtered_before_any_network_call(
         self, pg_pool: asyncpg.Pool
     ) -> None:
         async with pg_pool.acquire() as conn:
             run_id = await insert_run(conn)
             task_id = await insert_task(conn, run_id, "community:2", kind="mine_community")
 
-        transport = HostRoutedTransport()  # nothing scripted; reddit must never be called
+        transport = HostRoutedTransport()  # nothing scripted; an unknown venue must never be called
         deps = build_deps(pg_pool, transport, run_id)
         handler = MineCommunityHandler(deps)
         ctx = task_ctx(run_id, task_id, "community:2", "mine_community")
 
         result = await handler.run(
-            ctx, {"keywords": [unique_query("crm")], "venues": ["reddit", "made-up-venue"]}
+            ctx, {"keywords": [unique_query("crm")], "venues": ["made-up-venue"]}
         )
         assert result.artifacts.get("claims_persisted", 0) == 0
 

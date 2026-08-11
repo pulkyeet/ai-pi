@@ -34,7 +34,6 @@ from api.sources.github import GitHubRetriever
 from api.sources.hn import HNRetriever
 from api.sources.packages import PackagesRetriever
 from api.sources.producthunt import ProductHuntRetriever
-from api.sources.reddit import RedditRetriever
 from api.sources.stackexchange import StackExchangeRetriever
 from api.sources.wayback import WaybackRetriever
 from api.tasks.context import HandlerDeps, RunStats
@@ -66,7 +65,6 @@ def build_deps(pool: asyncpg.Pool, transport: HostRoutedTransport, run_id: str) 
         wayback=WaybackRetriever(http),
         packages=PackagesRetriever(http),
         producthunt=ProductHuntRetriever(http, None),
-        reddit=RedditRetriever(http, enabled=False, client_id=None, client_secret=None),
         search_router=SearchRouter(pool, ExaProvider(http, "test-exa-key"), run_id=run_id),
         retrieval_budget=RetrievalBudget(max_searches=50, max_fetches=50),
         run_id=run_id,

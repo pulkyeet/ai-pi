@@ -6,7 +6,7 @@
 >  group by entity_id, attribute
 > having count(distinct value_num) > 1;
 
-Grade D is excluded — "two Reddit comments disagreeing about a price is
+Grade D is excluded — "two community comments disagreeing about a price is
 noise, not a contradiction". Resolution: highest grade wins, ties broken by
 most recent `as_of`. The loser is **retained and surfaced**, not deleted —
 "pricing page says $5 last week, a 2025 review says $18" is genuinely

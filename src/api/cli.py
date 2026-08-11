@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import sys
 import time
 import uuid
@@ -67,7 +68,6 @@ from api.sources.github import GitHubRetriever
 from api.sources.hn import HNRetriever
 from api.sources.packages import PackagesRetriever
 from api.sources.producthunt import ProductHuntRetriever
-from api.sources.reddit import RedditRetriever
 from api.sources.stackexchange import StackExchangeRetriever
 from api.sources.wayback import WaybackRetriever
 from api.synth.assemble import RunMeta, assemble_report
@@ -120,6 +120,25 @@ async def finish_run(pool: asyncpg.Pool, run_id: str, *, cost_usd: float, covera
         run_id,
         cost_usd,
         coverage,
+    )
+
+
+async def record_run_stats(pool: asyncpg.Pool, run_id: str, stats: RunStats) -> None:
+    """Persist a run's extraction counters (Phase 15 — `run_stats`, migration
+    `0012`) at run-finish time. This is the only durable record of
+    `RunStats.claims_dropped`, which `GET /metrics`'s extraction-drop-rate
+    alert reads (`api.web.routes.metrics`)."""
+    await pool.execute(
+        """
+        INSERT INTO run_stats (run_id, claims_bound, claims_dropped)
+        VALUES ($1, $2, $3::jsonb)
+        ON CONFLICT (run_id) DO UPDATE SET
+            claims_bound = EXCLUDED.claims_bound,
+            claims_dropped = EXCLUDED.claims_dropped
+        """,
+        run_id,
+        stats.claims_bound,
+        json.dumps(stats.claims_dropped),
     )
 
 
@@ -189,12 +208,6 @@ async def build_deps(
     producthunt_token = (
         settings.producthunt_token.get_secret_value() if settings.producthunt_token else None
     )
-    reddit_client_id = (
-        settings.reddit_client_id.get_secret_value() if settings.reddit_client_id else None
-    )
-    reddit_client_secret = (
-        settings.reddit_client_secret.get_secret_value() if settings.reddit_client_secret else None
-    )
     langfuse_secret_key = (
         settings.langfuse_secret_key.get_secret_value() if settings.langfuse_secret_key else None
     )
@@ -225,12 +238,6 @@ async def build_deps(
         wayback=WaybackRetriever(http),
         packages=PackagesRetriever(http),
         producthunt=ProductHuntRetriever(http, producthunt_token),
-        reddit=RedditRetriever(
-            http,
-            enabled=settings.enable_reddit,
-            client_id=reddit_client_id,
-            client_secret=reddit_client_secret,
-        ),
         search_router=search_router,
         retrieval_budget=RetrievalBudget(
             max_searches=DEFAULT_MAX_SEARCHES_PER_RUN, max_fetches=DEFAULT_MAX_FETCHES_PER_RUN
@@ -422,6 +429,7 @@ async def run_query(
         execution_plan,
         budget_weight=run_budget_weight,
         budget_usd=settings.run_budget_usd,
+        run_timeout_s=settings.run_timeout_s,
     ):
         print_event(event)
 
@@ -481,6 +489,7 @@ async def run_query(
     )
 
     await finish_run(pool, run_id, cost_usd=llm_cost + search_cost, coverage=coverage.score)
+    await record_run_stats(pool, run_id, deps.stats)
 
     print_summary(
         deps.stats,

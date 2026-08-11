@@ -1,8 +1,7 @@
-"""`mine_community` — HN Algolia, GitHub issue search, and Stack Exchange
-(Reddit only if `ENABLE_REDDIT`), emitting `complaint.<theme>`/
-`request.<theme>` claims via the same LLM extraction + span-binding pipeline
-every other handler uses (Phase 10 phase doc). Bounded by
-`HandlerDeps.max_community_threads`.
+"""`mine_community` — HN Algolia, GitHub issue search, and Stack Exchange,
+emitting `complaint.<theme>`/`request.<theme>` claims via the same LLM
+extraction + span-binding pipeline every other handler uses (Phase 10 phase
+doc). Bounded by `HandlerDeps.max_community_threads`.
 
 **A real schema/vocabulary tension, resolved here.** The masterplan's own
 output contract (§2) has `pain_points`/`feature_gaps` with no `entity_key`
@@ -44,7 +43,7 @@ from api.tasks.context import COMMUNITY_GRADE, HandlerDeps
 
 logger = structlog.get_logger()
 
-VALID_VENUES = frozenset({"hn", "github", "stackexchange", "reddit"})
+VALID_VENUES = frozenset({"hn", "github", "stackexchange"})
 
 
 async def category_entity_id(deps: HandlerDeps, *, hint: str) -> int:
@@ -83,16 +82,10 @@ async def _github_lines(deps: HandlerDeps, keyword: str, limit: int) -> list[str
     ]
 
 
-async def _reddit_lines(deps: HandlerDeps, keyword: str, limit: int) -> list[str]:
-    hits = await deps.reddit.search(keyword, limit=limit)
-    return [f'- "{h.title}" (reddit.com{h.permalink}) — score {h.score or 0}' for h in hits]
-
-
 _VENUE_FETCHERS = {
     "hn": _hn_lines,
     "stackexchange": _stackexchange_lines,
     "github": _github_lines,
-    "reddit": _reddit_lines,
 }
 
 

@@ -1,0 +1,77 @@
+# Nightly ops (Phase 15): keepalive + storage maintenance + backup, on one
+# nightly schedule so a failure in any job alerts through GitHub's native
+# failed-workflow notification — there is no external alerting service.
+#
+#   keepalive   — trivial SELECT against Supabase. Free projects pause after 7
+#                 days idle; a nightly query never lets them approach the
+#                 threshold (stricter than the phase doc's "every 3 days").
+#                 A FAILED keepalive IS the alert that the pause guard may be
+#                 broken — the workflow's own failure is that notification.
+#   maintenance — the nightly eviction (expired unpinned sources.extracted_text),
+#                 event pruning behind the retention window, benchmark-source
+#                 pinning, and the size query (api.maintenance), against the
+#                 production Supabase DB via asyncpg (?ssl=require).
+#   backup      — nightly pg_dump -> gzip -> R2 (deploy/backup.sh). Runs from
+#                 Actions, not a Fly machine (ephemeral filesystems).
+#
+# Three independent jobs on purpose: the backup failing must not hide a
+# keepalive failure (or vice versa). Keep them separate so the workflow is
+# red only when something genuinely is.
+
+name: Keepalive, maintenance & backup
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Keepalive query (trivial, cheap, keeps the project from idle-pausing)
+        run: psql "$SUPABASE_DB_URL" -tAc "SELECT 1"
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+  maintenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run storage maintenance (evict / prune / pin / size)
+        run: DATABASE_URL="$SUPABASE_DB_URL_ASYNC" uv run python -m api.maintenance
+        env:
+          SUPABASE_DB_URL_ASYNC: ${{ secrets.SUPABASE_DB_URL_ASYNC }}
+
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Nightly backup to R2
+        run: ./deploy/backup.sh
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          AWS_DEFAULT_REGION: auto

@@ -91,7 +91,7 @@ Ranking matters because the profile budget is finite. Signals: appears in multip
 
 **`extract_pricing`** — narrower and cheaper than `profile_product`: pricing paths only. The planner uses it when it wants pricing for many entities without full profiles.
 
-**`mine_community`** — HN Algolia search, GitHub issues by reactions, Stack Exchange, and Reddit only if enabled ([D5](README.md#deviations-from-the-masterplan)). Emits `complaint.<theme>` and `request.<theme>` claims. Bounded by `MAX_COMMUNITY_THREADS`.
+**`mine_community`** — HN Algolia search, GitHub issues by reactions, and Stack Exchange. Emits `complaint.<theme>` and `request.<theme>` claims. Bounded by `MAX_COMMUNITY_THREADS`. (Reddit was planned here but dropped per [D5](README.md#deviations-from-the-masterplan) — no Reddit integration ships.)
 
 Themes are assigned by the extraction model from the closed parameterised family ([Phase 00](phase-00-foundation-contracts-ci.md)) — so themes are open in slug but closed in shape, and near-duplicate theme clustering is deferred to [Phase 11](phase-11-synthesis-report-assembly.md).
 

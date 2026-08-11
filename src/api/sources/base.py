@@ -24,8 +24,8 @@ class RetrieverUnavailableError(Exception):
     """A retriever's data isn't reachable right now — missing/insufficient
     credentials, a feature flag off, or a vendor-reported quota/permission
     exhausted. Never a run failure: the caller (a future Phase 10 task
-    handler) converts this into a coverage gap, the same mechanism Reddit's
-    optionality already models end to end."""
+    handler) converts this into a coverage gap, the same mechanism the
+    credential-gated retrievers already model end to end."""
 
     def __init__(self, retriever: str, reason: str) -> None:
         super().__init__(f"{retriever} unavailable: {reason}")

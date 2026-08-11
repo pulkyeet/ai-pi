@@ -1,10 +1,51 @@
 # Execution Tracker
 
-Last Updated: 2026-08-10
+Last Updated: 2026-08-11
 
 ## Current Status
 
-- **Phase 14 follow-up (2026-08-10): the owning-phase fix set landed and was re-measured.** Every
+- **Phase 15 (Deployment, Observability & Cost Control) — code/deploy layer built and verified;
+  the actual deploy is a separate go/no-go for the user.** Everything the phase doc's Deliverables
+  list and storage-management sections need that the codebase didn't already have:
+  - **Deploy artifacts:** multi-stage `Dockerfile` (pinned base-image digests, non-root `app`
+    user), `fly.toml` (API machine) + `fly.worker.toml` (worker machine, same image, different
+    entrypoint — managed via `fly machine run/update --config fly.worker.toml`), `deploy/.env.prod.example`
+    (placeholders only), `deploy/backup.sh` (nightly `pg_dump` → gzip → R2, 30 dumps retained),
+    `.github/workflows/deploy.yml` (check → build+push → **migrations → worker → API** → health
+    check → rollback on failure), `.github/workflows/keepalive.yml` (nightly cron: keepalive +
+    maintenance + backup, failure = GitHub's native failed-workflow notification).
+  - **Backend:** `RUN_TIMEOUT_S` is now wired for real — `executor.submit(run_timeout_s=…)` stops
+    claiming new work past the deadline via a new `lease.skip_rest` (`skipped, reason='run_timeout'`),
+    in-flight tasks still finish, report path still runs (tuning.md's "no consumer wired" note closed).
+    `src/api/maintenance.py` (`python -m api.maintenance`) runs the nightly storage jobs:
+    `cache.evict_expired` (unpinned `sources.extracted_text`), new `prune_expired_events` (30-day
+    `run_events` window), new `pin_benchmark_sources` (sources cited by `is_benchmark` runs), and a
+    `pg_database_size` size query. `src/api/worker.py` (`python -m api.worker`) is the worker machine
+    entrypoint: periodic `lease.sweep_expired` recovery sweep + maintenance pass + health log line.
+    Migration `0012_run_stats` makes the extraction drop-rate durable (`run_stats` written at
+    run-finish by both `cli.run_query` and `web.runner.run_pipeline`). **`GET /metrics`** (authenticated)
+    exposes the runbook's nine-alert set: runs/day, cost/run, search spend MTD, sentence-binding rate
+    (**the only page-immediately alert**, breaches *below* 100%), extraction drop rate, p95 latency,
+    task failure rate, DB size (70%/85% of 500 MB).
+  - **Docs:** `README.md` created (repo root — the phase doc's architecture/decisions/injection/
+    honest-benchmark-numbers/deviations/self-hosting section; the file did not previously exist despite
+    the masterplan referencing anchors in it). `docs/runbook.md` — the nine-alert table with thresholds,
+    cap-hit/vendor-outage/DB-near-limit/restore/rollback/key-rotation procedures, the **Exa
+    allowance-as-ceiling decision (2026-08-11)** and the full secret inventory.
+  - **Verification:** `make check` green — **819 passed, 16 deselected, 96% coverage** (new:
+    `test_maintenance.py` 5 tests, `test_metrics.py` 3 tests, `test_run_timeout_skips_remaining_tasks`).
+    Docker build succeeds (non-root, all modules import under the container's venv). `deploy/backup.sh`
+    `bash -n` clean; both workflow YAMLs parse; both fly configs pass `fly config validate`.
+    **Migrations verified against a real-shaped Supabase `auth` schema** (0001→0012 clean; the
+    `user_profiles` FK resolves to `auth.users`; the 0001 `auth`-schema-exists guard is a no-op on a
+    real project). The **real Supabase project itself is unreachable from this sandbox** (network
+    egress, not a migration failure — see Blockers).
+  - **Deviations (reasons in the Phase 15 Recent Activities entry below):** the worker machine is a
+    recovery-sweep + maintenance machine, not a task runner (runs still execute in the API process —
+    single-worker design, the phase doc's "heavy run cannot starve the API" premise is not yet true);
+    alerts ride GitHub's native failure notifications + a runbook habit rather than an external
+    alerting service; Exa's missing dashboard spend cap is documented as an allowance-as-ceiling
+    decision rather than a silent gap. **The Fly deploy itself is NOT done** — separate go/no-go. Every
   "logged here, not fixed here" finding in `docs/benchmark.md`/`docs/tuning.md` was implemented,
   test-covered, and re-validated live on three tuning queries (q01/q04/q08, ~$0.37 real spend):
   (1) `consider_oss` planner guidance rewritten in `plan_dag.md` **plus** a mechanical backstop —
@@ -26,8 +67,8 @@ Last Updated: 2026-08-10
   All documented with numbers in `docs/benchmark.md`/`docs/tuning.md`; the fix set is committed.
   Decision 06a verdict: no quote-length floor — the traced drop causes are entity-decoding and
   prompt/schema compliance, not short quotes. Decisions 06b–11 closed per the ELI5 walkthrough
-  (06b yes; the rest keep-current, documented). Reddit steps delivered to the user (script app +
-  manual 2–4 wk approval form); nothing waits on it.
+  (06b yes; the rest keep-current, documented). Reddit dropped as a source: its manual 2–4 wk
+  app-approval process made it infeasible, so the codebase carries no Reddit integration.
 
 - **Phase**: Phase 12 complete — API, Auth, Quotas & Guardrails. `src/api/web/` puts an authenticated
   FastAPI HTTP layer in front of everything `api.cli`/`api.synth` already do end to end: Supabase JWT
@@ -112,7 +153,7 @@ Last Updated: 2026-08-10
   failing tasks on 5 of 6 tuning queries; `bench.yml` ships with `continue-on-error` on the affected
   steps rather than either faking green or being withheld — real Phase 03/04 work, `docs/tuning.md`
   §6. Carried forward,
-  unaffected by Phase 14: Reddit API application (still not submitted), the GitHub Starring endpoint's
+  unaffected by Phase 14: the GitHub Starring endpoint's
   permanent restriction (2026-06-30 vendor lockdown), `evaluate_github_theme`'s zero real callers
   (confirmed still true — see `docs/tuning.md` §2), two frozen Phase 00 `Report` leaf fields widened in
   Phase 11, the Phase 12 Open Decision #1 (anonymous trial runs — now unblockable: real per-run cost is
@@ -121,6 +162,85 @@ Last Updated: 2026-08-10
   for real by every `bench.runner` invocation this session — Docker was available throughout).
 
 ## Recent Activities
+
+### 2026-08-11 — Phase 15 (Deployment, Observability & Cost Control): code/deploy layer built
+
+- **Deploy artifacts landed** (deliverables list in the phase doc, plus the storage-management work):
+  `Dockerfile` + `.dockerignore`, `fly.toml`, `fly.worker.toml`, `deploy/.env.prod.example`,
+  `deploy/backup.sh`, `.github/workflows/deploy.yml`, `.github/workflows/keepalive.yml`,
+  `README.md` (new at repo root), `docs/runbook.md`, `.env.example` gained commented
+  `SUPABASE_URL`/`CORS_ALLOW_ORIGINS` placeholders. Full detail in the Current Status bullet above.
+- **`RUN_TIMEOUT_S` is wired, closing tuning.md §5's "no consumer wired anywhere" note.**
+  `Executor.submit` gained `run_timeout_s` (`src/api/executor/core.py`); past the deadline the
+  dispatch loop stops claiming new work and `lease.skip_rest` marks every still-pending/running task
+  `skipped, reason='run_timeout'`; in-flight tasks are allowed to finish (their cost is already
+  spent) and the report path still runs — "stop the fan-out, finish with what we have". Both
+  `api.cli.run_query` and `api.web.runner.run_pipeline` pass `settings.run_timeout_s`. Tested by
+  `tests/integration/test_executor.py::test_run_timeout_skips_remaining_tasks` (5 sleep tasks,
+  `run_timeout_s=0.2` → `done==0`, `skipped==5`, all rows `('skipped','run_timeout')`).
+- **Storage management implemented** (`src/api/maintenance.py`, `python -m api.maintenance`):
+  reuses `api.retrieval.cache.evict_expired` for the nightly TTL eviction of unpinned
+  `sources.extracted_text` (rows + `claims.quote_context` survive, so drill-down still works — the
+  phase doc's Ops row "Eviction runs; drill-down still works on an evicted source" still needs its
+  **live production check**); new `prune_expired_events` (30-day `run_events` window, was entirely
+  unpruned before — `run_events` is append-only); new `pin_benchmark_sources` (sources cited by
+  `is_benchmark` runs get `is_pinned=true`, idempotent — the ~12 MB benchmark set never evicts);
+  `database_size_bytes` via `pg_database_size`. Covered by `tests/integration/test_maintenance.py`
+  (5 tests). Runs nightly from the keepalive workflow's maintenance job.
+- **`src/api/worker.py` (`python -m api.worker`) — the worker machine entrypoint.** Same image as
+  the API, different CMD. **Deliberate deviation, logged per the continuity rules:** it is a
+  *recovery-sweep + maintenance* machine (periodic `lease.sweep_expired` crash-recovery sweep,
+  a `run_maintenance` pass twice a day, a structured `worker.health` log line), **not a task
+  runner** — runs still execute inside the API process (`run_pipeline` background task, the
+  single-worker design Phase 02/12 accepted). The phase doc's "a heavy run cannot starve the API"
+  premise is therefore not yet true; handing task execution over to the worker is real Phase 02/10
+  architecture work (the executor's leasing already supports it) and is logged here rather than
+  silently implied otherwise.
+- **Migration `0012_run_stats` + `GET /metrics` (authenticated).** `run_stats` makes the extraction
+  drop-rate durable — `api.cli.record_run_stats` is called at run-finish by both `cli.run_query` and
+  `web.runner.run_pipeline` (the in-memory `RunStats` was never persisted before). The metrics
+  endpoint (`src/api/web/routes/metrics.py`, registered in `app.create_app`, requires a Supabase
+  JWT) reports the runbook's nine-alert values with threshold constants colocated: runs/day,
+  cost-per-run 30d mean, search spend MTD, **sentence binding rate (the only `< 100%` page-
+  immediately alert — breaches below, not above, its threshold)**, extraction drop rate (from
+  `run_stats`, first time the drop metrics are queryable anywhere), p95 run latency, task failure
+  rate, and DB size as % of 500 MB (70%/85% levels). Covered by `tests/integration/test_metrics.py`
+  (3 tests; shared-DB-safe bounds per the long-lived `ai_pi_test` gotcha).
+- **Verification.** `make check` green: **819 passed, 16 deselected, 96% coverage** (up from 806 /
+  96.06%; `api.maintenance` measured at 25% via `--cov=api.maintenance`, `metrics.py` 99% through
+  the `src/api/web` prefix). Docker build succeeds (pinned digests `ghcr.io/astral-sh/uv:python3.12-
+  bookworm-slim` + `python:3.12-slim`; runs as uid 999 `app`; `api.web.main`/`api.worker`/
+  `api.maintenance` import cleanly in the container). `deploy/backup.sh` `bash -n` clean; both
+  workflow YAMLs parse; `fly config validate` passes for both `fly.toml` and `fly.worker.toml`
+  (flyctl v0.4.81).
+- **Supabase pre-deploy migration check.** The full chain 0001→0012 applies cleanly **against a
+  real-shaped Supabase `auth` schema** (scratch DB with `auth.users` matching the real column set
+  incl. `id uuid PRIMARY KEY`): the 0001 `auth`-schema-exists guard correctly skipped the local stub,
+  and `user_profiles_user_id_fkey` resolves `user_profiles -> auth.users` — the phase doc's "the
+  stub assumption holds" check. **The real Supabase project itself was unreachable from this
+  sandbox** (both direct psql and a Docker container on the Windows daemon failed with "Network is
+  unreachable" to the project's IPv6 record — an egress restriction of this environment, not a
+  migration failure; reported without blind retries). The live `alembic upgrade head` against the
+  real project remains a one-command pre-deploy step for whoever holds network access.
+- **Not done / deferred to the deploy go/no-go:** the Fly deploy itself; live smoke tests (OAuth
+  both providers, SSE through Fly's proxy, eviction on real data, kill-switch flip); the first real
+  `GET /metrics` run to replace the operational drop-rate baseline (0.20) with a production one;
+  the monthly tested restore (Ops item, manual by design — a cron restore needs a second paid
+  project); `NEXT_PUBLIC_API_BASE_URL`-driven Vercel homepage repopulation after `/reports/benchmark`
+  is live.
+
+### 2026-08-11 — Reddit removed as a source (D5 closed as "dropped")
+
+- **Reddit is no longer a source.** The manual 2–4 week app-approval process made it infeasible,
+  so `api.sources.reddit.py`, the `ENABLE_REDDIT`/`reddit_client_id`/`reddit_client_secret`
+  settings, the `reddit` venue in `mine_community`, the `HandlerDeps.reddit` wiring, and
+  `tests/integration/test_reddit_flag.py` are all deleted. The untracked `product-investigator/`
+  Devvit app directory was deleted too (an official Reddit app — nothing to do with the ai-pi
+  repo). All remaining mentions of Reddit are decision traces: the masterplan's initial plan and
+  the D5/phase-doc/tracker records of why it was skipped. Search hits that point at a reddit.com
+  page still work as ordinary page content; `reddit.com` stays in `NON_CANDIDATE_DOMAINS` so a
+  search hit can never become a competitor entity. `make check`: 573 passed, 0 failed (coverage
+  gate not measured here — no Postgres/Docker in this environment, 237 integration tests skipped).
 
 ### 2026-08-10 — Phase 14 follow-up: owning-phase fix set lands, re-measured, committed
 - **Landed the previously-uncommitted fix set** (the 8-file dirty diff that contradicted the
@@ -147,7 +267,8 @@ Last Updated: 2026-08-10
   quote-length floor; causes are entity-decoding mismatch + prompt/schema compliance.
 - **Docs reconciled**: benchmark.md/tuning.md "not fixed here" claims amended with the outcome +
   full follow-up sections; tracker Current Status/Focus updated. `make check` 806 tests, 96.06%.
-- Decisions 06b–11 closed per user walkthrough; Reddit API steps delivered (manual approval pending).
+- Decisions 06b–11 closed per user walkthrough; Reddit dropped as a source (manual app-approval
+  process made it infeasible — see Key Decisions D5).
 
 ### 2026-08-06
 - Created `/docs` directory, `tracker.md`, `working_knowledge.md`
@@ -232,9 +353,9 @@ Last Updated: 2026-08-10
     run must parallelize extraction, not run it serially, to fit the three-minute budget.
   - **Product Hunt**: not started this pass — requires manual developer-app registration, deferred
     as not on the critical path.
-  - **Reddit**: **not yet applied for in this pass** — flagging explicitly since the phase doc's
-    exit criterion is "applied for," which is not yet true. Community mining ships on HN Algolia +
-    GitHub + Stack Exchange regardless (D5); Reddit remains a coverage-gap item until submitted.
+  - **Reddit**: **dropped as a source** — its manual 2–4 wk app-approval process made it
+    infeasible. Community mining ships on HN Algolia + GitHub + Stack Exchange (D5); the
+    codebase carries no Reddit integration.
   - Fixture corpus committed: `tests/fixtures/cassettes/*.yaml` (7 vendors, all secret-scrubbed —
     verified by a new permanent test suite, `tests/integration/test_fixture_corpus.py`, 21 tests)
     and `tests/fixtures/pages/*.html` + `manifest.json` (40 real pricing pages, ~30MB, kept
@@ -371,10 +492,10 @@ Last Updated: 2026-08-10
 
 - **Implemented Phase 04**: `src/api/search/` (Exa behind a `SearchProvider` protocol, credit-
   ledger allowance tracking, 24h result cache, per-run `RetrievalBudget`) and `src/api/sources/`
-  (GitHub, HN Algolia, Wayback CDX, npm/PyPI, Stack Exchange, Product Hunt, SERP-snippets, Reddit).
+  (GitHub, HN Algolia, Wayback CDX, npm/PyPI, Stack Exchange, Product Hunt, SERP-snippets).
   Migration `0004_search_domain_retrievers` adds `search_cache` and `search_credit_usage`
-  (append-only ledger, dollars not query counts). `config.py` gains `producthunt_token`,
-  `enable_reddit`/`reddit_client_id`/`reddit_client_secret`, and `exa_daily_credit_cap_usd`/
+  (append-only ledger, dollars not query counts). `config.py` gains `producthunt_token` and
+  `exa_daily_credit_cap_usd`/
   `exa_global_daily_credit_cap_usd` — all `None`/`False` by default, TBD until
   [Phase 14](execution_phases/phase-14-benchmark-calibration.md), same pattern as every other
   quota knob. `make check` green: 205 tests (up from 147), 95.95% coverage overall.
@@ -399,7 +520,7 @@ Last Updated: 2026-08-10
   - **`Retriever` is a two-field marker protocol** (`name`, `grade`), not one uniform method — the
     phase doc's own table shows repo metadata, download counts, and search snippets as
     fundamentally different shapes, so each module (`api.sources.github`, `.hn`, `.wayback`,
-    `.packages`, `.stackexchange`, `.producthunt`, `.serp_snippets`, `.reddit`) exposes its own
+    `.packages`, `.stackexchange`, `.producthunt`, `.serp_snippets`) exposes its own
     typed async methods and colocated Pydantic record models instead.
   - **GitHub's Starring-endpoint 403 (open since Phase 01) is now proven, not just documented.**
     `GitHubRetriever.star_velocity_90d` still calls the real endpoint (no workaround, since none
@@ -715,8 +836,8 @@ Last Updated: 2026-08-10
   `fetched_at`), `contradictions.py` (the masterplan §4.7 `GROUP BY` with grade D excluded,
   resolution highest-grade-wins/tie-on-recency, losers retained via `superseded_by`, and the 0.6
   penalty recomputed onto the surfaced winner from its stored `confidence_inputs`), `promotion.py`
-  (the two distinct anecdote thresholds — 5 comments/3 threads for Reddit/HN, reaction-weighted
-  for GitHub with no breadth requirement), `coverage.py` (cost-weight-weighted coverage, failed vs.
+  (the two distinct anecdote thresholds — 5 comments/3 threads for community themes,
+  reaction-weighted for GitHub with no breadth requirement), `coverage.py` (cost-weight-weighted coverage, failed vs.
   budget-skipped vs. other-skipped branches kept distinct, Phase 07's `insufficient_signal`
   entities folded in as a second, multiplicative signal). No orchestrating entry point like
   `resolve_entity` — the phase doc's own concrete output is "deterministic confidence on every
@@ -1199,8 +1320,9 @@ Last Updated: 2026-08-10
     "config fix needed" to "permanent vendor restriction, no fix". The carry-over item "GitHub PAT
     Starring-permission upgrade (open since Phase 01)" is **closed as unfixable-by-credential** —
     not silently dropped, recorded as a vendor change with the measurement that proves it.
-  - **Reddit remains the one open credential** — application not yet submitted (2–4 week manual
-    approval); no change. `make check` green after the Product Hunt changes.
+  - **Reddit dropped as a source** — its manual 2–4 wk app-approval process made it infeasible
+    (see Key Decisions D5); no integration or credential remains in the codebase. `make check`
+    green after the Product Hunt changes.
 
 ### 2026-08-08
 
@@ -1433,7 +1555,7 @@ Last Updated: 2026-08-10
 | D2 | Google CSE as fallback | Closed to new customers; retires 2027-01-01 | Dropped; Exa's monthly allowance is the zero-marginal-cost tier |
 | D3 | "arq on Postgres, no Redis" | arq requires Redis — the stated config is impossible | Drop arq; the hand-rolled `SKIP LOCKED` executor already is the queue |
 | D4 | Fly.io fits "near zero cost" | No free tier since 2024 | **Fly confirmed primary** — already in use, measured under $5/mo. "Near zero" was wrong; a few dollars is accepted |
-| D5 | Reddit as a routine Tier-2 source | Self-service registration closed; 2–4 week manual approval | Reddit off the critical path, feature-flagged; HN + GitHub + Stack Exchange are the backbone |
+| D5 | Reddit as a routine Tier-2 source | Self-service registration closed; 2–4 week manual approval | Reddit dropped entirely — the manual approval process was infeasible, so no Reddit integration ships; HN + GitHub + Stack Exchange are the backbone |
 
 ### Supabase over Neon
 
@@ -1477,11 +1599,11 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
 
 ## Next Steps
 
- 1. **Submit the Reddit application** — still not done; 2–4 week manual approval once submitted,
-    and it is not blocking anything else. Product Hunt is **closed** (developer token obtained and
-    verified live 2026-08-07). Both now have real, tested `RetrieverUnavailableError` degradation
-    paths in `api.sources.reddit`/`api.sources.producthunt`, so obtaining either credential is a
-    config change, not a code change.
+ 1. **Reddit is closed as a source (D5).** Its manual 2–4 week app-approval process made it
+    infeasible, and the codebase carries no Reddit integration. Product Hunt is **closed** in the
+    other direction (developer token obtained and verified live 2026-08-07) — `ProductHuntRetriever`
+    has a tested `RetrieverUnavailableError` degradation path when no token is configured, so
+    obtaining that credential is a config change, not a code change.
  2. **GitHub Starring endpoint: resolved 2026-08-07 as a permanent vendor restriction, not a
     credential gap.** The intended "upgrade the PAT" fix cannot work: since 2026-06-30 GitHub
     restricts `/stargazers` to repo **admins and collaborators only**, fine-grained PATs are **not
@@ -1583,8 +1705,8 @@ essentially-free LLM budget. Path-guessing hit rate came in at 82% (Phase 01, re
    as a plan input in a v1.1 pass, not v1. **(b) venue selection for `mine_community`** — the
    planner currently selects venues directly (`hn`/`github`/`stackexchange`, per D5's backbone);
    the phase doc's alternative — planner expresses intent, handler maps intent to whatever
-   venues are actually available — is deferred until Phase 10 shows whether Reddit credentials
-   have landed by then.
+   venues are actually available — is deferred to a later pass now that the venue set is fixed
+   (D5 closed Reddit as a source).
 
 14. ~~Phase 10 needs DB-backed and live verification before it can be called closed~~ **Done**:
    `make check` green (see Recent Activities), pipeline e2e test proven against real Postgres, and

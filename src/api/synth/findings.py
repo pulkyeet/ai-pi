@@ -21,8 +21,9 @@ Four kinds, matching the phase doc's table:
 
 **A real, carried-forward gap in what "distinct threads" and "GitHub reaction
 count" can mean here, named rather than silently approximated.** Masterplan
-§4.6's two promotion rules assume per-claim thread identity (Reddit/HN) and
-per-issue reaction counts (GitHub) survive to the claim itself. They don't:
+§4.6's two promotion rules assume per-claim thread identity (HN/Stack
+Exchange) and per-issue reaction counts (GitHub) survive to the claim
+itself. They don't:
 `api.tasks.community.MineCommunityHandler` bundles up to
 `max_community_threads` real threads/issues from one `(venue, keyword)` pair
 into a *single* synthetic source before extraction (see that module's own

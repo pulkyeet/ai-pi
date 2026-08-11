@@ -35,7 +35,6 @@ from api.sources.github import GitHubRetriever
 from api.sources.hn import HNRetriever
 from api.sources.packages import PackagesRetriever
 from api.sources.producthunt import ProductHuntRetriever
-from api.sources.reddit import RedditRetriever
 from api.sources.stackexchange import StackExchangeRetriever
 from api.sources.wayback import WaybackRetriever
 
@@ -128,7 +127,6 @@ class HandlerDeps:
     wayback: WaybackRetriever
     packages: PackagesRetriever
     producthunt: ProductHuntRetriever
-    reddit: RedditRetriever
 
     search_router: SearchRouter
     retrieval_budget: RetrievalBudget

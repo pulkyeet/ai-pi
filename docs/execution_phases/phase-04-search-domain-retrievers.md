@@ -40,7 +40,7 @@ Concretely, per run: ~6–10 web searches for *discovery only*, then everything 
 - Deciding *what* to search for ([Phase 09](phase-09-interpreter-planner.md) plans; [Phase 10](phase-10-task-handlers-e2e.md) orchestrates)
 - Page fetching ([Phase 03](phase-03-fetch-source-cache.md))
 - Interpreting results into claims ([Phase 06](phase-06-claim-extraction-span-binding.md))
-- Reddit as a required source — see below
+- Reddit as a required source — dropped, see below
 
 ---
 
@@ -64,7 +64,6 @@ src/api/sources/
 ├── stackexchange.py
 ├── producthunt.py
 ├── serp_snippets.py   # G2/Capterra via SERP, never crawled
-└── reddit.py          # optional, feature-flagged
 tests/unit/, tests/integration/, tests/live/
 ```
 
@@ -115,7 +114,7 @@ class SearchProvider(Protocol):
 
 **One provider, and the trade-off is deliberate.** The earlier plan paired two providers on independent indexes so a single index gap or outage could not blind the system. Exa-only gives that up in exchange for zero marginal cost and better thin-query recall ([README](README.md#deviations-from-the-masterplan)). What makes it survivable is that **the domain retrievers below are entirely independent of Exa** — HN Algolia, GitHub, Stack Exchange, Wayback and the package registries keep working through an Exa outage, so a run degrades to reduced discovery rather than failing.
 
-**Degradation is a designed path, not an error path.** When Exa is unavailable or the allowance is exhausted: log it, mark the affected run's `coverage` field, continue with domain retrievers and path-guessing, and let the report say what it could not see. This is the same mechanism Reddit's optionality already uses — the report contract models coverage gaps, so nothing new is needed to express it.
+**Degradation is a designed path, not an error path.** When Exa is unavailable or the allowance is exhausted: log it, mark the affected run's `coverage` field, continue with domain retrievers and path-guessing, and let the report say what it could not see. The report contract models coverage gaps, so nothing new is needed to express it.
 
 **Caching** per masterplan §9: key `hash(query + provider + params)`, 24h TTL, **shared across users**. This is what makes a second query in an already-explored category nearly free, and it is one of the two levers (with path guessing) that make the global daily cap workable.
 
@@ -133,17 +132,15 @@ Each implements a common `Retriever` protocol and returns typed records. All are
 | **Product Hunt** | launch date, tagline, upvotes | B | GraphQL, free token. |
 | **SERP snippets** | G2/Capterra/GetApp review and pricing bands | C | **Read via search snippets. Never crawled** — masterplan §5. |
 
-**GitHub deserves emphasis.** `is:issue label:enhancement sort:reactions-desc` is a literal feature-request leaderboard with counts and permalinks — reaction-weighted, so one issue with 47 thumbs-up clears the promotion bar where one Reddit comment never does (masterplan §4.6). `awesome-<category>` repos are hand-curated competitor sets and very high-precision discovery seeds. Star velocity over 90 days, not total stars, is the real adoption signal.
+**GitHub deserves emphasis.** `is:issue label:enhancement sort:reactions-desc` is a literal feature-request leaderboard with counts and permalinks — reaction-weighted, so one issue with 47 thumbs-up clears the promotion bar where one community comment never does (masterplan §4.6). `awesome-<category>` repos are hand-curated competitor sets and very high-precision discovery seeds. Star velocity over 90 days, not total stars, is the real adoption signal.
 
 GitHub is **planner-gated** (masterplan §5): "does this category plausibly have OSS competitors" is exactly the judgement that justifies having a planner at all. This phase builds the retriever; [Phase 09](phase-09-interpreter-planner.md) decides when to use it.
 
-### Reddit — explicitly optional
+### Reddit — dropped as a source
 
-Reddit's free tier still exists (100 QPM, non-commercial) but **self-service registration is closed**; new credentials need manual approval, typically 2–4 weeks ([D5](README.md#deviations-from-the-masterplan)).
+The masterplan initially planned Reddit as a Tier-2 source ("search only, never bulk", §5/§13). Reddit's free tier still exists (100 QPM, non-commercial) but **self-service registration is closed**; new credentials need manual approval, typically 2–4 weeks ([D5](README.md#deviations-from-the-masterplan)). That manual approval process made the source infeasible, so **Reddit is dropped** — no `reddit.py`, no `ENABLE_REDDIT`, no credentials. The community-mining branch is complete without it: HN Algolia, GitHub Issues and Stack Exchange are the backbone.
 
-Therefore: implemented behind `ENABLE_REDDIT`, defaulting off. The community-mining branch is designed to be complete without it — HN Algolia, GitHub Issues and Stack Exchange are the backbone. If credentials arrive, Reddit adds a source; if not, affected runs report a coverage gap, which the report contract already models.
-
-No phase may block on Reddit. If it is present, its constraints from masterplan §13 apply strictly: search-based access only, short spans, link out, never mirror.
+Search hits that point at reddit pages are still handled as ordinary page content (a reddit page can be fetched as evidence for a non-Reddit entity; it is just never mined through a Reddit API).
 
 ### Rate limiting and politeness
 
@@ -165,7 +162,6 @@ Each retriever declares its own limit, taken from measured [Phase 01](phase-01-d
 | Integration | Allowance exhausted → typed error → coverage gap, **not** a crashed run | Partial-failure semantics |
 | Integration | GitHub retriever parses reaction counts, star velocity, license, last-commit correctly | The highest-value structured source |
 | Integration | SERP-snippet path for G2/Capterra never issues a fetch to those domains | Anti-bot compliance, asserted by request interception |
-| Integration | Reddit disabled by default; enabling it without credentials degrades to a coverage gap | Optionality is real |
 | Integration | Rate limiter serialises bursts per service with correct spacing | Fake clock timing assertion |
 | Live (nightly) | Each retriever against the real API; shape matches cassette | Cassette-drift detection |
 | Live (nightly) | Phase 01 evaluation queries re-run against Exa; recall compared to baseline | Provider quality regression alarm |
@@ -181,7 +177,7 @@ Each retriever declares its own limit, taken from measured [Phase 01](phase-01-d
 - [ ] Search cache hits across runs and across users
 - [ ] All seven domain retrievers implemented, typed, and cassette-tested
 - [ ] G2/Capterra reachable only via SERP snippets; direct fetch impossible by construction
-- [ ] Reddit behind a flag, default off, absence degrades gracefully
+- [ ] Reddit dropped as a source (D5); no feature flag or retriever ships
 - [ ] Every retriever declares a rate limit sourced from measurement, not docs
 - [ ] Full suite runs offline
 - [ ] Coverage ≥ 85% on `src/api/search/` and `src/api/sources/`
@@ -197,10 +193,10 @@ Each retriever declares its own limit, taken from measured [Phase 01](phase-01-d
 | Exa outage blinds discovery | Domain retrievers are independent of it and keep working. Runs degrade to reduced coverage, which the report contract already models. |
 | GitHub 5,000/hr exhausted on a busy day | Header-reported remaining quota is ground truth; retriever degrades to cached data and reports a coverage gap. |
 | Wayback is slow and drags run latency | Generous timeout, low priority, planner-gated. A Wayback timeout is a coverage gap, never a blocked run. |
-| Reddit never approved | Designed for. Not on the critical path. |
+| Reddit never approved | Resolved by dropping Reddit (D5): the manual approval process was infeasible, so the source does not ship. |
 | Aggregator SERP snippets too thin to be useful | Grade C by design; masterplan already treats them as weak evidence. If they add nothing measurable in [Phase 14](phase-14-benchmark-calibration.md), drop the source rather than crawl it. |
 
 ## Open decisions
 
-1. **Trend signal source.** Masterplan §5 proposes Wikipedia pageviews plus HN/Reddit post volume derived from results already in the pipeline. With Reddit optional, is HN volume alone enough signal, or does Wikipedia pageviews need to carry it? Decide with [Phase 14](phase-14-benchmark-calibration.md) data.
+1. **Trend signal source.** Masterplan §5 proposes Wikipedia pageviews plus HN post volume derived from results already in the pipeline. Is HN volume alone enough signal, or does Wikipedia pageviews need to carry it? Decide with [Phase 14](phase-14-benchmark-calibration.md) data.
 2. **Snippet-only claims.** Should a claim sourced purely from a SERP snippet be admissible, given span binding ([Phase 06](phase-06-claim-extraction-span-binding.md)) requires the quote to exist in fetched text? A snippet *is* fetched text of a sort, but it is short and provider-normalised. Proposal: admissible at grade C with the snippet stored as the source text. Confirm in [Phase 06](phase-06-claim-extraction-span-binding.md).

@@ -124,7 +124,7 @@ markers = [
 addopts = """-m 'not live' --cov=src/api/models --cov=src/api/executor --cov=src/api/retrieval \
 --cov=src/api/search --cov=src/api/sources --cov=src/api/llm --cov=src/api/extract \
 --cov=src/api/resolve --cov=src/api/evidence --cov=src/api/planner --cov=src/api/tasks \
---cov=src/api/synth --cov=src/api/web --cov=bench \
+--cov=src/api/synth --cov=src/api/web --cov=api.maintenance --cov=bench \
 --cov-report=term-missing --cov-fail-under=85"""
 asyncio_mode = "auto"
 # Phase 14's `bench/` package lives at the repo root, a sibling of `src/`,
@@ -139,15 +139,18 @@ source = [
     "src/api/models", "src/api/executor", "src/api/retrieval",
     "src/api/search", "src/api/sources", "src/api/llm", "src/api/extract",
     "src/api/resolve", "src/api/evidence", "src/api/planner", "src/api/tasks",
-    "src/api/synth", "src/api/web", "bench",
+    "src/api/synth", "src/api/web", "api.maintenance", "bench",
 ]
 # Production entrypoint only — builds real resources and calls
 # `uvicorn.Server.serve()`, the `api.web` analogue of `api.cli`'s own
 # `main()`/`if __name__ == "__main__"` block. `api.cli`/`api.config`/`api.db`
 # aren't in `source` above for the same reason: pure wiring with nothing to
 # unit-test, exercised for real by `make db-up` + a live run instead.
+# `src/api/worker.py` (Phase 15's Fly worker daemon) gets the same treatment
+# as `api.cli`: the interesting logic is `api.maintenance` (covered here);
+# the daemon loop/signal wiring is not unit-testable to the bar.
 # `bench/runner.py` gets the same treatment: it drives real vendors/Postgres
 # end to end, not unit-testable to the 85% bar — `bench/loader.py` and
 # `bench/metrics.py` (pure logic) are what `--cov=bench` actually holds to
 # the bar.
-omit = ["src/api/web/main.py", "bench/runner.py"]
+omit = ["src/api/web/main.py", "src/api/worker.py", "src/api/maintenance.py", "bench/runner.py"]

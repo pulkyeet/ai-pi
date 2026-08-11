@@ -1,0 +1,26 @@
+# AI Product Investigator — worker machine (Phase 15).
+#
+# Same image as the API machine (fly.toml), different entrypoint. This is a
+# machine-config file for `fly machine run` / `fly machine update`, NOT a
+# standalone `fly deploy` app config: it carries the worker machine's VM
+# shape and environment, while the entrypoint override is supplied on the
+# command line (`python -m api.worker`). Machines created this way are
+# ignored by `fly deploy`, so an API deploy can never touch the worker.
+#
+# Example (deploy.yml does exactly this):
+#   fly machine run "$IMAGE_REF" --config fly.worker.toml --name worker \
+#       --region iad python -m api.worker
+#   fly machine update <id> --config fly.worker.toml --image "$IMAGE_REF" \
+#       --command "python -m api.worker" --yes
+
+app = "ai-product-investigator"
+
+primary_region = "iad"
+
+[env]
+  ENVIRONMENT = "production"
+  LOG_LEVEL = "INFO"
+
+[vm]
+  size = "shared-cpu-1x"
+  memory = "256mb"

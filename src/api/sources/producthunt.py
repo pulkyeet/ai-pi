@@ -14,7 +14,8 @@ artifact verification (masterplan §4.5) needs: "does this exact post exist",
 not "what posts match this text".
 
 Raises `RetrieverUnavailableError` immediately (no network call) when
-`producthunt_token` isn't configured, same as Reddit's optionality.
+`producthunt_token` isn't configured, same as the other credential-gated
+retrievers.
 """
 
 from __future__ import annotations

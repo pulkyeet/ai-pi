@@ -25,7 +25,7 @@ import asyncpg
 import httpx
 import structlog
 
-from api.cli import build_deps, plan_to_execution_plan, run_coverage
+from api.cli import build_deps, plan_to_execution_plan, record_run_stats, run_coverage
 from api.config import Settings
 from api.evidence.contradictions import resolve_contradictions
 from api.executor.core import Executor
@@ -135,6 +135,7 @@ async def run_pipeline(
             execution_plan,
             budget_weight=run_budget_weight,
             budget_usd=settings.run_budget_usd,
+            run_timeout_s=settings.run_timeout_s,
         ):
             pass  # Executor.submit persists its own task.* events as it drives the run.
 
@@ -202,6 +203,7 @@ async def run_pipeline(
             llm_cost + search_cost,
             coverage.score,
         )
+        await record_run_stats(pool, run_id, deps.stats)
         await sse.persist_event(pool, run_id, ReportReadyEvent(run_id=run_id))
     except Exception as exc:  # noqa: BLE001 - a run's own failure must never crash the server
         await _fail_run(pool, run_id, str(exc))

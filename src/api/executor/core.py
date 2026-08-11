@@ -63,19 +63,31 @@ class Executor:
         *,
         budget_weight: int,
         budget_usd: float | None = None,
+        run_timeout_s: float | None = None,
     ) -> AsyncIterator[ExecutorEvent]:
         """Insert `plan`'s tasks (idempotent — `ON CONFLICT (run_id, node_key)
         DO NOTHING`, so calling this again for the same run_id, e.g. as a
         second worker or a recovered one, does not duplicate tasks) and drive
         the run to completion, yielding events as they happen. Terminates
         after a `run.finished` event.
+
+        `run_timeout_s` (Phase 15 — `Settings.run_timeout_s`, masterplan
+        §8.2) stops the run from claiming *new* work once the deadline
+        passes: every still-`pending`/`running` task is skipped with reason
+        `run_timeout` and the run finishes with whatever already completed.
+        In-flight tasks are allowed to finish (their cost is already spent)
+        and the report path downstream of the executor still runs, so the
+        semantic is "stop the fan-out, finish with what we have" — not an
+        abrupt process kill. `None` means no wall-clock cap.
         """
         async with self._pool.acquire() as conn:
             await store.insert_tasks(conn, run_id, plan)
 
         events: asyncio.Queue[ExecutorEvent] = asyncio.Queue()
         budget_tracker = BudgetTracker(budget_weight, budget_usd)
-        driver = asyncio.create_task(self._drive(run_id, budget_tracker, events))
+        driver = asyncio.create_task(
+            self._drive(run_id, budget_tracker, events, run_timeout_s=run_timeout_s)
+        )
         try:
             while True:
                 event = await events.get()
@@ -89,12 +101,22 @@ class Executor:
                 await driver
 
     async def _drive(
-        self, run_id: str, budget: BudgetTracker, events: asyncio.Queue[ExecutorEvent]
+        self,
+        run_id: str,
+        budget: BudgetTracker,
+        events: asyncio.Queue[ExecutorEvent],
+        *,
+        run_timeout_s: float | None = None,
     ) -> None:
+        deadline = time.monotonic() + run_timeout_s if run_timeout_s is not None else None
         semaphores = {name: asyncio.Semaphore(n) for name, n in self._concurrency.items()}
         try:
             async with asyncio.TaskGroup() as tg:
                 while True:
+                    if deadline is not None and time.monotonic() >= deadline:
+                        async with self._pool.acquire() as conn:
+                            await lease.skip_rest(conn, run_id, reason="run_timeout")
+                        break
                     async with self._pool.acquire() as conn:
                         await lease.sweep_expired(conn)
                         claimed = await lease.claim_next(

@@ -227,6 +227,25 @@ async def skip_unreachable(conn: asyncpg.Connection, run_id: str) -> int:
     return _rowcount(result)
 
 
+async def skip_rest(conn: asyncpg.Connection, run_id: str, *, reason: str) -> int:
+    """Mark every not-yet-terminal task of a run as `skipped` (Phase 15's
+    `run_timeout_s` enforcement in `Executor._drive`). In-flight `running`
+    tasks still attempt their own terminal write under Guard 1 (`lease_token`
+    equality), which then affects zero rows — the lease was released here, so
+    a superseded worker's result is discarded exactly as in any other
+    lost-lease case."""
+    result = await conn.execute(
+        """
+        UPDATE tasks
+           SET status = 'skipped', lease_token = NULL, lease_expires_at = NULL, error = $2
+         WHERE run_id = $1 AND status IN ('pending', 'running')
+        """,
+        run_id,
+        reason,
+    )
+    return _rowcount(result)
+
+
 async def sweep_expired(conn: asyncpg.Connection) -> int:
     result = await conn.execute(
         """

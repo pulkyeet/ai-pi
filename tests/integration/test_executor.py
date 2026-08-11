@@ -8,7 +8,7 @@ from collections.abc import AsyncIterator
 import asyncpg
 import pytest
 from _db import ensure_side_effects_table, insert_run, insert_task
-from _synthetic import CountingTask, EmitEventsTask, SpawnTask
+from _synthetic import CountingTask, EmitEventsTask, SleepTask, SpawnTask
 
 from api.executor import (
     ExecutionPlan,
@@ -144,3 +144,30 @@ async def test_event_ordering_and_replay_from_cursor(pg_pool: asyncpg.Pool) -> N
         midpoint_id = all_replayed[2][0]
         resumed = await store.read_events(conn, run_id, since_id=midpoint_id)
     assert [type(e) for _, e in resumed] == [type(e) for e in live_events[3:]]
+
+
+async def test_run_timeout_skips_remaining_tasks(pg_pool: asyncpg.Pool) -> None:
+    """Phase 15's `run_timeout_s` (Settings.run_timeout_s): once the deadline
+    passes the executor stops claiming new work, skips the rest with reason
+    `run_timeout`, and still finishes the run with a `RunFinished` event."""
+
+    async with pg_pool.acquire() as conn:
+        run_id = await insert_run(conn)
+
+    plan = ExecutionPlan(
+        tasks=[TaskSpec(node_key=f"t{i}", kind="sleep_task", args={"ms": 500}) for i in range(5)]
+    )
+    registry = HandlerRegistry()
+    registry.register(SleepTask())
+    executor = Executor(pg_pool, registry, empty_backoff_s=0.02)
+    events = await _drain(executor.submit(run_id, plan, budget_weight=100, run_timeout_s=0.2))
+
+    finished = next(e for e in events if isinstance(e, RunFinished))
+    # No 500ms sleep completes inside a 200ms cap, so nothing finishes; the
+    # whole plan is skipped with reason `run_timeout`.
+    assert finished.done == 0
+    assert finished.skipped == 5
+
+    async with pg_pool.acquire() as conn:
+        rows = await conn.fetch("SELECT status, error FROM tasks WHERE run_id = $1", run_id)
+    assert {(r["status"], r["error"]) for r in rows} == {("skipped", "run_timeout")}

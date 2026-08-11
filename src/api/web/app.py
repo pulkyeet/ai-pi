@@ -28,7 +28,7 @@ from api.web.errors import (
     validation_error_handler,
 )
 from api.web.quota import ConcurrencyQueue
-from api.web.routes import health, reports, runs
+from api.web.routes import health, metrics, reports, runs
 
 
 def create_app(settings: Settings, pool: asyncpg.Pool, http: httpx.AsyncClient) -> FastAPI:
@@ -68,6 +68,7 @@ def create_app(settings: Settings, pool: asyncpg.Pool, http: httpx.AsyncClient) 
     app.include_router(health.router)
     app.include_router(runs.router)
     app.include_router(reports.router)
+    app.include_router(metrics.router)
     return app
 
 

@@ -44,7 +44,7 @@ def test_thresholds_match_module_constants() -> None:
     assert COMMENT_MIN_DISTINCT_THREADS == 3
 
 
-def test_a_single_reddit_comment_never_clears_the_github_bar_by_coincidence() -> None:
+def test_a_single_community_comment_never_clears_the_github_bar_by_coincidence() -> None:
     # Not a real cross-rule comparison (different N meaning), just confirms
     # one comment's worth of "reactions" can never itself clear the bar.
     result = evaluate_github_theme(issue_reactions=[1])

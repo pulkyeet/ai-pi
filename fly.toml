@@ -1,0 +1,49 @@
+# AI Product Investigator — API machine (Phase 15).
+#
+# One Fly app (`ai-product-investigator`) runs two machines from one image:
+#   * this file — the API machine, the only one with a public HTTP service;
+#   * fly.worker.toml — the worker machine, same image, different entrypoint.
+#
+# `fly deploy` manages the API machine. The worker machine is managed with
+# `fly machine run` / `fly machine update --config fly.worker.toml` (machines
+# created that way are ignored by `fly deploy`, so an API deploy can never
+# clobber the worker) — see .github/workflows/deploy.yml for the deploy order.
+#
+# Docs: https://fly.io/docs/reference/configuration/
+
+app = "ai-product-investigator"
+
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # Non-secret defaults only. Secrets (API keys, DATABASE_URL, Langfuse, ...)
+  # are set with `fly secrets set` from deploy.yml — never in this file.
+  ENVIRONMENT = "production"
+  LOG_LEVEL = "INFO"
+
+[vm]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[http_service.checks]]
+    interval = "10s"
+    timeout = "5s"
+    grace_period = "45s"
+    method = "GET"
+    path = "/health"
+    protocol = "http"

@@ -67,12 +67,12 @@ Two have lead time and must be requested **before** any smoke testing begins:
 
 | Service | Lead time | Action |
 |---|---|---|
-| **Reddit** | 2–4 weeks, manual approval | Apply immediately. Self-service registration is closed ([D5](README.md#deviations-from-the-masterplan)). Treat as *may never arrive*. |
+| **Reddit** | 2–4 weeks, manual approval | **Do not apply** — dropped as a source ([D5](README.md#deviations-from-the-masterplan)); the manual approval process was infeasible, so no Reddit integration ships. |
 | **Product Hunt** | Minutes, but token-gated | Register an app, obtain a developer token. |
 
 Everything else is instant: Exa, OpenRouter, GitHub PAT.
 
-**Reddit is explicitly not on the critical path.** Design the community-mining branch ([Phase 04](phase-04-search-domain-retrievers.md)) around HN Algolia + GitHub Issues + Stack Exchange, all of which are free, unauthenticated or instantly-keyed, and unrestricted. If Reddit credentials arrive, it becomes an additional source. If they do not, the run reports a coverage gap — which the masterplan's `coverage` field already models. No redesign either way.
+**Reddit was initially planned here but is dropped (D5).** The community-mining branch ([Phase 04](phase-04-search-domain-retrievers.md)) is designed around HN Algolia + GitHub Issues + Stack Exchange, all of which are free, unauthenticated or instantly-keyed, and unrestricted — and that is the final venue set; Reddit will not be added. Search hits that point at reddit pages are still handled as ordinary page content, just not mined through a Reddit API.
 
 ### Search provider characterisation
 
@@ -201,7 +201,7 @@ Recorded: <date>. Re-verify before deployment.
 - [ ] LLM structured-output violation rate measured with and without provider pinning
 - [ ] Prompt caching confirmed working, with measured saving
 - [ ] Real per-run LLM cost measured and compared against the $0.03 estimate
-- [ ] Reddit credentials **applied for** (not necessarily granted)
+- [ ] Reddit dropped as a source (D5) — manual app-approval process was infeasible; decision recorded
 - [ ] Fixture corpus committed; secret-scrub test passes; all cassettes replay offline
 - [ ] `docs/external_apis.md` complete and dated
 - [ ] Any new deviation found is added to the [README deviation table](README.md#deviations-from-the-masterplan)

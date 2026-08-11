@@ -65,8 +65,10 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   response body, not headers), `producthunt` (slug-lookup only — `post_by_slug`, token obtained
   2026-08-07; Product Hunt v2 GraphQL has no text-search field, see its module docstring),
   `serp_snippets` (G2/Capterra — structurally cannot fetch; no `httpx` import in the module at
-  all), and `reddit` (behind `ENABLE_REDDIT`, default off). All seven degrade via the shared
-  `api.sources.base.RetrieverUnavailableError` rather than crashing a run.
+  all). All seven degrade via the shared
+  `api.sources.base.RetrieverUnavailableError` rather than crashing a run. (Reddit was planned as
+  an eighth but dropped — D5, its manual app-approval process was infeasible; search hits that
+  point at reddit pages are still handled as ordinary page content.)
 - **LLM gateway** ([Phase 05](execution_phases/phase-05-llm-gateway.md), **built** — see
   `src/api/llm/`): `gateway.structured(schema, prompt_id, variables, *, untrusted=None, ctx) ->
   LLMResult[T]` is the only way any module calls a model — enforced by a `TID251` ruff rule banning
@@ -162,7 +164,7 @@ See masterplan §3 for the full flow diagram and §4 for each stage's design.
   stored `claims.confidence_inputs` (migration `0008`, the one schema change this phase needed —
   formula inputs must survive alongside the result for auditability/recomputation, per the phase
   doc's own exit criterion). `promotion.py` holds the two distinct anecdote-eligibility rules
-  (comment volume + breadth for Reddit/HN; reaction-weighted, no breadth, for GitHub) — statement
+  (comment volume + breadth for community themes; reaction-weighted, no breadth, for GitHub) — statement
   generation itself is Phase 11's job. `coverage.py` computes cost-weight-weighted coverage with
   failed/budget-skipped/other-skipped branches kept distinct, folding in Phase 07's
   `insufficient_signal` entities as a second signal. **Zero LLM calls anywhere in this package**,
@@ -279,7 +281,7 @@ src/api/
 ├── sources/                         # Domain retrievers (Phase 04 — built): github.py, hn.py,
 │                                     # wayback.py, packages.py (npm+PyPI), stackexchange.py,
 │                                     # producthunt.py, serp_snippets.py (G2/Capterra, no httpx
-│                                     # import at all), reddit.py (ENABLE_REDDIT-gated); base.py
+│                                     # import at all); base.py
 │                                     # (Retriever marker protocol, RetrieverUnavailableError),
 │                                     # ratelimit.py (TokenBucket, one per retriever/endpoint)
 ├── llm/                              # LLM gateway (Phase 05 — built): gateway.py
@@ -439,9 +441,39 @@ proven flake-free under repetition, not just a single green run. Run the same lo
 
 ### Building for Production
 
-Not yet reached — deployment is [Phase 15](execution_phases/phase-15-deployment-observability.md).
-Target: Fly.io (app + worker) + Supabase (Postgres + Auth) + Vercel (frontend), all under $5/mo
-fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model section.
+Phase 15 (Deployment, Observability & Cost Control) built the code/deploy layer; the **actual
+deploy is a separate go/no-go** (per `docs/tracker.md`). Topology: Fly.io (two machines — API
+`python -m api.web.main` + worker `python -m api.worker`, **one image**, different entrypoints) +
+Supabase (Postgres + Auth) + Vercel (frontend). Deploy order is **migrations → worker → API**
+(`.github/workflows/deploy.yml`); nightly keepalive/maintenance/backup cron lives in
+`.github/workflows/keepalive.yml`; operations in [`docs/runbook.md`](runbook.md). Cost target:
+two `shared-cpu-1x` machines ≈ $6–8/mo fixed, ~$0.062/run measured (not the masterplan's "$5/mo
+near zero" — Fly's free tier is gone; the README and runbook say so).
+
+### Phase 15 additions to the architecture (2026-08-11)
+
+- **`src/api/maintenance.py`** (`python -m api.maintenance`) — the nightly storage jobs for the
+  500 MB Supabase ceiling: `api.retrieval.cache.evict_expired` (unpin-evict expired
+  `sources.extracted_text`; rows and `claims.quote_context` survive so drill-down still works),
+  `prune_expired_events` (30-day `run_events` window — the table was append-only and never pruned
+  before), `pin_benchmark_sources` (sources cited by `is_benchmark` runs are pinned), and a
+  `pg_database_size` query. Runs from the keepalive workflow; the worker machine also runs it
+  in-Fly as redundancy.
+- **`src/api/worker.py`** (`python -m api.worker`) — worker machine entrypoint: periodic
+  `lease.sweep_expired` crash-recovery sweep + maintenance + `worker.health` log line. **Not a task
+  runner** — runs execute inside the API process (single-worker design); handing execution over is
+  future work.
+- **`GET /metrics`** (authenticated, `src/api/web/routes/metrics.py`) — the runbook's nine-alert
+  values; sentence-binding rate is the only `<100%`-pages alert. Backed partly by migration
+  `0012_run_stats` (durable extraction drop counts, written at run-finish by `cli.run_query` and
+  `web.runner.run_pipeline`).
+- **`RUN_TIMEOUT_S` is wired** — `executor.submit(run_timeout_s=…)` + `lease.skip_rest`; past the
+  deadline no new work is claimed, still-pending/running tasks are skipped (`reason='run_timeout'`),
+  in-flight work finishes, report path still runs.
+- **Worker machine lifecycle:** created/updated via `fly machine run/update --config fly.worker.toml`
+  (machines created this way are ignored by `fly deploy`, so an API deploy can't clobber it); the
+  API machine is managed by `fly deploy` itself.
+
 
 ## Known Issues & Gotchas
 
@@ -646,6 +678,22 @@ fixed. See masterplan §11 and `docs/execution_phases/README.md`'s cost model se
   phase adding a new status/enum value must either keep every value valid across every historical
   `CHECK`, or have its own tests clean up rows in the new value before they can outlive the test that
   created them — see [Phase 12](execution_phases/phase-12-api-auth-quotas.md).
+- **Supabase's direct connection requires TLS, and asyncpg and libpq spell it differently.**
+  asyncpg wants `?ssl=require` in the DSN; psycopg/psql/pg_dump (and therefore Alembic and the
+  backup/keepalive jobs) want `?sslmode=require`. The app runtime (`create_pool`) is asyncpg —
+  `api.worker`/`api.maintenance`/the API machine need the `ssl` spelling; the deploy workflow's
+  `alembic upgrade head` and `deploy/backup.sh` need the `sslmode` spelling. This is why the
+  runbook keeps **two** GitHub secrets (`SUPABASE_DB_URL` libpq-form, `SUPABASE_DB_URL_ASYNC`
+  asyncpg-form) that must be rotated together. `deploy/.env.prod.example` documents both.
+- **Supabase direct connections are IPv6-only** (`db.<ref>.supabase.co` resolves to a single AAAA
+  record), unreachable from this machine and from GitHub Actions runners; the direct connection is
+  usable only from IPv6-native hosts like Fly. **Resolution (2026-08-11): everything uses the
+  session pooler** — `aws-0-ap-south-1.pooler.supabase.com:5432` (user `postgres.<ref>`), which pins
+  a server connection per client and is the vendor's intended path for IPv4 clients. The migration
+  chain 0001→0012 was applied cleanly to the **real** Supabase project over the pooler on
+  2026-08-11: 0001's `auth`-schema-exists guard skips the stub and `user_profiles` resolves its FK to
+  the real `auth.users`.
+
 
 ## Useful Resources & References
 

@@ -70,7 +70,7 @@ Masterplan §4.6's table, applied by **retrieval provenance**, not by model judg
 | A | structured primary | pricing page, API docs, GitHub API, package registry counts |
 | B | prose primary | changelog, company blog, Wayback snapshot of a primary |
 | C | third-party aggregator | G2, Capterra, Crunchbase, StackShare |
-| D | community anecdote | one Reddit or HN comment, one GitHub issue |
+| D | community anecdote | one HN comment, one GitHub issue, one Stack Exchange answer |
 
 Grade is a pure function of `(retrieval_reason, source domain, entity relationship)` — all known at fetch time from [Phase 03](phase-03-fetch-source-cache.md) and [Phase 04](phase-04-search-domain-retrievers.md). It is assigned mechanically:
 
@@ -124,7 +124,7 @@ select entity_id, attribute, array_agg(distinct value_num), count(*)
 having count(distinct value_num) > 1;
 ```
 
-Grade D is excluded — two Reddit comments disagreeing about a price is not a contradiction, it is noise.
+Grade D is excluded — two community comments disagreeing about a price is not a contradiction, it is noise.
 
 **Resolution:** highest grade wins; ties broken by most recent `as_of`. The loser is **retained and surfaced**, not deleted:
 
@@ -138,8 +138,8 @@ Numeric attributes compare on `value_num` with a tolerance (floating point, and 
 
 Masterplan §4.6 — how anecdotes become findings:
 
-- **Reddit and HN themes:** at least **5 supporting comments across at least 3 distinct threads**
-- **GitHub issues:** **reaction-weighted instead**, so one issue with 47 thumbs-up clears the bar where one Reddit comment never does
+- **Community themes (HN, Stack Exchange):** at least **5 supporting comments across at least 3 distinct threads**
+- **GitHub issues:** **reaction-weighted instead**, so one issue with 47 thumbs-up clears the bar where one comment never does
 
 The two rules differ deliberately. Comment volume is a weak signal that needs breadth (distinct threads) to mean anything; reaction counts are an explicit vote and carry more weight per unit.
 

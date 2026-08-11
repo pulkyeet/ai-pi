@@ -2,9 +2,10 @@
 to become a finding. Two rules for two different evidence shapes,
 deliberately not unified:
 
-> Reddit and HN themes: at least 5 supporting comments across at least 3
-> distinct threads. GitHub issues: reaction-weighted instead, so one issue
-> with 47 thumbs-up clears the bar where one Reddit comment never does.
+> Community themes (HN, Stack Exchange): at least 5 supporting comments
+> across at least 3 distinct threads. GitHub issues: reaction-weighted
+> instead, so one issue with 47 thumbs-up clears the bar where one comment
+> never does.
 
 Comment volume is a weak signal that needs breadth (distinct threads) to
 mean anything; a GitHub reaction count is an explicit vote and carries more
@@ -41,10 +42,10 @@ class PromotionResult:
 
 
 def evaluate_community_theme(*, claim_ids: list[int], thread_ids: list[str]) -> PromotionResult:
-    """Reddit/HN themes: both the volume and the breadth condition must
-    hold. `claim_ids` are the already-clustered supporting comments for one
-    theme; `thread_ids` may repeat (multiple comments from the same
-    thread) — `distinct_threads` is what actually gates promotion."""
+    """Community themes (HN, Stack Exchange): both the volume and the breadth
+    condition must hold. `claim_ids` are the already-clustered supporting
+    comments for one theme; `thread_ids` may repeat (multiple comments from
+    the same thread) — `distinct_threads` is what actually gates promotion."""
     support_count = len(claim_ids)
     distinct_threads = len(set(thread_ids))
     eligible = (

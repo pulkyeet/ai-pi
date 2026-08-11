@@ -50,7 +50,7 @@ class SourceKind(StrEnum):
     STRUCTURED_API = "structured_api"  # GitHub repo metadata, package registry counts
     LAUNCH_ANNOUNCEMENT = "launch_announcement"  # Product Hunt
     AGGREGATOR = "aggregator"  # G2/Capterra/Crunchbase/StackShare, read via SERP snippet
-    COMMUNITY = "community"  # Reddit/HN comment, GitHub issue, Stack Exchange answer
+    COMMUNITY = "community"  # HN comment, GitHub issue, Stack Exchange answer
     WAYBACK_SNAPSHOT = "wayback_snapshot"  # historical capture of another kind
 
 

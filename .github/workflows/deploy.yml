@@ -1,0 +1,166 @@
+# Deploy (Phase 15): on push to main, gate on `make check`, then deploy in the
+# phase doc's order — migrations first, then the worker machine, then the API
+# machine — with a health check and rollback on failure.
+#
+# Migrations run BEFORE either machine starts the new image (worker and API
+# share a schema; a worker running old code against a new schema is the failure
+# mode backward-compatible migrations exist for). Migrations are additive only,
+# so a rollback never strands the schema.
+#
+# Secrets: every value below is a GitHub Secret. There is exactly one
+# `FLY_API_TOKEN` (scoped, deploy-only) plus the app secrets it forwards.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ai_pi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: migrate (test DB)
+        run: make migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_pi_test
+          OPENROUTER_API_KEY: ci-placeholder
+          EXA_API_KEY: ci-placeholder
+          GITHUB_TOKEN: ci-placeholder
+
+      - name: make check
+        run: make check
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_pi_test
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_pi_test
+          OPENROUTER_API_KEY: ci-placeholder
+          EXA_API_KEY: ci-placeholder
+          GITHUB_TOKEN: ci-placeholder
+
+  deploy:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Create the app if this is the first deploy
+        run: fly apps create ai-product-investigator || true
+
+      - name: Build and push the image (no machine is touched)
+        run: fly deploy --config fly.toml --build-only --push --remote-only
+
+      - name: Capture image ref for the worker machine
+        run: |
+          IMAGE_REF="$(fly image show -a ai-product-investigator --json | jq -r '.Image')"
+          echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
+          echo "pushed image: $IMAGE_REF"
+
+      - name: Migrations first (worker and API share a schema)
+        run: uv run alembic upgrade head
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          OPENROUTER_API_KEY: ci-placeholder
+          EXA_API_KEY: ci-placeholder
+          GITHUB_TOKEN: ci-placeholder
+
+      - name: Set app secrets on the Fly machines
+        run: |
+          fly secrets set \
+            DATABASE_URL="${{ secrets.SUPABASE_DB_URL_ASYNC }}" \
+            OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
+            EXA_API_KEY="${{ secrets.EXA_API_KEY }}" \
+            GITHUB_TOKEN="${{ secrets.GH_TOKEN }}" \
+            SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            SUPABASE_JWT_AUDIENCE="authenticated" \
+            CORS_ALLOW_ORIGINS='["https://ai-pi-kohl.vercel.app"]' \
+            RUN_BUDGET_WEIGHT=70 RUN_BUDGET_USD=0.25 RUN_TIMEOUT_S=640 \
+            MAX_COMPETITORS_PROFILED=8 MAX_PAGES_PER_ENTITY=4 \
+            MAX_COMMUNITY_THREADS=20 GLOBAL_RUNS_PER_DAY=4 \
+            RUNS_PER_USER_PER_DAY=3 MAX_CONCURRENT_RUNS=2 \
+            EXA_DAILY_CREDIT_CAP_USD=0.33 EXA_GLOBAL_DAILY_CREDIT_CAP_USD=0.33 \
+            LANGFUSE_PUBLIC_KEY="${{ secrets.LANGFUSE_PUBLIC_KEY }}" \
+            LANGFUSE_SECRET_KEY="${{ secrets.LANGFUSE_SECRET_KEY }}" \
+            LANGFUSE_HOST="${{ secrets.LANGFUSE_HOST }}"
+
+      # Worker first: old API code against a new worker is harmless; the
+      # reverse (new API waiting on work a still-old worker can't finish) is
+      # the scheduling hazard, so the worker takes the new image first.
+      - name: Deploy the worker machine (same image, entrypoint python -m api.worker)
+        run: |
+          set -euo pipefail
+          WORKER_ID="$(fly machine list -a ai-product-investigator --json \
+            | jq -r '.[] | select(.name == "worker") | .id' | head -1)"
+          if [ -z "$WORKER_ID" ]; then
+            fly machine run "$IMAGE_REF" --config fly.worker.toml --name worker \
+              python -m api.worker
+          else
+            fly machine update "$WORKER_ID" --config fly.worker.toml \
+              --image "$IMAGE_REF" --command "python -m api.worker" --yes
+          fi
+
+      # API last: it owns the public surface and the health check that gates it.
+      - name: Deploy the API machine (waits for its own health check)
+        run: fly deploy --config fly.toml --image "$IMAGE_REF"
+
+      - name: Health check
+        run: |
+          for i in $(seq 1 12); do
+            BODY="$(curl -fsS --max-time 5 https://ai-product-investigator.fly.dev/health || true)"
+            if printf '%s' "$BODY" | grep -q '"status":"ok"'; then
+              echo "health ok: $BODY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "health check failed after 12 attempts: $BODY"
+          exit 1
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "deploy failed — rolling back"
+          fly releases rollback -a ai-product-investigator --yes || true
+          WORKER_ID="$(fly machine list -a ai-product-investigator --json \
+            | jq -r '.[] | select(.name == "worker") | .id' | head -1)"
+          if [ -n "$WORKER_ID" ]; then
+            PREV="$(fly machine show "$WORKER_ID" --json | jq -r '.image_ref_with_digest')"
+            fly machine update "$WORKER_ID" --image "$PREV" --yes || true
+          fi

@@ -21,12 +21,6 @@ class Settings(BaseSettings):
     github_token: SecretStr
     producthunt_token: SecretStr | None = None
 
-    # Reddit (masterplan §13, D5): self-service registration is closed, so
-    # this stays off until credentials exist. See api.sources.reddit.
-    enable_reddit: bool = False
-    reddit_client_id: SecretStr | None = None
-    reddit_client_secret: SecretStr | None = None
-
     # Quota knobs (masterplan §8.2). Deliberately unset until Phase 14
     # measures real per-run search/latency numbers; code that reads them
     # must handle None explicitly.

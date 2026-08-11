@@ -1,0 +1,25 @@
+# Keep the build context (and the pushed image) free of local state and
+# dev/test-only trees. tests/fixtures/pages is ~30MB of raw HTML; web/ and
+# docs/ are not part of the api wheel.
+.git
+.env
+.gitignore
+AGENTS.md
+Makefile
+*.md
+.venv
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.hypothesis
+.coverage
+htmlcov
+dist
+build
+spikes
+bench
+docs
+web
+deploy
+.github
+tests
