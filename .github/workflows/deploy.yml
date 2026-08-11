@@ -86,12 +86,25 @@ jobs:
       - name: Create the app if this is the first deploy
         run: flyctl apps create ai-product-investigator || true
 
+      - name: Capture the previous image (for rollback)
+        run: |
+          PREV_IMAGE="$(flyctl image show -a ai-product-investigator --json | jq -r '.Image')"
+          if [ "$PREV_IMAGE" = "null" ]; then
+            PREV_IMAGE=""
+          fi
+          echo "PREV_IMAGE=$PREV_IMAGE" >> "$GITHUB_ENV"
+          echo "previous image: ${PREV_IMAGE:-<none>}"
+
       - name: Build and push the image (no machine is touched)
-        run: flyctl deploy --config fly.toml --build-only --push --remote-only
+        run: flyctl deploy --config fly.toml --build-only --push
 
       - name: Capture image ref for the worker machine
         run: |
           IMAGE_REF="$(flyctl image show -a ai-product-investigator --json | jq -r '.Image')"
+          if [ -z "$IMAGE_REF" ] || [ "$IMAGE_REF" = "null" ]; then
+            echo "failed to read the pushed image ref" >&2
+            exit 1
+          fi
           echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
           echo "pushed image: $IMAGE_REF"
 
@@ -159,10 +172,9 @@ jobs:
         if: failure()
         run: |
           echo "deploy failed — rolling back"
-          flyctl releases rollback -a ai-product-investigator --yes || true
-          WORKER_ID="$(flyctl machine list -a ai-product-investigator --json \
-            | jq -r '.[] | select(.name == "worker") | .id' | head -1)"
-          if [ -n "$WORKER_ID" ]; then
-            PREV="$(flyctl machine show "$WORKER_ID" --json | jq -r '.image_ref_with_digest')"
-            flyctl machine update "$WORKER_ID" --image "$PREV" --yes || true
+          if [ -n "${PREV_IMAGE:-}" ]; then
+            echo "re-pointing the API machine at the previous image: $PREV_IMAGE"
+            flyctl deploy --config fly.toml --image "$PREV_IMAGE" || true
+          else
+            echo "no previous image to roll back to (first deploy)"
           fi
