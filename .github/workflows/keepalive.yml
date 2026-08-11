@@ -46,6 +46,7 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
 
       - name: Keepalive query (trivial, cheap, keeps the project from idle-pausing)
         run: psql "$SUPABASE_DB_URL" -tAc "SELECT 1"
@@ -88,6 +89,7 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
 
       - name: Nightly backup to R2
         run: ./deploy/backup.sh
