@@ -220,18 +220,17 @@ real `auth.users` only on the real project (verified pre-deploy, Phase 15).
 ## Rollback
 
 The deploy workflow deploys in order **migrations → worker → API** and runs an
-explicit health check; on failure it rolls back the API (`fly releases
-rollback`) and points the worker machine back at the previous image
-(`fly machine update --image`). Migrations are written backward-compatible for
-one version so a rollback never strands the schema.
+explicit health check; on failure it re-deploys the previously captured API
+image. Migrations are written backward-compatible for one version so a
+rollback never strands the schema.
 
 **Manual rollback** (deploy workflow failed to):
 
 ```bash
-fly releases rollback -a ai-product-investigator --yes        # API to previous release
-fly machine list -a ai-product-investigator                    # find the worker id
-fly machine update <worker-id> --image registry.fly.io/ai-product-investigator:<prev> --yes
-curl -fsS https://ai-product-investigator.fly.dev/health       # confirm
+flyctl machine list -a ai-product-investigator
+flyctl machine update <api-machine-id> \
+  --image registry.fly.io/ai-product-investigator:<previous-image-tag> --yes
+curl -fsS https://ai-product-investigator.fly.dev/health
 ```
 
 **If the rollback lands on a pre-migration image:** because migrations are

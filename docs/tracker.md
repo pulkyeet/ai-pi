@@ -1,12 +1,14 @@
 # Execution Tracker
 
-Last Updated: 2026-08-11
+Last Updated: 2026-08-12
 
 ## Current Status
 
-- **Phase 15 (Deployment, Observability & Cost Control) — code/deploy layer built and verified;
-  the actual deploy is a separate go/no-go for the user.** Everything the phase doc's Deliverables
-  list and storage-management sections need that the codebase didn't already have:
+- **Phase 15 (Deployment, Observability & Cost Control) — deployed and operationally verified.**
+  Fly API/worker, Supabase, Vercel, Langfuse, and R2 are live. The deploy pipeline and nightly
+  keepalive/maintenance/backup workflow are green; the remaining browser/data checks are listed
+  below. Everything the phase doc's Deliverables list and storage-management sections need that the
+  codebase didn't already have:
   - **Deploy artifacts:** multi-stage `Dockerfile` (pinned base-image digests, non-root `app`
     user), `fly.toml` (API machine) + `fly.worker.toml` (worker machine, same image, different
     entrypoint — managed via `fly machine run/update --config fly.worker.toml`), `deploy/.env.prod.example`
@@ -36,17 +38,16 @@ Last Updated: 2026-08-11
     `test_maintenance.py` 5 tests, `test_metrics.py` 3 tests, `test_run_timeout_skips_remaining_tasks`).
     Docker build succeeds (non-root, all modules import under the container's venv). `deploy/backup.sh`
     `bash -n` clean; both workflow YAMLs parse; both fly configs pass `fly config validate`.
-    **Migrations verified against a real-shaped Supabase `auth` schema** (0001→0012 clean; the
-    `user_profiles` FK resolves to `auth.users`; the 0001 `auth`-schema-exists guard is a no-op on a
-    real project). The **real Supabase project itself is unreachable from this sandbox** (network
-    egress, not a migration failure — see Blockers).
+    **Migrations verified against the real Supabase project** (0001→0012 clean over the session
+    pooler; the 0001 `auth`-schema-exists guard is a no-op and `user_profiles` resolves to
+    `auth.users`) and against a real-shaped `auth` schema.
   - **Deviations (reasons in the Phase 15 Recent Activities entry below):** the worker machine is a
     recovery-sweep + maintenance machine, not a task runner (runs still execute in the API process —
     single-worker design, the phase doc's "heavy run cannot starve the API" premise is not yet true);
     alerts ride GitHub's native failure notifications + a runbook habit rather than an external
     alerting service; Exa's missing dashboard spend cap is documented as an allowance-as-ceiling
-    decision rather than a silent gap. **The Fly deploy itself is NOT done** — separate go/no-go. Every
-  "logged here, not fixed here" finding in `docs/benchmark.md`/`docs/tuning.md` was implemented,
+    decision rather than a silent gap. Every "logged here, not fixed here" finding in
+    `docs/benchmark.md`/`docs/tuning.md` was implemented,
   test-covered, and re-validated live on three tuning queries (q01/q04/q08, ~$0.37 real spend):
   (1) `consider_oss` planner guidance rewritten in `plan_dag.md` **plus** a mechanical backstop —
   `discover.py` never seeds from `awesome-*` curated-list repos again (`_is_github_list_repo`
@@ -213,21 +214,19 @@ Last Updated: 2026-08-11
   `api.maintenance` import cleanly in the container). `deploy/backup.sh` `bash -n` clean; both
   workflow YAMLs parse; `fly config validate` passes for both `fly.toml` and `fly.worker.toml`
   (flyctl v0.4.81).
-- **Supabase pre-deploy migration check.** The full chain 0001→0012 applies cleanly **against a
-  real-shaped Supabase `auth` schema** (scratch DB with `auth.users` matching the real column set
-  incl. `id uuid PRIMARY KEY`): the 0001 `auth`-schema-exists guard correctly skipped the local stub,
-  and `user_profiles_user_id_fkey` resolves `user_profiles -> auth.users` — the phase doc's "the
-  stub assumption holds" check. **The real Supabase project itself was unreachable from this
-  sandbox** (both direct psql and a Docker container on the Windows daemon failed with "Network is
-  unreachable" to the project's IPv6 record — an egress restriction of this environment, not a
-  migration failure; reported without blind retries). The live `alembic upgrade head` against the
-  real project remains a one-command pre-deploy step for whoever holds network access.
-- **Not done / deferred to the deploy go/no-go:** the Fly deploy itself; live smoke tests (OAuth
-  both providers, SSE through Fly's proxy, eviction on real data, kill-switch flip); the first real
-  `GET /metrics` run to replace the operational drop-rate baseline (0.20) with a production one;
-  the monthly tested restore (Ops item, manual by design — a cron restore needs a second paid
-  project); `NEXT_PUBLIC_API_BASE_URL`-driven Vercel homepage repopulation after `/reports/benchmark`
-  is live.
+- **Supabase pre-deploy migration check.** The full chain 0001→0012 applied cleanly to the real
+  Supabase project through its IPv4 session pooler (the direct endpoint is IPv6-only here) and
+  against a real-shaped `auth` schema. The 0001 `auth`-schema-exists guard skipped the local stub,
+  and `user_profiles_user_id_fkey` resolves `user_profiles -> auth.users`.
+- **Live operations completed 2026-08-12:** real Supabase migration; Fly API health check and worker
+  heartbeat; deploy workflow (`make check` → image → migration → worker → API → health); kill-switch
+  trip/reset against production; keepalive and maintenance; and a PG17 `pg_dump` uploaded to R2
+  (`ai-pi-postgres-2026-08-12T064705Z.sql.gz`). The backup workflow pins its public account endpoint
+  and bucket in version control and maps the R2 token to the AWS CLI variable names. Remaining:
+  OAuth login/linking with both providers, one authenticated run with SSE through Fly, an eviction
+  drill-down against real report data, the first authenticated `/metrics` read, and the monthly
+  scratch-database restore. Vercel correctly shows its static fallback because production has zero
+  published benchmark reports; run/publish benchmarks, then redeploy Vercel to bake them into HTML.
 
 ### 2026-08-11 — Reddit removed as a source (D5 closed as "dropped")
 
