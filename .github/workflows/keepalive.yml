@@ -95,8 +95,10 @@ jobs:
         run: ./deploy/backup.sh
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          # These are account/bucket identifiers, not credentials. Pin them here so a
+          # mistyped Actions secret cannot send a valid R2 token to the wrong account.
+          R2_ENDPOINT: https://9bc3f8a0bb7fb5e9f23259efabbafc1b.r2.cloudflarestorage.com
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_BUCKET: ai-pi-backups
           AWS_DEFAULT_REGION: auto

@@ -41,7 +41,8 @@ Langfuse Cloud (free) traces + cost per run (LLM calls only)
 | `CORS_ALLOW_ORIGINS` | — | Fly env | api machine (JSON list incl. the Vercel origin) |
 | `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `LANGFUSE_HOST` | Langfuse dashboard | Fly secrets | api machine tracer (unset = no-op tracer) |
 | Quota knobs (`RUN_BUDGET_*`, `MAX_*`, `EXA_*_CAP_USD`, `GLOBAL_RUNS_PER_DAY`, …) | — | Fly env | api machine (derived values from `docs/tuning.md`) |
-| `R2_ENDPOINT` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | Cloudflare R2 | GitHub Actions secrets | backup job only — **never** the backend |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | Cloudflare R2 | GitHub Actions secrets | backup job only — **never** the backend |
+| `R2_ENDPOINT` / `R2_BUCKET` | Cloudflare R2 | Versioned in `keepalive.yml` | Account endpoint and bucket are non-secret; pinning them avoids a valid token being sent to the wrong R2 account/bucket |
 | `FLY_API_TOKEN` | Fly dashboard | GitHub Actions secret | deploy workflow |
 | `SUPABASE_JWT_SECRET` | Supabase | local `.env` only | **not read by any code** (JWKS-based verification) |
 
