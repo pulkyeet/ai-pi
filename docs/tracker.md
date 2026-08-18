@@ -4,14 +4,18 @@ Last Updated: 2026-08-18
 
 ## Current Status
 
-- **Web frontend redesign (Firecrawl-style) — done and committed (`8c1a32a`).** The whole logged-out
-  surface and the auth/new-run flow were restyled per `design.md` (repo root): orange/off-white
-  "Clean Data" system, Suisse typography, slim text-forward navbar, hero + proof card on the
-  homepage, restyled query panel and finding stream on `/new`, card-based report view. No behavior
-  changed — every E2E `data-testid` was preserved and all gates pass: `typecheck`, `lint`, 35 vitest,
-  static `next build` (homepage + `/new` still prerendered, `loadBenchmarkReports` swallows a
-  missing backend), and all 30 Playwright tests incl. axe a11y + mobile-chrome. Details in the
-  Recent Activities entry.
+- **Web frontend overhaul — dark "evidence forge" redesign, committed (`536989f`).** The light
+  redesign from earlier today was thrown out in favour of a Firecrawl-inspired near-black + orange
+  terminal aesthetic with real dynamic UI. The homepage hero streams a live investigation in a
+  terminal window: typed `pi investigate "…"` command → sources appearing → the raw source text
+  resolved through the **Asciify** lens (`@canvas-ui/asciify-react`) → a claim bound to a verbatim
+  quote → the published report card igniting inside a **FlameWrap** border
+  (`@canvas-ui/flame-wrap-react`). Plus scroll-reveal pipeline, animated `CountUp` stats, an
+  infinite trust marquee, and a glowing benchmark grid. Stack: shadcn (`components.json` +
+  `components/ui/button.tsx` + `lib/utils.ts`) on the existing Tailwind v4; fonts self-hosted via
+  `@fontsource-variable/inter` + `jetbrains-mono` (no build-time Google Fonts). No behavior
+  changed — every E2E `data-testid` preserved; all gates green: `typecheck`, `lint`, 35 vitest,
+  static `next build`, 30 Playwright incl. axe a11y + mobile-chrome. Details in Recent Activities.
 
 - **Phase 15 (Deployment, Observability & Cost Control) — deployed and operationally verified.**
   Fly API/worker, Supabase, Vercel, Langfuse, and R2 are live. The deploy pipeline and nightly
@@ -172,6 +176,38 @@ Last Updated: 2026-08-18
   for real by every `bench.runner` invocation this session — Docker was available throughout).
 
 ## Recent Activities
+
+### 2026-08-18 — Frontend overhaul: dark Firecrawl-style "evidence forge" redesign
+
+- **Complete visual overhaul, committed as `536989f` (`web: dark Firecrawl-style overhaul with
+  canvas-ui asciify + flame-wrap`).** The light `design.md` system from earlier today was superseded
+  by a near-black + orange terminal aesthetic anchored on the product's own core guarantee — "every
+  claim is bound to a verbatim span in a fetched page." The signature moment is a live terminal demo
+  on the homepage: command typing, sources appearing, the raw source text resolved through the
+  **Asciify** lens (cursor-following ASCII over the live DOM), a quote being bound
+  (`bind "Starts at $29/mo today" → pricing.entry_usd_month · grade A`), and the finished report
+  card igniting inside a **FlameWrap** border.
+- **New dynamic UI (the previous design had none):** scroll-reveal pipeline sections,
+  intersection-observed `CountUp` stats (64 sources, 128s, 100% binding, $0.06), an infinite
+  trust-marquee of the report's own data, a blinking terminal cursor, and a glowing benchmark grid
+  with coverage bars. `prefers-reduced-motion` collapses every animation to its final state.
+- **Stack:** shadcn scaffolded (`npx shadcn@latest init --defaults` → `components.json`,
+  `components/ui/button.tsx`, `lib/utils.ts`) on the existing Tailwind v4; both canvas-ui effects
+  installed via the shadcn registry (`npx shadcn@latest add @canvas-ui/asciify-react
+  @canvas-ui/flame-wrap-react`) into `web/components/canvasui/` (vendored; `// @ts-nocheck` +
+  small `noUncheckedIndexedAccess` fixes to compile under strict). Fonts self-hosted through
+  `@fontsource-variable/inter` + `jetbrains-mono` (mono = data/terminal voice, sans = prose) — no
+  build-time Google Fonts dependency.
+- **Files:** `web/app/globals.css` (rewrite — ~600-line dark token system, all shadcn semantic
+  tokens remapped to the dark palette, terminal/marquee/pipeline/stat/reveal classes),
+  `web/app/layout.tsx` (navbar + footer), `web/app/page.tsx` (hero + terminal demo + marquee +
+  stats + pipeline + benchmark grid), `web/app/new/page.tsx` (workspace/stream restyle + finding
+  kind label), new `web/components/{TerminalDemo,Reveal,CountUp}.tsx`. Report view, drill-down and
+  SourcePanel restyle entirely through tokens — behavior and every `data-testid` unchanged.
+- **Verification (all green):** `npm run typecheck` (after the vendored canvas-ui fixes),
+  `npm run lint`, `npm test` (35 passed), `npm run build` (homepage + `/new` still static,
+  `/r/[runId]` dynamic), `npm run e2e` (30 passed on Chromium + mobile-chrome, incl. axe a11y on
+  both homepage and report view). Backend untouched — no cross-layer re-check.
 
 ### 2026-08-18 — Web frontend redesign (Firecrawl-style, per `design.md`)
 
