@@ -141,7 +141,12 @@ export default function NewRunPage() {
   }
 
   async function signIn(provider: "google" | "github") {
-    await supabaseBrowserClient().auth.signInWithOAuth({ provider });
+    if (!supabaseConfigured) return;
+    try {
+      await supabaseBrowserClient().auth.signInWithOAuth({ provider });
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "sign-in failed");
+    }
   }
 
   if (!authReady) return null;
@@ -156,14 +161,25 @@ export default function NewRunPage() {
           Logged-out visitors can read every benchmark report, drill-down included. Live runs need
           an account so usage can be quota&#39;d fairly.
         </p>
-        <div className="auth-actions">
-          <button className="button-secondary" type="button" onClick={() => signIn("google")} data-testid="sign-in-google">
-            Continue with Google
-          </button>
-          <button className="button-secondary" type="button" onClick={() => signIn("github")} data-testid="sign-in-github">
-            Continue with GitHub
-          </button>
-        </div>
+        {errorMessage && (
+          <p role="alert" style={{ color: "var(--red)", margin: "0 0 12px" }}>
+            {errorMessage}
+          </p>
+        )}
+        {supabaseConfigured ? (
+          <div className="auth-actions">
+            <button className="button-secondary" type="button" onClick={() => void signIn("google")} data-testid="sign-in-google">
+              Continue with Google
+            </button>
+            <button className="button-secondary" type="button" onClick={() => void signIn("github")} data-testid="sign-in-github">
+              Continue with GitHub
+            </button>
+          </div>
+        ) : (
+          <p className="mono" style={{ color: "var(--fg-muted)" }}>
+            Sign-in is not configured in this deployment — no OAuth credentials found.
+          </p>
+        )}
         </div>
       </main>
     );
