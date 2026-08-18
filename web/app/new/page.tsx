@@ -225,6 +225,7 @@ export default function NewRunPage() {
             <ul className="finding-stream">
               {findings.map((f) => (
                 <li key={f.finding_id} data-testid="finding-item">
+                  <span className="finding-kind">{f.kind}</span>
                   {f.statement}
                 </li>
               ))}
@@ -236,7 +237,12 @@ export default function NewRunPage() {
       {phase === "done" && report && <ReportView report={report} accessToken={session.access_token} />}
 
       {(phase === "failed" || phase === "error") && (
-        <p role="alert" data-testid="run-error">
+        <p
+          role="alert"
+          data-testid="run-error"
+          className="mono"
+          style={{ color: "var(--red)" }}
+        >
           {errorMessage ?? "This run failed. Coverage/partial results, if any, are still on the report."}
         </p>
       )}
