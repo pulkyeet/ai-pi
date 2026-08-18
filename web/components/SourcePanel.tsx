@@ -95,14 +95,13 @@ export function SourcePanel({ runId, claimId, accessToken, onClose, onNavigateCl
         data-testid="source-panel"
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "var(--bg)",
           color: "var(--fg)",
           width: "min(560px, 100vw)",
           height: "100%",
           overflowY: "auto",
           padding: 20,
-          borderLeft: "1px solid var(--border)",
         }}
+        className="source-dialog"
       >
         <button
           type="button"

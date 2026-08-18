@@ -148,71 +148,62 @@ export default function NewRunPage() {
 
   if (!session) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: "80px 20px", textAlign: "center" }}>
-        <h1 style={{ fontSize: 22, marginBottom: 16 }}>Sign in to run your own idea</h1>
-        <p style={{ color: "var(--fg-muted)", marginBottom: 24, fontSize: 14 }}>
+      <main className="workspace">
+        <div className="auth-card">
+        <div className="eyebrow">Private research</div>
+        <h1>Sign in to run an idea</h1>
+        <p>
           Logged-out visitors can read every benchmark report, drill-down included. Live runs need
           an account so usage can be quota&#39;d fairly.
         </p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-          <button type="button" onClick={() => signIn("google")} data-testid="sign-in-google">
+        <div className="auth-actions">
+          <button className="button-secondary" type="button" onClick={() => signIn("google")} data-testid="sign-in-google">
             Continue with Google
           </button>
-          <button type="button" onClick={() => signIn("github")} data-testid="sign-in-github">
+          <button className="button-secondary" type="button" onClick={() => signIn("github")} data-testid="sign-in-github">
             Continue with GitHub
           </button>
+        </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: "48px 20px" }}>
+    <main className="workspace">
       {phase === "form" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <h1 style={{ fontSize: 22 }}>What are you building?</h1>
+        <div>
+          <div className="workspace-intro">
+            <div className="eyebrow">New investigation</div>
+            <h1>What are you building?</h1>
+            <p>Describe the product in your own words. We will trace the market evidence back to its source.</p>
+          </div>
+          <div className="query-panel">
           <textarea
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="AI expense tracker for freelancers"
             rows={3}
             data-testid="query-input"
-            style={{ padding: 10, borderRadius: 8, border: "1px solid var(--border)", fontSize: 15 }}
           />
           {errorMessage && (
-            <p role="alert" style={{ color: "var(--red)" }}>
+            <p role="alert" style={{ color: "var(--red)", margin: "0 0 12px" }}>
               {errorMessage}
             </p>
           )}
-          <button
-            type="button"
-            onClick={submitQuery}
-            disabled={query.trim().length === 0}
-            data-testid="submit-query"
-            style={{
-              background: "var(--accent)",
-              color: "var(--accent-fg)",
-              padding: "10px 18px",
-              borderRadius: 8,
-              border: "none",
-              fontWeight: 600,
-              cursor: "pointer",
-              alignSelf: "flex-start",
-            }}
-          >
-            Go
-          </button>
+          <footer><span className="query-hint">Market, audience, or problem space</span><button className="button-primary" type="button" onClick={submitQuery} disabled={query.trim().length === 0} data-testid="submit-query">Start investigation</button></footer>
+          </div>
         </div>
       )}
 
       {phase === "queued" && (
-        <p data-testid="queue-status">
+        <div className="run-status"><p data-testid="queue-status">
           Queued{queuePosition !== null && queuePosition > 0 ? ` — position ${queuePosition}` : ""}…
-        </p>
+        </p></div>
       )}
 
       {phase === "needs_input" && brief && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="run-status" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <p>A couple of guesses — correct them if wrong, or just hit Go.</p>
           <DisambiguationChips
             brief={brief}
@@ -221,19 +212,19 @@ export default function NewRunPage() {
               overridesRef.current = overrides;
             }}
           />
-          <button type="button" onClick={submitDisambiguation} data-testid="disambiguation-go">
-            Go
+          <button className="button-primary" type="button" onClick={submitDisambiguation} data-testid="disambiguation-go">
+            Continue
           </button>
         </div>
       )}
 
       {phase === "running" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="run-status" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <PlanChecklist items={checklist} />
           {findings.length > 0 && (
-            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
+            <ul className="finding-stream">
               {findings.map((f) => (
-                <li key={f.finding_id} style={{ fontSize: 13, color: "var(--fg-muted)" }} data-testid="finding-item">
+                <li key={f.finding_id} data-testid="finding-item">
                   {f.statement}
                 </li>
               ))}

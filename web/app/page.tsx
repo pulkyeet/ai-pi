@@ -2,86 +2,36 @@ import Link from "next/link";
 import { getBenchmarkReports } from "@/lib/api";
 import type { BenchmarkReportSummary } from "@/lib/types";
 
-// Statically rendered at build time (phase-13-frontend.md's "Homepage —
-// statically rendered"): the ten benchmark reports are fetched once during
-// `next build`, baked into HTML, and served with zero runtime dependency on
-// the FastAPI backend or Postgres — which is also what makes Supabase's
-// 7-day idle-pause risk irrelevant for a logged-out visitor (masterplan
-// §12.13 / the README's "Supabase over Neon" note).
 export const dynamic = "force-static";
 
 async function loadBenchmarkReports(): Promise<BenchmarkReportSummary[]> {
-  try {
-    return await getBenchmarkReports();
-  } catch {
-    // Build-time-only fallback (e.g. the backend isn't deployed yet during
-    // an initial build) — a real production build always has these
-    // reports available. Never thrown at request time either way, since
-    // this page has no client fetch.
-    return [];
-  }
+  try { return await getBenchmarkReports(); } catch { return []; }
 }
 
 export default async function HomePage() {
   const reports = await loadBenchmarkReports();
-
   return (
-    <main style={{ maxWidth: 960, margin: "0 auto", padding: "48px 20px" }}>
-      <h1 style={{ fontSize: 28, marginBottom: 8 }}>AI Product Investigator</h1>
-      <p style={{ color: "var(--fg-muted)", maxWidth: 640, marginBottom: 32 }}>
-        Type a product idea, get an evidence-backed discovery report where every sentence cites a
-        verbatim span in a fetched page. Ten benchmark reports below — full drill-down, no login
-        required.
-      </p>
-
-      <div style={{ display: "flex", gap: 12, marginBottom: 40 }}>
-        <Link
-          href="/new"
-          data-testid="run-your-own"
-          style={{
-            background: "var(--accent)",
-            color: "var(--accent-fg)",
-            padding: "10px 18px",
-            borderRadius: 8,
-            fontWeight: 600,
-            fontSize: 14,
-            textDecoration: "none",
-          }}
-        >
-          Run your own idea
-        </Link>
-      </div>
-
-      {reports.length === 0 ? (
-        <p style={{ color: "var(--fg-muted)" }}>No benchmark reports published yet.</p>
-      ) : (
-        <ul
-          data-testid="benchmark-list"
-          style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 12 }}
-        >
-          {reports.map((r) => (
-            <li key={r.run_id}>
-              <Link
-                href={`/r/${r.run_id}`}
-                style={{
-                  display: "block",
-                  border: "1px solid var(--border)",
-                  borderRadius: 10,
-                  padding: 16,
-                  textDecoration: "none",
-                  color: "inherit",
-                }}
-              >
-                <div style={{ fontWeight: 600 }}>{r.query}</div>
-                <div style={{ fontSize: 13, color: "var(--fg-muted)", marginTop: 4 }}>
-                  {r.report.competitors.length} competitors · coverage{" "}
-                  {Math.round(r.report.coverage.score * 100)}%
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+    <main className="page-shell">
+      <section className="hero-grid">
+        <div className="hero-copy">
+          <div className="eyebrow">Evidence, not guesswork</div>
+          <h1 className="hero-title">Know what to build.<br /><em>Prove why.</em></h1>
+          <p>Turn an early product idea into a cited market read. Every conclusion opens to the exact words that support it.</p>
+          <Link href="/new" data-testid="run-your-own" className="button-primary">Investigate an idea</Link>
+        </div>
+        <aside className="proof-card" aria-label="Example source evidence">
+          <div className="proof-topline"><span>Evidence trace</span><span>01 / 01</span></div>
+          <div className="proof-body"><div className="eyebrow">Verbatim source</div><p className="proof-quote">&quot;Categorising receipts by hand is tedious.&quot;</p><div className="proof-meta"><span className="grade-dot">Grade A</span><span>Click any finding to inspect its source.</span></div></div>
+        </aside>
+      </section>
+      <section aria-labelledby="benchmark-heading">
+        <div className="section-head"><div><div className="eyebrow">Public benchmarks</div><h2 id="benchmark-heading">Research you can inspect</h2></div><p>Open any published investigation to audit the market signals, source by source.</p></div>
+        {reports.length === 0 ? <p className="empty-state">No benchmark reports are published yet.</p> : (
+          <div className="report-grid" data-testid="benchmark-list">
+            {reports.map((r, index) => <Link href={`/r/${r.run_id}`} className="report-card" key={r.run_id}><span className="report-card-index">REPORT {String(index + 1).padStart(2, "0")}</span><h3>{r.query}</h3><footer>{r.report.competitors.length} competitors · {Math.round(r.report.coverage.score * 100)}% coverage</footer></Link>)}
+          </div>
+        )}
+      </section>
     </main>
   );
 }

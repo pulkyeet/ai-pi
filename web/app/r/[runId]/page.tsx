@@ -47,11 +47,11 @@ export default function ReportPage({ params }: { params: Promise<{ runId: string
   }, [runId]);
 
   return (
-    <main style={{ maxWidth: 960, margin: "0 auto", padding: "48px 20px" }}>
-      <Link href="/" style={{ fontSize: 13, color: "var(--accent)" }}>
-        ← All reports
+    <main className="report-page">
+      <Link href="/" className="back-link">
+        ← All investigations
       </Link>
-      <div style={{ marginTop: 20 }}>
+      <div>
         {state.status === "loading" && <p>Loading report…</p>}
         {state.status === "error" && (
           <p role="alert" data-testid="report-error">
