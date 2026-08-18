@@ -1,8 +1,17 @@
 # Execution Tracker
 
-Last Updated: 2026-08-12
+Last Updated: 2026-08-18
 
 ## Current Status
+
+- **Web frontend redesign (Firecrawl-style) — done and committed (`8c1a32a`).** The whole logged-out
+  surface and the auth/new-run flow were restyled per `design.md` (repo root): orange/off-white
+  "Clean Data" system, Suisse typography, slim text-forward navbar, hero + proof card on the
+  homepage, restyled query panel and finding stream on `/new`, card-based report view. No behavior
+  changed — every E2E `data-testid` was preserved and all gates pass: `typecheck`, `lint`, 35 vitest,
+  static `next build` (homepage + `/new` still prerendered, `loadBenchmarkReports` swallows a
+  missing backend), and all 30 Playwright tests incl. axe a11y + mobile-chrome. Details in the
+  Recent Activities entry.
 
 - **Phase 15 (Deployment, Observability & Cost Control) — deployed and operationally verified.**
   Fly API/worker, Supabase, Vercel, Langfuse, and R2 are live. The deploy pipeline and nightly
@@ -163,6 +172,35 @@ Last Updated: 2026-08-12
   for real by every `bench.runner` invocation this session — Docker was available throughout).
 
 ## Recent Activities
+
+### 2026-08-18 — Web frontend redesign (Firecrawl-style, per `design.md`)
+
+- **Visual redesign of the logged-out surface + auth/new-run flow, committed as `8c1a32a`
+  (`web: Firecrawl-style redesign per design.md`).** A new design spec `design.md` sits at the repo
+  root (next to the codebase docs — kept there rather than under `web/`; move it if it ever feels
+  misplaced). The system: orange (`--accent`) reserved for key actions/CTAs, airy off-white
+  background, soft borders over shadows, Suisse everywhere, pills used intentionally, and a slim
+  text-forward white navbar replacing the bare `<body>` layout.
+- **Files:** `web/app/globals.css` (rewrite — new component classes `hero-grid`, `proof-card`,
+  `site-header/site-nav`, `report-grid/report-card`, `data-card`, `metric-band`, `auth-card`,
+  `query-panel`, `finding-stream`, etc.; every custom property the unchanged components reference
+  inline — `--accent`, `--fg`, `--border`, `--green`, `--amber`, `--red`, `--bg-subtle`,
+  `--highlight` — is still defined), `web/app/layout.tsx` (navbar), `web/app/page.tsx`
+  (hero + evidence-trace proof card + benchmark grid; `getBenchmarkReports` wrapped in try/catch so
+  a build-time fetch failure degrades to the empty state instead of failing `next build`),
+  `web/app/new/page.tsx` (sign-in cards for Google/GitHub + restyled workspace/query-panel/finding
+  stream), `web/components/ReportView.tsx` (restyled to card sections — was ~200 lines of inline
+  styling, now structural `report-section`/`data-card`/`metric-band`; **behavior and every
+  `data-testid` unchanged**: `export-json`, `copy-permalink`, `freshness-line`, citation spans,
+  source-panel drill-down), `web/components/SourcePanel.tsx` (dropped hard-coded `--bg`/border in
+  favour of `source-dialog` class so it picks up the new palette), `web/app/r/[runId]/page.tsx`
+  (layout only). Net `+179/−363`.
+- **Verification (all green, no fixes needed):** `npm run typecheck`, `npm run lint`, `npm test`
+  (35 passed — ReportView tests assert text only, so they survive the restyle), `npm run build`
+  (homepage + `/new` still static; `/r/[runId]` still dynamic), `npm run e2e` (30 passed on
+  Chromium + mobile-chrome, incl. the axe a11y specs and the planted-session signed-in run flow).
+  The redesign did not touch the backend or the `design.md`-independent E2E data-testids, so no
+  cross-layer re-verification was needed.
 
 ### 2026-08-11 — Phase 15 (Deployment, Observability & Cost Control): code/deploy layer built
 
