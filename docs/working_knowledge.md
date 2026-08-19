@@ -450,6 +450,12 @@ Supabase (Postgres + Auth) + Vercel (frontend). Deploy order is **migrations →
 two `shared-cpu-1x` machines ≈ $6–8/mo fixed, ~$0.062/run measured (not the masterplan's "$5/mo
 near zero" — Fly's free tier is gone; the README and runbook say so).
 
+**Live URLs (verified 2026-08-19):** homepage/static frontend
+`https://ai-pi-kohl.vercel.app/` (Vercel project `pulkyeet/ai-pi`; the default
+`ai-pi.vercel.app` is squatted — a third-party redirect — so never use it), API +
+`GET /reports/benchmark` at `https://ai-product-investigator.fly.dev`, Supabase project ref
+`kftmstgqsepxuvuedseq` (region ap-south-1).
+
 ### Phase 15 additions to the architecture (2026-08-11)
 
 - **`src/api/maintenance.py`** (`python -m api.maintenance`) — the nightly storage jobs for the
