@@ -86,15 +86,23 @@ CLI_USER_EMAIL = "cli@ai-pi.local"
 
 async def ensure_cli_user(pool: asyncpg.Pool) -> uuid.UUID:
     """No authenticated caller exists yet (Phase 12) — the CLI runs as one
-    fixed local user, upserted once and reused across invocations."""
-    row = await pool.fetchrow(
-        """
-        INSERT INTO auth.users (email) VALUES ($1)
-        ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
-        RETURNING id
-        """,
+    fixed local user, upserted once and reused across invocations.
+
+    Keyed on `auth.users.id` (the PK), not `email`: Supabase's managed
+    `auth.users` has only a *partial* unique index on email
+    (`WHERE is_sso_user = false`), so `ON CONFLICT (email)` fails there,
+    and the local stub's plain `UNIQUE (email)` can't be targeted by a
+    predicate form either. SELECT-then-INSERT works against both."""
+    row = await pool.fetchrow("SELECT id FROM auth.users WHERE email = $1 LIMIT 1", CLI_USER_EMAIL)
+    if row is not None:
+        return cast(uuid.UUID, row["id"])
+    user_id = uuid.uuid4()
+    await pool.execute(
+        "INSERT INTO auth.users (id, email) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING",
+        user_id,
         CLI_USER_EMAIL,
     )
+    row = await pool.fetchrow("SELECT id FROM auth.users WHERE email = $1 LIMIT 1", CLI_USER_EMAIL)
     assert row is not None
     return cast(uuid.UUID, row["id"])
 
