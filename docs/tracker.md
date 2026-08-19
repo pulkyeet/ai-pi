@@ -225,6 +225,39 @@ Last Updated: 2026-08-19
   in-progress with frozen `updatedAt` for 20+ min (maintenance passed in 15s) — the scheduled
   nightly runs complete in ~2m12s, so this looks like a GitHub Actions runner/queue stall rather
   than a code issue, but worth watching; (3) hourly JWT expiry only affects non-browser clients.
+  (Items 1 is now closed — see the entry below; item 2 is the open follow-up.)
+
+### 2026-08-19 (second half) — Logout shipped, prod benchmark published, homepage redeployed
+
+- **Logout button shipped (`f88ab05`, pushed to main).** The signed-in `/new` workspace now shows
+  the session email + a `Sign out` control (`supabase.auth.signOut()` plus a full local run-state
+  reset so a stale run can't leak across sign-ins), `data-testid="sign-out"`/`"session-email"`.
+  `signInWithOAuth` now passes `options.redirectTo = ${window.location.origin}/new` so OAuth lands
+  on `/new` regardless of Supabase site-URL drift. Web gates green: `typecheck`, `lint`, 35 vitest,
+  static `next build`. (The note in the 2026-08-19 entry above that flagged "no logout button" is
+  closed.)
+- **Prod bug found and fixed while running the benchmark: `ensure_cli_user` crashed on Supabase
+  (`ed66898`).** Prod's managed `auth.users` has only a *partial* unique index on email
+  (`WHERE is_sso_user = false`), so the old `INSERT ... ON CONFLICT (email) DO UPDATE` failed with
+  "no unique or exclusion constraint matching the ON CONFLICT specification" — the CLI/benchmark
+  path worked on the local stub (plain `UNIQUE (email)`) but never on prod. Rewrote `ensure_cli_user`
+  as SELECT-then-INSERT keyed on the PK `auth.users.id`, which works against both schemas; verified
+  idempotent against the real prod DB. `make check` green (819 passed, 95.75%).
+- **Three live benchmark runs against production (`bench/results/2026-08-19/`, ~$0.48 total).**
+  q01 `project management tool` (r_0cb587b0, 5 competitors, 251 claims, cost $0.135, 347s),
+  q02 `email marketing platform for small businesses` (r_7877e478, 1 competitor, 188 claims,
+  $0.182, 405s), q06 `no-code website builder` (r_d4e459f7, 5 competitors, 211 claims, $0.165,
+  284s). First attempt degraded: Exa's daily credit cap ($0.33, already consumed by the earlier
+  08-19 prod runs) blocked all searches → reran with `EXA_DAILY_CREDIT_CAP_USD=2.5` override; the
+  degraded empty run (r_5495314) is left unpublished. Recall against ground truth is still 0.0
+  (q02 0.2) with the same Phase 14 causes; the reports still carry real competitors/claims/pricing
+  for the homepage. Reached prod's Postgres via the Supabase IPv4 pooler
+  (`aws-0-ap-south-1.pooler.supabase.com` — the project is in ap-south-1; the direct host is
+  IPv6-only and unresolvable from this machine).
+- **Published + homepage redeployed.** `UPDATE runs SET is_public=true` on the three runs;
+  `GET https://ai-product-investigator.fly.dev/reports/benchmark` returns all three (5/1/5
+  competitors). Push to main triggers the Vercel rebuild that bakes the reports into the static
+  homepage.
 
 ### 2026-08-18 — Frontend overhaul: dark Firecrawl-style "evidence forge" redesign
 
@@ -349,9 +382,11 @@ Last Updated: 2026-08-19
   (2026-08-19) the OAuth linking, authenticated run with SSE-through-Fly (incl. reconnect), the
   first authenticated `/metrics` read, and the maintenance no-op have all been verified live —
   see the 2026-08-19 entry. **Remaining:** the eviction drill-down against a naturally-expired
-  source (deferred to ~2026-08-26, day 8 of the 7-day TTL), the monthly scratch-database restore,
-  and publishing benchmarks + redeploying Vercel so its static homepage bakes in real report data
-  (it correctly shows its static fallback because production has zero published reports yet).
+  source (deferred to ~2026-08-26, day 8 of the 7-day TTL) and the monthly scratch-database
+  restore. Publishing benchmarks is now done — three live prod benchmark reports
+  (`project management tool`, `email marketing platform for small businesses`, `no-code website
+  builder`, run 2026-08-19, $0.48 total) are `is_public=true` and served by
+  `GET /reports/benchmark`; the Vercel homepage redeploy bakes them into the static HTML.
 
 ### 2026-08-11 — Reddit removed as a source (D5 closed as "dropped")
 

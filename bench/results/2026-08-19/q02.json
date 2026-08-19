@@ -1,0 +1,29 @@
+{
+  "claims_dropped": {
+    "invalid_attribute": 0,
+    "quote_ambiguous": 47,
+    "quote_not_in_source": 13,
+    "value_type_mismatch": 0
+  },
+  "competitor_recall": 0.2,
+  "contradiction_fired": false,
+  "cost_usd": 0.18156117000000002,
+  "coverage": 0.0,
+  "difficulty": "easy",
+  "duration_s": 405.22255631200096,
+  "fact_accuracy": 0.3333333333333333,
+  "llm_cost_usd": 0.011561169999999999,
+  "precision_proxy": 1.0,
+  "query": "email marketing platform for small businesses",
+  "query_id": "q02",
+  "run_id": "r_7877e4782669456e886ea240eee30986",
+  "search_cost_usd": 0.17,
+  "sentence_binding_rate": 1.0,
+  "split": "tuning",
+  "synthesis_omitted_sections": [
+    "mvp_synthesis",
+    "feature_gaps_synthesis",
+    "risks_synthesis"
+  ],
+  "used_fallback": true
+}

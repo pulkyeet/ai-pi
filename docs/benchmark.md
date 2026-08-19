@@ -379,3 +379,29 @@ The q07/q09 trap and contradiction findings were not re-run; the
 contradiction fix's correctness is covered by
 `tests/integration/test_contradictions.py` (multi-valued attributes no
 longer contradict; the researched trap still fires).
+
+## First production-backed benchmark run (2026-08-19) — published to the homepage
+
+Three queries were run against the **production** Supabase database via
+the local harness (`DATABASE_URL` → IPv4 pooler; the direct host is
+IPv6-only), then published (`is_public=true`) and served by
+`GET /reports/benchmark` for the Vercel homepage:
+
+| id | query | run_id | competitors | claims | cost | duration | recall |
+|---|---|---|---|---|---|---|---|
+| q01 | project management tool | r_0cb587b0 | 5 | 251 | $0.135 | 346.5s | 0.00 |
+| q02 | email marketing platform for small businesses | r_7877e478 | 1 | 188 | $0.182 | 405.2s | 0.20 |
+| q06 | no-code website builder | r_d4e459f7 | 5 | 211 | $0.165 | 284.2s | 0.00 |
+
+Recall is still 0.0 (q02 0.2) for the same Phase 14 causes, but the
+reports carry real competitors/claims for the homepage. Two operational
+notes:
+
+- **Prod `auth.users` schema differs from the local stub:** Supabase only
+  has a *partial* unique index on `email` (`WHERE is_sso_user = false`),
+  so `ensure_cli_user`'s `ON CONFLICT (email)` crashed. Rewritten as
+  SELECT-then-INSERT keyed on the PK (see tracker 2026-08-19).
+- **First attempt degraded to zero competitors:** Exa's daily credit cap
+  ($0.33) was already spent by earlier prod runs; reran with
+  `EXA_DAILY_CREDIT_CAP_USD=2.5`. The degraded empty run was left
+  unpublished.
