@@ -1,6 +1,6 @@
 # Execution Tracker
 
-Last Updated: 2026-08-18
+Last Updated: 2026-08-19
 
 ## Current Status
 
@@ -16,6 +16,11 @@ Last Updated: 2026-08-18
   `@fontsource-variable/inter` + `jetbrains-mono` (no build-time Google Fonts). No behavior
   changed — every E2E `data-testid` preserved; all gates green: `typecheck`, `lint`, 35 vitest,
   static `next build`, 30 Playwright incl. axe a11y + mobile-chrome. Details in Recent Activities.
+
+- **Frontend gap closed (2026-08-19): logout now shipped.** The signed-in `/new` UI now shows the
+  session email + a `Sign out` control (`supabase.auth.signOut()` + local run-state reset),
+  `data-testid="sign-out"` / `"session-email"`; `redirectTo: ${window.location.origin}/new`
+  is set on OAuth so the redirect lands on `/new` regardless of Supabase site-URL drift.
 
 - **Phase 15 (Deployment, Observability & Cost Control) — deployed and operationally verified.**
   Fly API/worker, Supabase, Vercel, Langfuse, and R2 are live. The deploy pipeline and nightly
@@ -177,6 +182,50 @@ Last Updated: 2026-08-18
 
 ## Recent Activities
 
+### 2026-08-19 — Phase 15 live operational checks (authenticated runs, SSE, metrics, maintenance)
+
+- **OAuth: both providers verified, cross-provider linking works.** Signed in with Google then
+  GitHub (same email `pulkit2178@gmail.com`) via the production frontend; the SQL check confirms
+  one `auth.users` row (`5cc9f291-c1ea-4088-8775-5bb75d83bee6`) with two `auth.identities`
+  (google + github) on the same `user_id`. `user_profiles` is empty pre-API-call by design
+  (`provision_user` is lazy), and the first authenticated API call materializes it — confirmed
+  via the 404-vs-401 distinction on `GET /runs/<nonexistent>`. No "already registered" collision,
+  so Supabase's automatic email-based linking held without manual `admin.linkIdentity` intervention.
+- **Three real authenticated production runs.** "AI expense tracker for freelancers"
+  (`r_bf1a5526…`, $0.156, 292s), "Calorie tracking app" (`r_70c3fc47…`, $0.131, 477s, 17 sources
+  fetched, cache hit 82%), "Email scanner tool" (`r_5b4125ad…`, $0.068). All ended `done`, none
+  failed. **Honest note: all three scored `coverage 0.0`** with `mvp/feature_gaps/risks_synthesis`
+  failing — the same Phase 14 discovery/recall bottleneck surfaces again in production (the runs
+  found competitors but the pricing/claims pipeline still drops too much to synthesize a report).
+  This is a product-quality gap, not an infra failure; tracked under Phase 14's already-documented
+  causes.
+- **SSE through Fly verified end-to-end.** Live stream delivered `plan.created` → `task.started/`
+  `completed` ×N → `report.ready` with the terminal-close condition, incremental delivery, and the
+  15s heartbeat (`: ping` comments) through the Fly proxy. **Reconnect verified**: cut the
+  connection mid-run at id 73, reconnected with `Last-Event-ID: 73`, resumed at 74 with no gap or
+  duplicate among *public* events (the apparent id-76 gap is internal executor telemetry
+  (`task.progress`/`run.finished`) that `_parse` deliberately skips — see `src/api/web/sse.py`).
+  Supabase access tokens expire hourly; the fetch-based SSE client auto-refreshes via supabase-js,
+  which only affected curl-based testing.
+- **First authenticated `GET /metrics` read.** Baseline (pre-run): `runs_today=0`, db 11.9 MB
+  (2.3%), search spend $0, rate metrics null. After the three runs: `runs_today=3/4`,
+  `cost_per_run_mean=$0.118` (vs $0.1242 threshold — the two single-run "breaches" earlier in the
+  session were small-sample noise and self-resolved), `sentence_binding_rate=1.0` (the only
+  page-alert metric, green), `extraction_drop_rate=0.068`, `p95=478.7s` (vs 512s),
+  `task_failure_rate=0.0`, `search_spend_mtd=$0.34/7.00`, `db=15.9 MB (3.0%)`. All eight alerts
+  green. Claim drill-down verified against real report data (claim 56, cronometer.org, grade A,
+  quote bound verbatim, 13 other claims from the same source).
+- **Maintenance no-op verified live.** Manually dispatched the keepalive workflow; the maintenance
+  job logged `maintenance.done db_size_bytes=15903891 evicted_sources=0 pinned_sources=0
+  pruned_events=0` — the expected no-op (nothing has hit the 7-day TTL yet). The evicted-source
+  drill-down remains deferred to ~2026-08-26 (day 8) after natural TTL expiry.
+- **Notes for future work:** (1) the signed-in UI has **no logout button** — cross-provider testing
+  required signing out via the Supabase dashboard (added to Current Status above); (2) the manually
+  dispatched keepalive workflow run 32226506457 had its keepalive + backup jobs stuck
+  in-progress with frozen `updatedAt` for 20+ min (maintenance passed in 15s) — the scheduled
+  nightly runs complete in ~2m12s, so this looks like a GitHub Actions runner/queue stall rather
+  than a code issue, but worth watching; (3) hourly JWT expiry only affects non-browser clients.
+
 ### 2026-08-18 — Frontend overhaul: dark Firecrawl-style "evidence forge" redesign
 
 - **Complete visual overhaul, committed as `536989f` (`web: dark Firecrawl-style overhaul with
@@ -296,11 +345,13 @@ Last Updated: 2026-08-18
   heartbeat; deploy workflow (`make check` → image → migration → worker → API → health); kill-switch
   trip/reset against production; keepalive and maintenance; and a PG17 `pg_dump` uploaded to R2
   (`ai-pi-postgres-2026-08-12T064705Z.sql.gz`). The backup workflow pins its public account endpoint
-  and bucket in version control and maps the R2 token to the AWS CLI variable names. Remaining:
-  OAuth login/linking with both providers, one authenticated run with SSE through Fly, an eviction
-  drill-down against real report data, the first authenticated `/metrics` read, and the monthly
-  scratch-database restore. Vercel correctly shows its static fallback because production has zero
-  published benchmark reports; run/publish benchmarks, then redeploy Vercel to bake them into HTML.
+  and bucket in version control and maps the R2 token to the AWS CLI variable names. Since then
+  (2026-08-19) the OAuth linking, authenticated run with SSE-through-Fly (incl. reconnect), the
+  first authenticated `/metrics` read, and the maintenance no-op have all been verified live —
+  see the 2026-08-19 entry. **Remaining:** the eviction drill-down against a naturally-expired
+  source (deferred to ~2026-08-26, day 8 of the 7-day TTL), the monthly scratch-database restore,
+  and publishing benchmarks + redeploying Vercel so its static homepage bakes in real report data
+  (it correctly shows its static fallback because production has zero published reports yet).
 
 ### 2026-08-11 — Reddit removed as a source (D5 closed as "dropped")
 

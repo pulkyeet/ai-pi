@@ -143,9 +143,32 @@ export default function NewRunPage() {
   async function signIn(provider: "google" | "github") {
     if (!supabaseConfigured) return;
     try {
-      await supabaseBrowserClient().auth.signInWithOAuth({ provider });
+      await supabaseBrowserClient().auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/new` },
+      });
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "sign-in failed");
+    }
+  }
+
+  async function signOut() {
+    try {
+      await supabaseBrowserClient().auth.signOut();
+      setRunId(null);
+      setPhase("form");
+      setQuery("");
+      setReport(null);
+      setFindings([]);
+      setChecklist([]);
+      setBrief(null);
+      setDisambigFields([]);
+      setQueuePosition(null);
+      setErrorMessage(null);
+      overridesRef.current = {};
+      taskIdToNodeId.current = new Map();
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "sign-out failed");
     }
   }
 
@@ -187,6 +210,27 @@ export default function NewRunPage() {
 
   return (
     <main className="workspace">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 24,
+          gap: 12,
+        }}
+      >
+        <span className="mono" style={{ color: "var(--fg-muted)", fontSize: "0.8rem" }} data-testid="session-email">
+          {session.user.email}
+        </span>
+        <button
+          className="button-secondary"
+          type="button"
+          onClick={() => void signOut()}
+          data-testid="sign-out"
+        >
+          Sign out
+        </button>
+      </div>
       {phase === "form" && (
         <div>
           <div className="workspace-intro">
